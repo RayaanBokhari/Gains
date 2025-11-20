@@ -12,29 +12,44 @@ struct TabBarView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            WorkoutListView()
+            HomeView()
                 .tabItem {
-                    Label("Workouts", systemImage: "dumbbell.fill")
+                    Image(systemName: selectedTab == 0 ? "house.fill" : "house")
+                    Text("Home")
                 }
                 .tag(0)
             
-            ExerciseListView()
+            AICoachView()
                 .tabItem {
-                    Label("Exercises", systemImage: "list.bullet")
+                    Image(systemName: selectedTab == 1 ? "message.fill" : "message")
+                    Text("AI Coach")
                 }
                 .tag(1)
             
-            ProgressTrackingView()
+            CommunityView()
                 .tabItem {
-                    Label("Progress", systemImage: "chart.line.uptrend.xyaxis")
+                    Image(systemName: selectedTab == 2 ? "person.2.fill" : "person.2")
+                    Text("Community")
                 }
                 .tag(2)
             
-            SettingsView()
+            ProfileView()
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
+                    Image(systemName: selectedTab == 3 ? "person.fill" : "person")
+                    Text("Profile")
                 }
                 .tag(3)
+        }
+        .accentColor(.gainsPrimary)
+        .onAppear {
+            // Customize tab bar appearance
+            let appearance = UITabBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = UIColor(Color.gainsCardBackground)
+            appearance.shadowColor = .clear
+            
+            UITabBar.appearance().standardAppearance = appearance
+            UITabBar.appearance().scrollEdgeAppearance = appearance
         }
     }
 }

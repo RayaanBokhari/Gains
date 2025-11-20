@@ -24,7 +24,15 @@
 		B94DAB1C2ECFC50000DB65EB /* DateFormatter+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB1D2ECFC50000DB65EB /* DateFormatter+Extensions.swift */; };
 		B94DAB1E2ECFC50000DB65EB /* WeightFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB1F2ECFC50000DB65EB /* WeightFormatter.swift */; };
 		B94DAB252ECFC50000DB65EB /* colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB002ECFC3DE00DB65EB /* colors.swift */; };
-		B94DAB262ECFC50000DB65EB /* GainsAIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB012ECFC46600DB65EB /* GainsAIApp.swift */; };
+		B94DAB272ECFC60000DB65EB /* Food.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB282ECFC60000DB65EB /* Food.swift */; };
+		B94DAB292ECFC60000DB65EB /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB2A2ECFC60000DB65EB /* HomeView.swift */; };
+		B94DAB2B2ECFC60000DB65EB /* AICoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB2C2ECFC60000DB65EB /* AICoachView.swift */; };
+		B94DAB2D2ECFC60000DB65EB /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB2E2ECFC60000DB65EB /* CommunityView.swift */; };
+		B94DAB2F2ECFC60000DB65EB /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB302ECFC60000DB65EB /* ProfileView.swift */; };
+		B94DAB312ECFC60000DB65EB /* NutritionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB322ECFC60000DB65EB /* NutritionViewModel.swift */; };
+		B94DAB332ECFC60000DB65EB /* AICoachViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB342ECFC60000DB65EB /* AICoachViewModel.swift */; };
+		B94DAB352ECFC60000DB65EB /* CommunityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB362ECFC60000DB65EB /* CommunityViewModel.swift */; };
+		B94DAB372ECFC60000DB65EB /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB382ECFC60000DB65EB /* ProfileViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +74,15 @@
 		B94DAB1B2ECFC50000DB65EB /* WorkoutService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutService.swift; sourceTree = "<group>"; };
 		B94DAB1D2ECFC50000DB65EB /* DateFormatter+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateFormatter+Extensions.swift"; sourceTree = "<group>"; };
 		B94DAB1F2ECFC50000DB65EB /* WeightFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightFormatter.swift; sourceTree = "<group>"; };
+		B94DAB282ECFC60000DB65EB /* Food.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Food.swift; sourceTree = "<group>"; };
+		B94DAB2A2ECFC60000DB65EB /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B94DAB2C2ECFC60000DB65EB /* AICoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICoachView.swift; sourceTree = "<group>"; };
+		B94DAB2E2ECFC60000DB65EB /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
+		B94DAB302ECFC60000DB65EB /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		B94DAB322ECFC60000DB65EB /* NutritionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionViewModel.swift; sourceTree = "<group>"; };
+		B94DAB342ECFC60000DB65EB /* AICoachViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICoachViewModel.swift; sourceTree = "<group>"; };
+		B94DAB362ECFC60000DB65EB /* CommunityViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityViewModel.swift; sourceTree = "<group>"; };
+		B94DAB382ECFC60000DB65EB /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -144,6 +161,7 @@
 				B94DAB052ECFC50000DB65EB /* ExerciseSet.swift */,
 				B94DAB072ECFC50000DB65EB /* ExerciseTemplate.swift */,
 				B94DAB092ECFC50000DB65EB /* Workout.swift */,
+				B94DAB282ECFC60000DB65EB /* Food.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -152,6 +170,10 @@
 			isa = PBXGroup;
 			children = (
 				B94DAB0B2ECFC50000DB65EB /* WorkoutViewModel.swift */,
+				B94DAB322ECFC60000DB65EB /* NutritionViewModel.swift */,
+				B94DAB342ECFC60000DB65EB /* AICoachViewModel.swift */,
+				B94DAB362ECFC60000DB65EB /* CommunityViewModel.swift */,
+				B94DAB382ECFC60000DB65EB /* ProfileViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -159,6 +181,10 @@
 		B94DAAFC2ECFC32F00DB65EB /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B94DAB392ECFC60000DB65EB /* Home */,
+				B94DAB3A2ECFC60000DB65EB /* AICoach */,
+				B94DAB3B2ECFC60000DB65EB /* Community */,
+				B94DAB3C2ECFC60000DB65EB /* Profile */,
 				B94DAB212ECFC50000DB65EB /* Workouts */,
 				B94DAB222ECFC50000DB65EB /* Settings */,
 				B94DAB232ECFC50000DB65EB /* Progress */,
@@ -235,6 +261,38 @@
 				B94DAB0D2ECFC50000DB65EB /* ExerciseListView.swift */,
 			);
 			path = Exercises;
+			sourceTree = "<group>";
+		};
+		B94DAB392ECFC60000DB65EB /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				B94DAB2A2ECFC60000DB65EB /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		B94DAB3A2ECFC60000DB65EB /* AICoach */ = {
+			isa = PBXGroup;
+			children = (
+				B94DAB2C2ECFC60000DB65EB /* AICoachView.swift */,
+			);
+			path = AICoach;
+			sourceTree = "<group>";
+		};
+		B94DAB3B2ECFC60000DB65EB /* Community */ = {
+			isa = PBXGroup;
+			children = (
+				B94DAB2E2ECFC60000DB65EB /* CommunityView.swift */,
+			);
+			path = Community;
+			sourceTree = "<group>";
+		};
+		B94DAB3C2ECFC60000DB65EB /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				B94DAB302ECFC60000DB65EB /* ProfileView.swift */,
+			);
+			path = Profile;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -398,7 +456,15 @@
 				B94DAB1C2ECFC50000DB65EB /* DateFormatter+Extensions.swift in Sources */,
 				B94DAB1E2ECFC50000DB65EB /* WeightFormatter.swift in Sources */,
 				B94DAB252ECFC50000DB65EB /* colors.swift in Sources */,
-				B94DAB262ECFC50000DB65EB /* GainsAIApp.swift in Sources */,
+				B94DAB272ECFC60000DB65EB /* Food.swift in Sources */,
+				B94DAB292ECFC60000DB65EB /* HomeView.swift in Sources */,
+				B94DAB2B2ECFC60000DB65EB /* AICoachView.swift in Sources */,
+				B94DAB2D2ECFC60000DB65EB /* CommunityView.swift in Sources */,
+				B94DAB2F2ECFC60000DB65EB /* ProfileView.swift in Sources */,
+				B94DAB312ECFC60000DB65EB /* NutritionViewModel.swift in Sources */,
+				B94DAB332ECFC60000DB65EB /* AICoachViewModel.swift in Sources */,
+				B94DAB352ECFC60000DB65EB /* CommunityViewModel.swift in Sources */,
+				B94DAB372ECFC60000DB65EB /* ProfileViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
