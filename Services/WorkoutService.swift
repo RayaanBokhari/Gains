@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 class WorkoutService: ObservableObject {
     @Published var workouts: [Workout] = []

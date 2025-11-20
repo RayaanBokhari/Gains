@@ -6,7 +6,6 @@
 
 import SwiftUI
 
-@main
 struct GainsAIApp: App {
     var body: some Scene {
         WindowGroup {
@@ -14,3 +13,4 @@ struct GainsAIApp: App {
         }
     }
 }
+

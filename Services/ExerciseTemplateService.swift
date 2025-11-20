@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 class ExerciseTemplateService: ObservableObject {
     @Published var templates: [ExerciseTemplate] = []
@@ -32,4 +33,3 @@ class ExerciseTemplateService: ObservableObject {
         // TODO: Implement persistence
     }
 }
-
