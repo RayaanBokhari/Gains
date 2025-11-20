@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B94DAAD52ECFC2EE00DB65EB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAAD42ECFC2EE00DB65EB /* ContentView.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		B94DAADD2ECFC2EF00DB65EB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -25,8 +29,11 @@
 
 /* Begin PBXFileReference section */
 		B94DAACF2ECFC2EE00DB65EB /* Gains.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gains.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B94DAAD42ECFC2EE00DB65EB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B94DAADC2ECFC2EF00DB65EB /* GainsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GainsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B94DAAE62ECFC2EF00DB65EB /* GainsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GainsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B94DAB002ECFC3DE00DB65EB /* colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = colors.swift; sourceTree = "<group>"; };
+		B94DAB012ECFC46600DB65EB /* GainsAIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsAIApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +82,11 @@
 		B94DAAC62ECFC2EE00DB65EB = {
 			isa = PBXGroup;
 			children = (
+				B94DAAFE2ECFC33E00DB65EB /* Theme */,
+				B94DAAFD2ECFC33700DB65EB /* Services */,
+				B94DAAFC2ECFC32F00DB65EB /* Views */,
+				B94DAAFB2ECFC32700DB65EB /* ViewModels */,
+				B94DAAFA2ECFC32100DB65EB /* Models */,
 				B94DAAD12ECFC2EE00DB65EB /* Gains */,
 				B94DAADF2ECFC2EF00DB65EB /* GainsTests */,
 				B94DAAE92ECFC2EF00DB65EB /* GainsUITests */,
@@ -90,6 +102,52 @@
 				B94DAAE62ECFC2EF00DB65EB /* GainsUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B94DAAFA2ECFC32100DB65EB /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B94DAAFB2ECFC32700DB65EB /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		B94DAAFC2ECFC32F00DB65EB /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B94DAAFF2ECFC3AD00DB65EB /* Shared */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B94DAAFD2ECFC33700DB65EB /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		B94DAAFE2ECFC33E00DB65EB /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				B94DAB002ECFC3DE00DB65EB /* colors.swift */,
+				B94DAB012ECFC46600DB65EB /* GainsAIApp.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		B94DAAFF2ECFC3AD00DB65EB /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				B94DAAD42ECFC2EE00DB65EB /* ContentView.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -236,6 +294,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B94DAAD52ECFC2EE00DB65EB /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
