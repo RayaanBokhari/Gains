@@ -15,6 +15,7 @@ export const aiChat = functions
   .runWith({
     timeoutSeconds: 60,
     memory: "256MB",
+    secrets: ["OPENAI_API_KEY"],
   })
   .https.onCall(
     async (
@@ -38,11 +39,12 @@ export const aiChat = functions
       }
 
       try {
-        // Get API key from Firebase secrets or config
-        // For secrets: use process.env after secret is accessed
-        // For config: use functions.config().openai.key
-        const apiKey = process.env.OPENAI_API_KEY ||
-          functions.config().openai?.key;
+        const apiKey = process.env.OPENAI_API_KEY;
+
+        console.log("Config check:", {
+          hasEnvKey: !!apiKey,
+        });
+
         if (!apiKey) {
           throw new functions.https.HttpsError(
             "failed-precondition",
@@ -51,7 +53,7 @@ export const aiChat = functions
         }
 
         const client = new OpenAI({
-          apiKey: apiKey,
+          apiKey,
         });
 
         const response = await client.chat.completions.create({
@@ -63,13 +65,14 @@ export const aiChat = functions
           temperature: 0.7,
         });
 
-        const reply = response.choices[0]?.message?.content ||
+        const reply =
+          response.choices[0]?.message?.content ??
           "I couldn't generate a response. Try again.";
 
         return {reply};
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ?
-          err.message : "Unknown error";
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
         console.error("AI error:", errorMessage, err);
         throw new functions.https.HttpsError(
           "internal",
