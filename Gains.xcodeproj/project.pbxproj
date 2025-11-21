@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B933B86C2ECFE0FE00DC9770 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B933B86B2ECFE0FE00DC9770 /* GoogleService-Info.plist */; };
 		B933B86F2ECFE26300DC9770 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = B933B86E2ECFE26300DC9770 /* FirebaseAnalytics */; };
 		B933B8712ECFE26300DC9770 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = B933B8702ECFE26300DC9770 /* FirebaseAuth */; };
 		B933B8732ECFE26300DC9770 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = B933B8722ECFE26300DC9770 /* FirebaseFirestore */; };
@@ -15,6 +14,7 @@
 		B933B8772ECFE43900DC9770 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B933B8762ECFE43700DC9770 /* AuthService.swift */; };
 		B933B8792ECFE65300DC9770 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = B933B8782ECFE65300DC9770 /* FirebaseFunctions */; };
 		B933B87B2ECFE68400DC9770 /* DailyLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B933B87A2ECFE68100DC9770 /* DailyLog.swift */; };
+		B933B8E52ECFEE5D00DC9770 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B933B8E42ECFEE5D00DC9770 /* GoogleService-Info.plist */; };
 		B94DAAD52ECFC2EE00DB65EB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAAD42ECFC2EE00DB65EB /* ContentView.swift */; };
 		B94DAB022ECFC50000DB65EB /* Exercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB032ECFC50000DB65EB /* Exercise.swift */; };
 		B94DAB042ECFC50000DB65EB /* ExerciseSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB052ECFC50000DB65EB /* ExerciseSet.swift */; };
@@ -44,6 +44,7 @@
 		B94DAB3D2ECFC70000DB65EB /* ChatGPTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB3E2ECFC70000DB65EB /* ChatGPTService.swift */; };
 		B94DAB3F2ECFC70000DB65EB /* UserContextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB402ECFC70000DB65EB /* UserContextService.swift */; };
 		B94DAB412ECFC70000DB65EB /* APIConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB422ECFC70000DB65EB /* APIConfiguration.swift */; };
+		B94DAB432ECFC80000DB65EB /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB442ECFC80000DB65EB /* HomeViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,10 +65,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		B933B86B2ECFE0FE00DC9770 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B933B8742ECFE42400DC9770 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
 		B933B8762ECFE43700DC9770 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		B933B87A2ECFE68100DC9770 /* DailyLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLog.swift; sourceTree = "<group>"; };
+		B933B8E42ECFEE5D00DC9770 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B94DAACF2ECFC2EE00DB65EB /* Gains.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gains.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B94DAAD42ECFC2EE00DB65EB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B94DAADC2ECFC2EF00DB65EB /* GainsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GainsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -101,6 +102,7 @@
 		B94DAB3E2ECFC70000DB65EB /* ChatGPTService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTService.swift; sourceTree = "<group>"; };
 		B94DAB402ECFC70000DB65EB /* UserContextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserContextService.swift; sourceTree = "<group>"; };
 		B94DAB422ECFC70000DB65EB /* APIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfiguration.swift; sourceTree = "<group>"; };
+		B94DAB442ECFC80000DB65EB /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -153,7 +155,7 @@
 		B94DAAC62ECFC2EE00DB65EB = {
 			isa = PBXGroup;
 			children = (
-				B933B86B2ECFE0FE00DC9770 /* GoogleService-Info.plist */,
+				B933B8E42ECFEE5D00DC9770 /* GoogleService-Info.plist */,
 				B94DAAFE2ECFC33E00DB65EB /* Theme */,
 				B94DAB202ECFC50000DB65EB /* Utilities */,
 				B94DAAFD2ECFC33700DB65EB /* Services */,
@@ -198,6 +200,7 @@
 				B94DAB342ECFC60000DB65EB /* AICoachViewModel.swift */,
 				B94DAB362ECFC60000DB65EB /* CommunityViewModel.swift */,
 				B94DAB382ECFC60000DB65EB /* ProfileViewModel.swift */,
+				B94DAB442ECFC80000DB65EB /* HomeViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -451,7 +454,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B933B86C2ECFE0FE00DC9770 /* GoogleService-Info.plist in Resources */,
+				B933B8E52ECFEE5D00DC9770 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -505,6 +508,7 @@
 				B94DAB332ECFC60000DB65EB /* AICoachViewModel.swift in Sources */,
 				B94DAB352ECFC60000DB65EB /* CommunityViewModel.swift in Sources */,
 				B94DAB372ECFC60000DB65EB /* ProfileViewModel.swift in Sources */,
+				B94DAB432ECFC80000DB65EB /* HomeViewModel.swift in Sources */,
 				B94DAB3D2ECFC70000DB65EB /* ChatGPTService.swift in Sources */,
 				B94DAB3F2ECFC70000DB65EB /* UserContextService.swift in Sources */,
 				B94DAB412ECFC70000DB65EB /* APIConfiguration.swift in Sources */,

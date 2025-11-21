@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct HomeView: View {
-    @StateObject private var viewModel = NutritionViewModel()
+    @StateObject private var viewModel = HomeViewModel()
     
     var body: some View {
         NavigationView {
@@ -36,6 +37,11 @@ struct HomeView: View {
                             Text("\(viewModel.dailyNutrition.caloriesRemaining)")
                                 .font(.system(size: 48, weight: .bold))
                                 .foregroundColor(.gainsText)
+                            
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .padding(.top, 4)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
@@ -86,27 +92,41 @@ struct HomeView: View {
                             }
                             
                             ActionButton(title: "Log Water", icon: "drop.fill") {
-                                viewModel.addWater(8)
+                                Task {
+                                    await viewModel.addWater(8)
+                                }
                             }
                         }
                         .padding(.horizontal)
                         
-                        // Recent Activity
+                        // Test Button for Firebase
+                        ActionButton(title: "+250 kcal", icon: "plus.circle.fill") {
+                            Task {
+                                await viewModel.addCalories(250)
+                            }
+                        }
+                        .padding(.horizontal)
+                        
+                        // Recent Activity (placeholder for now)
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Recent Activity")
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(.gainsText)
                                 .padding(.horizontal)
                             
-                            ForEach(viewModel.recentFoods.prefix(3)) { food in
-                                RecentFoodCard(food: food)
-                            }
+                            Text("No recent activity")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gainsSecondaryText)
+                                .padding(.horizontal)
                         }
                         .padding(.top)
                     }
                 }
             }
             .navigationBarHidden(true)
+            .task {
+                await viewModel.loadTodayIfPossible()
+            }
         }
     }
 }

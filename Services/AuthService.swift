@@ -19,9 +19,14 @@ final class AuthService: ObservableObject {
         }
     }
     
-    func signInAnonymously() async throws {
+    @MainActor
+    func signInIfNeeded() async {
         if Auth.auth().currentUser == nil {
-            _ = try await Auth.auth().signInAnonymously()
+            do {
+                _ = try await Auth.auth().signInAnonymously()
+            } catch {
+                print("Failed to sign in anonymously: \(error)")
+            }
         }
     }
 }

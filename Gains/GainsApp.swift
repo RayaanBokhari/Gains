@@ -22,11 +22,7 @@ struct GainsApp: App {
             ContentView()
                 .environmentObject(authService)
                 .task {
-                    do {
-                        try await authService.signInAnonymously()
-                    } catch {
-                        print("Failed to sign in anonymously: \(error)")
-                    }
+                    await authService.signInIfNeeded()
                 }
                 .preferredColorScheme(.dark)
         }
