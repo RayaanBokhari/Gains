@@ -1,0 +1,46 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
+*.xcuserstate
+*.xcuserdatad/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods
+Pods/
+
+# Firebase
+.firebaserc
+firebase-debug.log
+firebase-debug.*.log
+
+# Node modules (for functions)
+functions/node_modules/
+functions/lib/
+functions/.env
+
+# Build artifacts
+*.swiftmodule
+*.swiftdoc
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
