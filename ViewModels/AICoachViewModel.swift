@@ -14,16 +14,12 @@ class AICoachViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private var chatGPTService: ChatGPTService?
+    private let chatGPTService: ChatGPTService
     private let userContextService: UserContextService
     
     init(userContextService: UserContextService = UserContextService()) {
         self.userContextService = userContextService
-        
-        // Initialize ChatGPT service if API key is available
-        if let apiKey = APIConfiguration.shared.apiKey {
-            self.chatGPTService = ChatGPTService(apiKey: apiKey)
-        }
+        self.chatGPTService = ChatGPTService()
         
         // Add welcome message if no messages exist
         if messages.isEmpty {
@@ -45,21 +41,6 @@ class AICoachViewModel: ObservableObject {
     
     func sendMessage(_ content: String) {
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        
-        // Check if API key is configured
-        guard let apiKey = APIConfiguration.shared.apiKey else {
-            let errorMsg = ChatMessage(
-                content: "Please configure your OpenAI API key in Settings to use the AI Coach.",
-                isUser: false
-            )
-            messages.append(errorMsg)
-            return
-        }
-        
-        // Initialize service if needed
-        if chatGPTService == nil {
-            chatGPTService = ChatGPTService(apiKey: apiKey)
-        }
         
         // Add user message
         let userMessage = ChatMessage(content: content, isUser: true)
@@ -85,10 +66,10 @@ class AICoachViewModel: ObservableObject {
             ))
         }
         
-        // Send to ChatGPT
+        // Send to Firebase Function
         Task {
             do {
-                let response = try await chatGPTService!.sendMessage(messages: apiMessages)
+                let response = try await chatGPTService.sendMessage(messages: apiMessages)
                 
                 await MainActor.run {
                     let aiResponse = ChatMessage(content: response, isUser: false)
