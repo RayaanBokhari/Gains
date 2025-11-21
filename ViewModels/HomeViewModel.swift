@@ -13,6 +13,7 @@ import FirebaseAuth
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var dailyLog: DailyLog = DailyLog()
+    @Published var recentFoods: [Food] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
@@ -24,6 +25,7 @@ final class HomeViewModel: ObservableObject {
         nutrition.carbsConsumed = Double(dailyLog.carbs)
         nutrition.fatsConsumed = Double(dailyLog.fats)
         nutrition.waterConsumed = Double(dailyLog.waterOunces)
+        nutrition.foods = recentFoods
         return nutrition
     }
     
@@ -50,6 +52,9 @@ final class HomeViewModel: ObservableObject {
                 dailyLog = newLog
                 try await firestore.saveDailyLog(userId: user.uid, log: newLog)
             }
+            
+            // Load meals for today
+            recentFoods = try await firestore.fetchMeals(userId: user.uid, for: Date())
         } catch {
             errorMessage = "Failed to load today's log: \(error.localizedDescription)"
             print("Error loading today's log: \(error)")
@@ -94,6 +99,20 @@ final class HomeViewModel: ObservableObject {
         } catch {
             errorMessage = "Failed to save: \(error.localizedDescription)"
             print("Failed to save daily log: \(error)")
+        }
+    }
+    
+    func logFood(_ food: Food) async {
+        guard let user = auth.user else { return }
+        
+        do {
+            try await firestore.saveMeal(userId: user.uid, food: food, toDate: Date())
+            
+            // Refresh to get updated values
+            await loadTodayIfPossible()
+        } catch {
+            errorMessage = "Failed to log food: \(error.localizedDescription)"
+            print("Failed to log food: \(error)")
         }
     }
 }

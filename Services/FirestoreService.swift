@@ -49,6 +49,82 @@ final class FirestoreService {
         return log
     }
     
+    // MARK: - Meals
+    
+    func saveMeal(userId: String, food: Food, toDate date: Date) async throws {
+        let logId = Self.id(for: date)
+        
+        let mealRef = db
+            .collection("users")
+            .document(userId)
+            .collection("meals")
+            .document()
+        
+        let mealData: [String: Any] = [
+            "id": mealRef.documentID,
+            "name": food.name,
+            "calories": food.calories,
+            "protein": food.protein,
+            "carbs": food.carbs,
+            "fats": food.fats,
+            "loggedAt": Timestamp(date: food.loggedAt),
+            "date": Self.id(for: date)
+        ]
+        
+        try await mealRef.setData(mealData)
+        
+        // Update the daily log to include this meal and update totals
+        let logRef = db
+            .collection("users")
+            .document(userId)
+            .collection("dailyLogs")
+            .document(logId)
+        
+        try await logRef.setData([
+            "id": logId,
+            "date": Timestamp(date: date),
+            "calories": FieldValue.increment(Int64(food.calories)),
+            "protein": FieldValue.increment(Int64(food.protein)),
+            "carbs": FieldValue.increment(Int64(food.carbs)),
+            "fats": FieldValue.increment(Int64(food.fats)),
+            "mealIds": FieldValue.arrayUnion([mealRef.documentID])
+        ], merge: true)
+    }
+    
+    func fetchMeals(userId: String, for date: Date) async throws -> [Food] {
+        let dateId = Self.id(for: date)
+        
+        let snapshot = try await db
+            .collection("users")
+            .document(userId)
+            .collection("meals")
+            .whereField("date", isEqualTo: dateId)
+            .order(by: "loggedAt", descending: true)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc in
+            let data = doc.data()
+            guard let name = data["name"] as? String,
+                  let calories = data["calories"] as? Int,
+                  let protein = data["protein"] as? Double,
+                  let carbs = data["carbs"] as? Double,
+                  let fats = data["fats"] as? Double,
+                  let timestamp = data["loggedAt"] as? Timestamp else {
+                return nil
+            }
+            
+            return Food(
+                id: UUID(),
+                name: name,
+                calories: calories,
+                protein: protein,
+                carbs: carbs,
+                fats: fats,
+                loggedAt: timestamp.dateValue()
+            )
+        }
+    }
+    
     // MARK: - Helpers
     
     static func todayId() -> String {

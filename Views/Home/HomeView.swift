@@ -10,6 +10,7 @@ import FirebaseAuth
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
+    @State private var showFoodLogging = false
     
     var body: some View {
         NavigationView {
@@ -88,7 +89,7 @@ struct HomeView: View {
                         // Action Buttons
                         HStack(spacing: 16) {
                             ActionButton(title: "Log Food", icon: "fork.knife") {
-                                // TODO: Show food logging sheet
+                                showFoodLogging = true
                             }
                             
                             ActionButton(title: "Log Water", icon: "drop.fill") {
@@ -107,25 +108,33 @@ struct HomeView: View {
                         }
                         .padding(.horizontal)
                         
-                        // Recent Activity (placeholder for now)
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Recent Activity")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.gainsText)
-                                .padding(.horizontal)
-                            
-                            Text("No recent activity")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gainsSecondaryText)
-                                .padding(.horizontal)
+                        // Recent Foods
+                        if !viewModel.recentFoods.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Today's Meals")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.gainsText)
+                                    .padding(.horizontal)
+                                
+                                ForEach(viewModel.recentFoods) { food in
+                                    RecentFoodCard(food: food)
+                                }
+                            }
+                            .padding(.top)
                         }
-                        .padding(.top)
                     }
                 }
             }
             .navigationBarHidden(true)
             .task {
                 await viewModel.loadTodayIfPossible()
+            }
+            .sheet(isPresented: $showFoodLogging) {
+                FoodLoggingView(isPresented: $showFoodLogging) { food in
+                    Task {
+                        await viewModel.logFood(food)
+                    }
+                }
             }
         }
     }
@@ -181,16 +190,33 @@ struct RecentFoodCard: View {
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.gainsText)
                 
-                Text(food.loggedAt, style: .time)
-                    .font(.system(size: 14))
-                    .foregroundColor(.gainsSecondaryText)
+                HStack(spacing: 8) {
+                    Text(food.loggedAt, style: .time)
+                        .font(.system(size: 14))
+                        .foregroundColor(.gainsSecondaryText)
+                    
+                    Text("•")
+                        .foregroundColor(.gainsSecondaryText)
+                    
+                    Text("\(food.calories) kcal")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gainsSecondaryText)
+                }
             }
             
             Spacer()
             
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14))
-                .foregroundColor(.gainsSecondaryText)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("P: \(Int(food.protein))g")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gainsSecondaryText)
+                Text("C: \(Int(food.carbs))g")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gainsSecondaryText)
+                Text("F: \(Int(food.fats))g")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gainsSecondaryText)
+            }
         }
         .padding()
         .background(Color.gainsCardBackground)

@@ -16,11 +16,26 @@ struct ChatGPTRequest: Codable {
     struct Message: Codable {
         let role: String
         let content: String
+        let imageUrl: String? // For vision API
+        
+        init(role: String, content: String, imageUrl: String? = nil) {
+            self.role = role
+            self.content = content
+            self.imageUrl = imageUrl
+        }
     }
 }
 
 struct ChatGPTResponse: Codable {
     let reply: String
+}
+
+struct FoodEstimation: Codable {
+    var name: String
+    var calories: Int
+    var protein: Double
+    var carbs: Double
+    var fats: Double
 }
 
 class ChatGPTService: ObservableObject {
@@ -31,6 +46,11 @@ class ChatGPTService: ObservableObject {
     }
     
     func sendMessage(messages: [ChatGPTRequest.Message]) async throws -> String {
+        return try await sendMessageWithVision(messages: messages)
+    }
+    
+    /// Send messages with optional vision support
+    private func sendMessageWithVision(messages: [ChatGPTRequest.Message]) async throws -> String {
         // Ensure user is authenticated
         guard Auth.auth().currentUser != nil else {
             throw NSError(
@@ -40,11 +60,34 @@ class ChatGPTService: ObservableObject {
             )
         }
         
+        // Build messages array with vision support
         let requestData: [String: Any] = [
-            "messages": messages.map { [
-                "role": $0.role,
-                "content": $0.content
-            ]}
+            "messages": messages.map { message -> [String: Any] in
+                var messageDict: [String: Any] = [
+                    "role": message.role
+                ]
+                
+                // If message has an image, use vision API format
+                if let imageUrl = message.imageUrl {
+                    messageDict["content"] = [
+                        [
+                            "type": "text",
+                            "text": message.content
+                        ],
+                        [
+                            "type": "image_url",
+                            "image_url": [
+                                "url": imageUrl
+                            ]
+                        ]
+                    ]
+                } else {
+                    // Text-only format
+                    messageDict["content"] = message.content
+                }
+                
+                return messageDict
+            }
         ]
         
         let function = functions.httpsCallable("aiChat")
@@ -102,6 +145,110 @@ class ChatGPTService: ObservableObject {
                 domain: "ChatGPTService",
                 code: error.code,
                 userInfo: [NSLocalizedDescriptionKey: errorMessage]
+            )
+        }
+    }
+    
+    /// Estimates nutritional information from a food description and/or image
+    func estimateFood(description: String, imageBase64: String? = nil) async throws -> FoodEstimation {
+        // Ensure user is authenticated
+        guard Auth.auth().currentUser != nil else {
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "You must be signed in to estimate food."]
+            )
+        }
+        
+        var promptText = """
+        Analyze this food and provide a nutrition estimate in JSON format.
+        
+        """
+        
+        if !description.isEmpty {
+            promptText += "Food description: \(description)\n\n"
+        }
+        
+        if imageBase64 != nil {
+            promptText += "Look at the image provided and estimate the nutritional content.\n\n"
+        }
+        
+        promptText += """
+        Return ONLY a JSON object with this exact structure (no additional text, no markdown):
+        {
+            "name": "A concise name for the food",
+            "calories": estimated_calories_as_integer,
+            "protein": estimated_protein_in_grams_as_decimal,
+            "carbs": estimated_carbs_in_grams_as_decimal,
+            "fats": estimated_fats_in_grams_as_decimal
+        }
+        
+        Be reasonable with estimates. If the description is vague, make educated guesses based on typical portion sizes.
+        """
+        
+        let systemMessage = ChatGPTRequest.Message(
+            role: "system", 
+            content: "You are a nutrition expert. Respond ONLY with valid JSON, no markdown formatting."
+        )
+        
+        // Build user message with vision support
+        let userMessage: ChatGPTRequest.Message
+        
+        if let imageData = imageBase64 {
+            // Use vision API format with image
+            userMessage = ChatGPTRequest.Message(
+                role: "user",
+                content: promptText,
+                imageUrl: imageData
+            )
+        } else {
+            // Text-only message
+            userMessage = ChatGPTRequest.Message(
+                role: "user",
+                content: promptText
+            )
+        }
+        
+        let messages = [systemMessage, userMessage]
+        let reply = try await sendMessageWithVision(messages: messages)
+        
+        // Try to extract JSON from the response
+        var jsonString = reply.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Remove markdown code blocks if present
+        if jsonString.hasPrefix("```json") {
+            jsonString = jsonString.replacingOccurrences(of: "```json", with: "")
+                .replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if jsonString.hasPrefix("```") {
+            jsonString = jsonString.replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        // Find JSON object bounds
+        if let start = jsonString.firstIndex(of: "{"),
+           let end = jsonString.lastIndex(of: "}") {
+            jsonString = String(jsonString[start...end])
+        }
+        
+        guard let jsonData = jsonString.data(using: .utf8) else {
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -3,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to parse response data"]
+            )
+        }
+        
+        do {
+            let estimation = try JSONDecoder().decode(FoodEstimation.self, from: jsonData)
+            return estimation
+        } catch {
+            print("Failed to decode JSON. Raw response: \(reply)")
+            print("Cleaned JSON string: \(jsonString)")
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -4,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to decode nutrition data. Please try again."]
             )
         }
     }

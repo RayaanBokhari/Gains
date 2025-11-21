@@ -31,9 +31,11 @@
 		B94DAB1A2ECFC50000DB65EB /* WorkoutService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB1B2ECFC50000DB65EB /* WorkoutService.swift */; };
 		B94DAB1C2ECFC50000DB65EB /* DateFormatter+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB1D2ECFC50000DB65EB /* DateFormatter+Extensions.swift */; };
 		B94DAB1E2ECFC50000DB65EB /* WeightFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB1F2ECFC50000DB65EB /* WeightFormatter.swift */; };
+		B94DAB4C2ECFC82000DB65EB /* ImageUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB4D2ECFC82000DB65EB /* ImageUtilities.swift */; };
 		B94DAB252ECFC50000DB65EB /* colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB002ECFC3DE00DB65EB /* colors.swift */; };
 		B94DAB272ECFC60000DB65EB /* Food.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB282ECFC60000DB65EB /* Food.swift */; };
 		B94DAB292ECFC60000DB65EB /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB2A2ECFC60000DB65EB /* HomeView.swift */; };
+		B94DAB4A2ECFC81000DB65EB /* FoodLoggingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */; };
 		B94DAB2B2ECFC60000DB65EB /* AICoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB2C2ECFC60000DB65EB /* AICoachView.swift */; };
 		B94DAB2D2ECFC60000DB65EB /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB2E2ECFC60000DB65EB /* CommunityView.swift */; };
 		B94DAB2F2ECFC60000DB65EB /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB302ECFC60000DB65EB /* ProfileView.swift */; };
@@ -90,8 +92,10 @@
 		B94DAB1B2ECFC50000DB65EB /* WorkoutService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutService.swift; sourceTree = "<group>"; };
 		B94DAB1D2ECFC50000DB65EB /* DateFormatter+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateFormatter+Extensions.swift"; sourceTree = "<group>"; };
 		B94DAB1F2ECFC50000DB65EB /* WeightFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightFormatter.swift; sourceTree = "<group>"; };
+		B94DAB4D2ECFC82000DB65EB /* ImageUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtilities.swift; sourceTree = "<group>"; };
 		B94DAB282ECFC60000DB65EB /* Food.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Food.swift; sourceTree = "<group>"; };
 		B94DAB2A2ECFC60000DB65EB /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLoggingView.swift; sourceTree = "<group>"; };
 		B94DAB2C2ECFC60000DB65EB /* AICoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICoachView.swift; sourceTree = "<group>"; };
 		B94DAB2E2ECFC60000DB65EB /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
 		B94DAB302ECFC60000DB65EB /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -258,6 +262,7 @@
 			children = (
 				B94DAB1D2ECFC50000DB65EB /* DateFormatter+Extensions.swift */,
 				B94DAB1F2ECFC50000DB65EB /* WeightFormatter.swift */,
+				B94DAB4D2ECFC82000DB65EB /* ImageUtilities.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -299,6 +304,7 @@
 			isa = PBXGroup;
 			children = (
 				B94DAB2A2ECFC60000DB65EB /* HomeView.swift */,
+				B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -498,9 +504,11 @@
 				B933B8772ECFE43900DC9770 /* AuthService.swift in Sources */,
 				B94DAB1C2ECFC50000DB65EB /* DateFormatter+Extensions.swift in Sources */,
 				B94DAB1E2ECFC50000DB65EB /* WeightFormatter.swift in Sources */,
+				B94DAB4C2ECFC82000DB65EB /* ImageUtilities.swift in Sources */,
 				B94DAB252ECFC50000DB65EB /* colors.swift in Sources */,
 				B94DAB272ECFC60000DB65EB /* Food.swift in Sources */,
 				B94DAB292ECFC60000DB65EB /* HomeView.swift in Sources */,
+				B94DAB4A2ECFC81000DB65EB /* FoodLoggingView.swift in Sources */,
 				B94DAB2B2ECFC60000DB65EB /* AICoachView.swift in Sources */,
 				B94DAB2D2ECFC60000DB65EB /* CommunityView.swift in Sources */,
 				B94DAB2F2ECFC60000DB65EB /* ProfileView.swift in Sources */,
