@@ -9,6 +9,8 @@ import SwiftUI
 
 struct AICoachView: View {
     @StateObject private var viewModel = AICoachViewModel()
+    @StateObject private var nutritionViewModel = NutritionViewModel()
+    @StateObject private var profileViewModel = ProfileViewModel()
     @State private var messageText = ""
     
     var body: some View {
@@ -25,10 +27,9 @@ struct AICoachView: View {
                         
                         Spacer()
                         
-                        Button(action: {}) {
-                            Image(systemName: "play.fill")
-                                .font(.system(size: 16))
-                                .foregroundColor(.gainsPrimary)
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
                         }
                     }
                     .padding()
@@ -41,6 +42,14 @@ struct AICoachView: View {
                                     MessageBubble(message: message)
                                         .id(message.id)
                                 }
+                                
+                                if viewModel.isLoading {
+                                    HStack {
+                                        TypingIndicator()
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal)
+                                }
                             }
                             .padding()
                         }
@@ -48,6 +57,13 @@ struct AICoachView: View {
                             if let lastMessage = viewModel.messages.last {
                                 withAnimation {
                                     proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
+                            }
+                        }
+                        .onChange(of: viewModel.isLoading) { _ in
+                            if viewModel.isLoading {
+                                withAnimation {
+                                    proxy.scrollTo("typing", anchor: .bottom)
                                 }
                             }
                         }
@@ -61,27 +77,67 @@ struct AICoachView: View {
                             .background(Color.gainsCardBackground)
                             .cornerRadius(12)
                             .foregroundColor(.gainsText)
+                            .disabled(viewModel.isLoading)
                         
                         Button(action: sendMessage) {
-                            Image(systemName: "mic.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(.gainsPrimary)
-                                .frame(width: 44, height: 44)
-                                .background(Color.gainsCardBackground)
-                                .cornerRadius(12)
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
+                                    .frame(width: 44, height: 44)
+                            } else {
+                                Image(systemName: "paperplane.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gainsPrimary)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.gainsCardBackground)
+                                    .cornerRadius(12)
+                            }
                         }
+                        .disabled(viewModel.isLoading || messageText.isEmpty)
                     }
                     .padding()
                 }
             }
             .navigationBarHidden(true)
+            .onAppear {
+                // Connect ViewModels to provide context
+                viewModel.setNutritionViewModel(nutritionViewModel)
+                viewModel.setProfileViewModel(profileViewModel)
+            }
         }
     }
     
     private func sendMessage() {
-        guard !messageText.isEmpty else { return }
-        viewModel.sendMessage(messageText)
+        guard !messageText.isEmpty && !viewModel.isLoading else { return }
+        let text = messageText
         messageText = ""
+        viewModel.sendMessage(text)
+    }
+}
+
+struct TypingIndicator: View {
+    @State private var animationPhase = 0
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<3) { index in
+                Circle()
+                    .fill(Color.gainsSecondaryText)
+                    .frame(width: 8, height: 8)
+                    .opacity(animationPhase == index ? 1.0 : 0.3)
+            }
+        }
+        .padding()
+        .background(Color.gainsCardBackground)
+        .cornerRadius(16)
+        .id("typing")
+        .onAppear {
+            Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { _ in
+                withAnimation {
+                    animationPhase = (animationPhase + 1) % 3
+                }
+            }
+        }
     }
 }
 
