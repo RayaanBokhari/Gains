@@ -126,5 +126,75 @@ final class HomeViewModel: ObservableObject {
             print("Error loading log: \(error)")
         }
     }
+    
+    func editMeal(_ updatedFood: Food) async {
+        guard let user = auth.user,
+              let mealId = updatedFood.mealId else {
+            errorMessage = "Cannot edit meal: missing meal ID"
+            return
+        }
+        
+        // Find the old food object to calculate differences
+        guard let oldFood = recentFoods.first(where: { $0.mealId == mealId }) else {
+            errorMessage = "Cannot find meal to edit"
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        
+        do {
+            try await firestore.updateMeal(
+                userId: user.uid,
+                mealId: mealId,
+                food: updatedFood,
+                oldFood: oldFood,
+                toDate: selectedDate
+            )
+            
+            // Refresh to get updated values
+            await loadDate(selectedDate)
+        } catch {
+            errorMessage = "Failed to update meal: \(error.localizedDescription)"
+            print("Failed to update meal: \(error)")
+        }
+    }
+    
+    func deleteMeal(_ food: Food) async {
+        guard let user = auth.user,
+              let mealId = food.mealId else {
+            errorMessage = "Cannot delete meal: missing meal ID"
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        
+        do {
+            // Delete photo from Storage if it exists
+            if let photoUrl = food.photoUrl {
+                try? await StorageService.shared.deletePhoto(from: photoUrl)
+            }
+            
+            try await firestore.deleteMeal(
+                userId: user.uid,
+                mealId: mealId,
+                food: food,
+                fromDate: selectedDate
+            )
+            
+            // Refresh to get updated values
+            await loadDate(selectedDate)
+        } catch {
+            errorMessage = "Failed to delete meal: \(error.localizedDescription)"
+            print("Failed to delete meal: \(error)")
+        }
+    }
+    
+    func refreshMeals() async {
+        await loadDate(selectedDate)
+    }
 }
 

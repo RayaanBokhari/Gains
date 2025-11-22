@@ -16,8 +16,9 @@ struct Food: Identifiable, Codable {
     var fats: Double // in grams
     var loggedAt: Date
     var photoUrl: String? // Firebase Storage URL
+    var mealId: String? // Firestore document ID for updates/deletes
     
-    init(id: UUID = UUID(), name: String, calories: Int, protein: Double, carbs: Double, fats: Double, loggedAt: Date = Date(), photoUrl: String? = nil) {
+    init(id: UUID = UUID(), name: String, calories: Int, protein: Double, carbs: Double, fats: Double, loggedAt: Date = Date(), photoUrl: String? = nil, mealId: String? = nil) {
         self.id = id
         self.name = name
         self.calories = calories
@@ -26,6 +27,7 @@ struct Food: Identifiable, Codable {
         self.fats = fats
         self.loggedAt = loggedAt
         self.photoUrl = photoUrl
+        self.mealId = mealId
     }
 }
 

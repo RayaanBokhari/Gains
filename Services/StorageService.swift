@@ -72,5 +72,64 @@ final class StorageService {
         
         return url.absoluteString
     }
+    
+    /// Delete a photo from Firebase Storage given its download URL.
+    func deletePhoto(from urlString: String) async throws {
+        guard let url = URL(string: urlString) else {
+            throw NSError(
+                domain: "StorageService",
+                code: -3,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid URL"]
+            )
+        }
+        
+        // Extract the path from the Firebase Storage URL
+        // URLs are typically: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media&token={token}
+        guard let path = extractPath(from: urlString) else {
+            throw NSError(
+                domain: "StorageService",
+                code: -4,
+                userInfo: [NSLocalizedDescriptionKey: "Could not extract path from URL"]
+            )
+        }
+        
+        let ref = storage.reference(withPath: path)
+        
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            ref.delete { error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+    
+    /// Extract the storage path from a Firebase Storage download URL.
+    private func extractPath(from urlString: String) -> String? {
+        // Firebase Storage URLs have format:
+        // https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{encodedPath}?alt=media&token={token}
+        
+        guard let url = URL(string: urlString),
+              let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+        
+        // Extract path from /o/{encodedPath}
+        let path = components.path
+        guard path.contains("/o/") else {
+            return nil
+        }
+        
+        let pathComponents = path.components(separatedBy: "/o/")
+        guard pathComponents.count > 1 else {
+            return nil
+        }
+        
+        // Get the encoded path and decode it
+        let encodedPath = pathComponents[1]
+        return encodedPath.removingPercentEncoding
+    }
 }
 

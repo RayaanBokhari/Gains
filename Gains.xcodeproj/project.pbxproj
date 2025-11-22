@@ -46,8 +46,11 @@
 		B94DAB412ECFC70000DB65EB /* APIConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB422ECFC70000DB65EB /* APIConfiguration.swift */; };
 		B94DAB432ECFC80000DB65EB /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB442ECFC80000DB65EB /* HomeViewModel.swift */; };
 		B94DAB452ECFC85000DB65EB /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB462ECFC85000DB65EB /* StorageService.swift */; };
+		B94DAB522ECFC85000DB65EB /* ImageCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB532ECFC85000DB65EB /* ImageCacheService.swift */; };
 		B94DAB4A2ECFC81000DB65EB /* FoodLoggingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */; };
 		B94DAB4C2ECFC82000DB65EB /* ImageUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB4D2ECFC82000DB65EB /* ImageUtilities.swift */; };
+		B94DAB4E2ECFC83000DB65EB /* MealCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB4F2ECFC83000DB65EB /* MealCard.swift */; };
+		B94DAB502ECFC84000DB65EB /* EditMealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB512ECFC84000DB65EB /* EditMealView.swift */; };
 		B9DDCC902ED1490A000E97E3 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = B9DDCC8F2ED1490A000E97E3 /* FirebaseStorage */; };
 		B9DDCC922ED14AE4000E97E3 /* UIImage+Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */; };
 /* End PBXBuildFile section */
@@ -109,8 +112,11 @@
 		B94DAB422ECFC70000DB65EB /* APIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfiguration.swift; sourceTree = "<group>"; };
 		B94DAB442ECFC80000DB65EB /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		B94DAB462ECFC85000DB65EB /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
+		B94DAB532ECFC85000DB65EB /* ImageCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheService.swift; sourceTree = "<group>"; };
 		B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLoggingView.swift; sourceTree = "<group>"; };
 		B94DAB4D2ECFC82000DB65EB /* ImageUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtilities.swift; sourceTree = "<group>"; };
+		B94DAB4F2ECFC83000DB65EB /* MealCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCard.swift; sourceTree = "<group>"; };
+		B94DAB512ECFC84000DB65EB /* EditMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditMealView.swift; sourceTree = "<group>"; };
 		B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Base64.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -238,6 +244,7 @@
 				B933B8762ECFE43700DC9770 /* AuthService.swift */,
 				B933B8742ECFE42400DC9770 /* FirestoreService.swift */,
 				B94DAB462ECFC85000DB65EB /* StorageService.swift */,
+				B94DAB532ECFC85000DB65EB /* ImageCacheService.swift */,
 				B94DAB192ECFC50000DB65EB /* ExerciseTemplateService.swift */,
 				B94DAB1B2ECFC50000DB65EB /* WorkoutService.swift */,
 				B94DAB3E2ECFC70000DB65EB /* ChatGPTService.swift */,
@@ -313,6 +320,8 @@
 			children = (
 				B94DAB2A2ECFC60000DB65EB /* HomeView.swift */,
 				B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */,
+				B94DAB4F2ECFC83000DB65EB /* MealCard.swift */,
+				B94DAB512ECFC84000DB65EB /* EditMealView.swift */,
 				B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */,
 			);
 			path = Home;
@@ -518,6 +527,7 @@
 				B94DAB162ECFC50000DB65EB /* WorkoutListView.swift in Sources */,
 				B933B8752ECFE42900DC9770 /* FirestoreService.swift in Sources */,
 				B94DAB452ECFC85000DB65EB /* StorageService.swift in Sources */,
+				B94DAB522ECFC85000DB65EB /* ImageCacheService.swift in Sources */,
 				B94DAB182ECFC50000DB65EB /* ExerciseTemplateService.swift in Sources */,
 				B94DAB1A2ECFC50000DB65EB /* WorkoutService.swift in Sources */,
 				B933B8772ECFE43900DC9770 /* AuthService.swift in Sources */,
@@ -528,6 +538,8 @@
 				B94DAB272ECFC60000DB65EB /* Food.swift in Sources */,
 				B94DAB292ECFC60000DB65EB /* HomeView.swift in Sources */,
 				B94DAB4A2ECFC81000DB65EB /* FoodLoggingView.swift in Sources */,
+				B94DAB4E2ECFC83000DB65EB /* MealCard.swift in Sources */,
+				B94DAB502ECFC84000DB65EB /* EditMealView.swift in Sources */,
 				B94DAB2B2ECFC60000DB65EB /* AICoachView.swift in Sources */,
 				B94DAB2D2ECFC60000DB65EB /* CommunityView.swift in Sources */,
 				B94DAB2F2ECFC60000DB65EB /* ProfileView.swift in Sources */,
