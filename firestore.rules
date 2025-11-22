@@ -27,6 +27,11 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
       
+      // Weight entries subcollection
+      match /weightEntries/{entryId} {
+        allow read, write: if isOwner(userId);
+      }
+      
       // Workouts subcollection (if needed in future)
       match /workouts/{workoutId} {
         allow read, write: if isOwner(userId);

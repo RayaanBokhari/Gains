@@ -130,11 +130,15 @@ struct HomeView: View {
                 await viewModel.loadTodayIfPossible()
             }
             .sheet(isPresented: $showFoodLogging) {
-                FoodLoggingView(isPresented: $showFoodLogging) { food in
-                    Task {
-                        await viewModel.logFood(food)
-                    }
-                }
+                FoodLoggingView(
+                    isPresented: $showFoodLogging,
+                    onFoodLogged: { food in
+                        Task {
+                            await viewModel.logFood(food)
+                        }
+                    },
+                    selectedDate: viewModel.selectedDate
+                )
             }
         }
     }
@@ -184,7 +188,32 @@ struct RecentFoodCard: View {
     let food: Food
     
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
+            // Photo thumbnail if available
+            if let photoUrl = food.photoUrl, let url = URL(string: photoUrl) {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Rectangle()
+                        .fill(Color.gainsCardBackground)
+                        .overlay(
+                            ProgressView()
+                        )
+                }
+                .frame(width: 60, height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else {
+                // Placeholder icon
+                Image(systemName: "fork.knife")
+                    .font(.system(size: 20))
+                    .foregroundColor(.gainsSecondaryText)
+                    .frame(width: 60, height: 60)
+                    .background(Color.gainsCardBackground)
+                    .cornerRadius(8)
+            }
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(food.name)
                     .font(.system(size: 16, weight: .medium))

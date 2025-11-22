@@ -7,7 +7,6 @@
 import Foundation
 import FirebaseFirestore
 
-
 final class FirestoreService {
     static let shared = FirestoreService()
     private init() {}
@@ -60,7 +59,7 @@ final class FirestoreService {
             .collection("meals")
             .document()
         
-        let mealData: [String: Any] = [
+        var mealData: [String: Any] = [
             "id": mealRef.documentID,
             "name": food.name,
             "calories": food.calories,
@@ -70,6 +69,11 @@ final class FirestoreService {
             "loggedAt": Timestamp(date: food.loggedAt),
             "date": Self.id(for: date)
         ]
+        
+        // Add photo URL if present
+        if let photoUrl = food.photoUrl {
+            mealData["photoUrl"] = photoUrl
+        }
         
         try await mealRef.setData(mealData)
         
@@ -113,6 +117,8 @@ final class FirestoreService {
                 return nil
             }
             
+            let photoUrl = data["photoUrl"] as? String
+            
             return Food(
                 id: UUID(),
                 name: name,
@@ -120,7 +126,8 @@ final class FirestoreService {
                 protein: protein,
                 carbs: carbs,
                 fats: fats,
-                loggedAt: timestamp.dateValue()
+                loggedAt: timestamp.dateValue(),
+                photoUrl: photoUrl
             )
         }
     }

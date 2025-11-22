@@ -7,6 +7,8 @@
 
 import SwiftUI
 import PhotosUI
+import FirebaseAuth
+import UIKit
 
 struct FoodLoggingView: View {
     @Environment(\.dismiss) var dismiss
@@ -14,11 +16,13 @@ struct FoodLoggingView: View {
     
     @Binding var isPresented: Bool
     let onFoodLogged: (Food) -> Void
+    let selectedDate: Date
     
     @State private var foodDescription: String = ""
     @State private var selectedImage: UIImage?
     @State private var showImagePicker = false
     @State private var isEstimating = false
+    @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showEstimation = false
     
@@ -203,21 +207,30 @@ struct FoodLoggingView: View {
                             
                             // Save Button
                             Button {
-                                saveFood()
+                                Task {
+                                    await saveFood()
+                                }
                             } label: {
                                 HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 16))
-                                    Text("Log Food")
-                                        .font(.system(size: 16, weight: .semibold))
+                                    if isSaving {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        Text("Saving...")
+                                            .font(.system(size: 16, weight: .semibold))
+                                    } else {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 16))
+                                        Text("Log Food")
+                                            .font(.system(size: 16, weight: .semibold))
+                                    }
                                 }
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(isValidInput ? Color.green : Color.gray.opacity(0.3))
+                                .background((isValidInput && !isSaving) ? Color.green : Color.gray.opacity(0.3))
                                 .cornerRadius(12)
                             }
-                            .disabled(!isValidInput)
+                            .disabled(!isValidInput || isSaving)
                             .padding(.horizontal)
                         }
                     }
@@ -254,7 +267,7 @@ struct FoodLoggingView: View {
         
         do {
             // Convert image to base64 if present
-            let imageBase64 = selectedImage?.toBase64(compressionQuality: 0.7)
+            let imageBase64 = selectedImage?.jpegDataURLBase64(compressionQuality: 0.7)
             
             let estimation = try await chatGPTService.estimateFood(
                 description: foodDescription,
@@ -279,13 +292,44 @@ struct FoodLoggingView: View {
         }
     }
     
-    private func saveFood() {
+    private func saveFood() async {
         guard let cal = Int(calories),
               let pro = Double(protein),
               let car = Double(carbs),
               let fat = Double(fats) else {
-            errorMessage = "Please enter valid numbers"
+            await MainActor.run {
+                errorMessage = "Please enter valid numbers"
+            }
             return
+        }
+        
+        guard let userId = Auth.auth().currentUser?.uid else {
+            await MainActor.run {
+                errorMessage = "You must be signed in"
+            }
+            return
+        }
+        
+        isSaving = true
+        errorMessage = nil
+        
+        var photoUrl: String? = nil
+        
+        // Upload photo if present
+        if let image = selectedImage {
+            do {
+                photoUrl = try await StorageService.shared.uploadMealImage(
+                    userId: userId,
+                    image: image,
+                    for: selectedDate
+                )
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Failed to upload photo: \(error.localizedDescription)"
+                    isSaving = false
+                }
+                return
+            }
         }
         
         let food = Food(
@@ -294,11 +338,14 @@ struct FoodLoggingView: View {
             protein: pro,
             carbs: car,
             fats: fat,
-            loggedAt: Date()
+            loggedAt: selectedDate,
+            photoUrl: photoUrl
         )
         
-        onFoodLogged(food)
-        isPresented = false
+        await MainActor.run {
+            onFoodLogged(food)
+            isPresented = false
+        }
     }
 }
 
@@ -370,8 +417,12 @@ struct ImagePicker: UIViewControllerRepresentable {
 }
 
 #Preview {
-    FoodLoggingView(isPresented: .constant(true)) { food in
-        print("Logged: \(food.name)")
-    }
+    FoodLoggingView(
+        isPresented: .constant(true),
+        onFoodLogged: { food in
+            print("Logged: \(food.name)")
+        },
+        selectedDate: Date()
+    )
 }
 

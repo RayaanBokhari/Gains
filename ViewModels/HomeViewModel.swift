@@ -16,6 +16,7 @@ final class HomeViewModel: ObservableObject {
     @Published var recentFoods: [Food] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var selectedDate: Date = Date()
     
     // Computed properties to bridge DailyLog to DailyNutrition format for UI
     var dailyNutrition: DailyNutrition {
@@ -33,32 +34,8 @@ final class HomeViewModel: ObservableObject {
     private let auth = AuthService.shared
     
     func loadTodayIfPossible() async {
-        guard let user = auth.user else {
-            print("No user signed in yet")
-            return
-        }
-        
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
-        
-        do {
-            if let existing = try await firestore.fetchDailyLog(userId: user.uid, for: Date()) {
-                dailyLog = existing
-            } else {
-                // No log yet, start with a fresh one
-                var newLog = DailyLog()
-                newLog.id = FirestoreService.todayId()
-                dailyLog = newLog
-                try await firestore.saveDailyLog(userId: user.uid, log: newLog)
-            }
-            
-            // Load meals for today
-            recentFoods = try await firestore.fetchMeals(userId: user.uid, for: Date())
-        } catch {
-            errorMessage = "Failed to load today's log: \(error.localizedDescription)"
-            print("Error loading today's log: \(error)")
-        }
+        selectedDate = Date()
+        await loadDate(Date())
     }
     
     func addCalories(_ amount: Int) async {
@@ -106,13 +83,47 @@ final class HomeViewModel: ObservableObject {
         guard let user = auth.user else { return }
         
         do {
-            try await firestore.saveMeal(userId: user.uid, food: food, toDate: Date())
+            try await firestore.saveMeal(userId: user.uid, food: food, toDate: selectedDate)
             
             // Refresh to get updated values
-            await loadTodayIfPossible()
+            await loadDate(selectedDate)
         } catch {
             errorMessage = "Failed to log food: \(error.localizedDescription)"
             print("Failed to log food: \(error)")
+        }
+    }
+    
+    func loadDate(_ date: Date) async {
+        selectedDate = date
+        guard let user = auth.user else {
+            print("No user signed in yet")
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        
+        do {
+            if let existing = try await firestore.fetchDailyLog(userId: user.uid, for: date) {
+                dailyLog = existing
+            } else {
+                // No log yet, start with a fresh one
+                var newLog = DailyLog()
+                newLog.id = FirestoreService.id(for: date)
+                newLog.date = date
+                dailyLog = newLog
+                // Only save if it's today or past (don't create future logs)
+                if date <= Date() {
+                    try await firestore.saveDailyLog(userId: user.uid, log: newLog)
+                }
+            }
+            
+            // Load meals for the selected date
+            recentFoods = try await firestore.fetchMeals(userId: user.uid, for: date)
+        } catch {
+            errorMessage = "Failed to load log: \(error.localizedDescription)"
+            print("Error loading log: \(error)")
         }
     }
 }
