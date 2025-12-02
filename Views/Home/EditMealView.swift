@@ -229,6 +229,7 @@ struct EditMealView: View {
                     }
                     .padding(.top)
                 }
+                .contentShape(Rectangle())
             }
             .navigationTitle("Edit Meal")
             .navigationBarTitleDisplayMode(.inline)
@@ -250,12 +251,7 @@ struct EditMealView: View {
                     .fontWeight(.semibold)
                 }
             }
-            .simultaneousGesture(
-                TapGesture()
-                    .onEnded { _ in
-                        focusedField = nil
-                    }
-            )
+            .scrollDismissesKeyboard(.interactively)
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(image: $selectedImage)

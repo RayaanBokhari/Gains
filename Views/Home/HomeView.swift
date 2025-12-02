@@ -13,6 +13,7 @@ struct HomeView: View {
     @State private var showFoodLogging = false
     @State private var showEditMeal = false
     @State private var selectedMeal: Food?
+    @State private var showDatePicker = false
     
     var body: some View {
         NavigationView {
@@ -21,19 +22,81 @@ struct HomeView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Header
-                        HStack {
-                            Text("Home")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.gainsText)
-                            Spacer()
+                        // Header with Date Navigation
+                        VStack(spacing: 12) {
+                            HStack {
+                                Text("Home")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundColor(.gainsText)
+                                Spacer()
+                            }
+                            
+                            // Date Navigation Bar
+                            HStack(spacing: 16) {
+                                // Previous Day Button
+                                Button {
+                                    Task {
+                                        await viewModel.goToPreviousDay()
+                                    }
+                                } label: {
+                                    Image(systemName: "chevron.left")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.gainsPrimary)
+                                        .frame(width: 40, height: 40)
+                                        .background(Color.gainsPrimary.opacity(0.1))
+                                        .cornerRadius(10)
+                                }
+                                
+                                // Date Display Button
+                                Button {
+                                    showDatePicker = true
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "calendar")
+                                            .font(.system(size: 14))
+                                        
+                                        Text(formatDate(viewModel.selectedDate))
+                                            .font(.system(size: 16, weight: .semibold))
+                                        
+                                        if Calendar.current.isDateInToday(viewModel.selectedDate) {
+                                            Text("Today")
+                                                .font(.system(size: 12, weight: .medium))
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(Color.gainsPrimary.opacity(0.2))
+                                                .cornerRadius(6)
+                                        }
+                                    }
+                                    .foregroundColor(.gainsText)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 10)
+                                    .background(Color.gainsCardBackground)
+                                    .cornerRadius(12)
+                                }
+                                
+                                // Next Day Button
+                                Button {
+                                    Task {
+                                        await viewModel.goToNextDay()
+                                    }
+                                } label: {
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.gainsPrimary)
+                                        .frame(width: 40, height: 40)
+                                        .background(Color.gainsPrimary.opacity(0.1))
+                                        .cornerRadius(10)
+                                }
+                                .disabled(Calendar.current.isDateInToday(viewModel.selectedDate))
+                                .opacity(Calendar.current.isDateInToday(viewModel.selectedDate) ? 0.5 : 1.0)
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.top)
                         
                         // Calories Remaining Card
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Calories remaining to day")
+                            Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "Calories remaining today" : "Calories remaining")
                                 .font(.system(size: 14))
                                 .foregroundColor(.gainsSecondaryText)
                             
@@ -54,23 +117,27 @@ struct HomeView: View {
                         
                         // Macro Circle Progress
                         HStack(spacing: 20) {
-                            // Circular Progress for Fats (matching mockup: 102g/202g)
+                            // Circular Progress for Fats
                             ZStack {
                                 Circle()
                                     .stroke(Color.gainsCardBackground, lineWidth: 12)
                                     .frame(width: 120, height: 120)
                                 
+                                let fatsGoal = max(1.0, viewModel.dailyNutrition.fatsGoal) // Prevent division by zero
+                                let fatsConsumed = max(0.0, viewModel.dailyNutrition.fatsConsumed) // Prevent negative values
+                                let progress = min(1.0, max(0.0, fatsConsumed / fatsGoal)) // Clamp between 0 and 1
+                                
                                 Circle()
-                                    .trim(from: 0, to: min(1.0, viewModel.dailyNutrition.fatsConsumed / 202.0))
+                                    .trim(from: 0, to: progress.isFinite ? progress : 0)
                                     .stroke(Color.gainsPrimary, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                                     .frame(width: 120, height: 120)
                                     .rotationEffect(.degrees(-90))
                                 
                                 VStack {
-                                    Text("\(Int(viewModel.dailyNutrition.fatsConsumed))g")
+                                    Text("\(Int(fatsConsumed))g")
                                         .font(.system(size: 18, weight: .bold))
                                         .foregroundColor(.gainsText)
-                                    Text("202g")
+                                    Text("\(Int(fatsGoal))g")
                                         .font(.system(size: 14))
                                         .foregroundColor(.gainsSecondaryText)
                                 }
@@ -88,6 +155,10 @@ struct HomeView: View {
                         .cornerRadius(16)
                         .padding(.horizontal)
                         
+                        // Streak Card
+                        StreakCard()
+                            .padding(.horizontal)
+                        
                         // Action Buttons
                         HStack(spacing: 16) {
                             ActionButton(title: "Log Food", icon: "fork.knife") {
@@ -102,18 +173,10 @@ struct HomeView: View {
                         }
                         .padding(.horizontal)
                         
-                        // Test Button for Firebase
-                        ActionButton(title: "+250 kcal", icon: "plus.circle.fill") {
-                            Task {
-                                await viewModel.addCalories(250)
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        // Today's Meals Section
+                        // Meals Section
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Today's Meals")
+                                Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "Today's Meals" : "Meals")
                                     .font(.system(size: 18, weight: .semibold))
                                     .foregroundColor(.gainsText)
                                 
@@ -136,25 +199,27 @@ struct HomeView: View {
                                         .font(.system(size: 48))
                                         .foregroundColor(.gainsSecondaryText)
                                     
-                                    Text("No meals logged today")
+                                    Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "No meals logged today" : "No meals logged")
                                         .font(.system(size: 16, weight: .medium))
                                         .foregroundColor(.gainsText)
                                     
-                                    Text("Start tracking your nutrition by logging your first meal")
+                                    Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "Start tracking your nutrition by logging your first meal" : "No meals were logged on this day")
                                         .font(.system(size: 14))
                                         .foregroundColor(.gainsSecondaryText)
                                         .multilineTextAlignment(.center)
                                     
-                                    Button {
-                                        showFoodLogging = true
-                                    } label: {
-                                        Text("Log Food")
-                                            .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 24)
-                                            .padding(.vertical, 12)
-                                            .background(Color.gainsPrimary)
-                                            .cornerRadius(12)
+                                    if Calendar.current.isDateInToday(viewModel.selectedDate) {
+                                        Button {
+                                            showFoodLogging = true
+                                        } label: {
+                                            Text("Log Food")
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundColor(.white)
+                                                .padding(.horizontal, 24)
+                                                .padding(.vertical, 12)
+                                                .background(Color.gainsPrimary)
+                                                .cornerRadius(12)
+                                        }
                                     }
                                 }
                                 .frame(maxWidth: .infinity)
@@ -208,6 +273,86 @@ struct HomeView: View {
                         },
                         selectedDate: viewModel.selectedDate
                     )
+                }
+            }
+            .sheet(isPresented: $showDatePicker) {
+                DatePickerSheet(
+                    selectedDate: $viewModel.selectedDate,
+                    isPresented: $showDatePicker,
+                    onDateSelected: { date in
+                        Task {
+                            await viewModel.loadDate(date)
+                        }
+                    }
+                )
+            }
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        if Calendar.current.isDateInToday(date) {
+            return "Today"
+        } else if Calendar.current.isDateInYesterday(date) {
+            return "Yesterday"
+        } else {
+            formatter.dateFormat = "MMM d, yyyy"
+            return formatter.string(from: date)
+        }
+    }
+}
+
+struct DatePickerSheet: View {
+    @Binding var selectedDate: Date
+    @Binding var isPresented: Bool
+    let onDateSelected: (Date) -> Void
+    
+    @State private var tempDate: Date
+    
+    init(selectedDate: Binding<Date>, isPresented: Binding<Bool>, onDateSelected: @escaping (Date) -> Void) {
+        self._selectedDate = selectedDate
+        self._isPresented = isPresented
+        self.onDateSelected = onDateSelected
+        _tempDate = State(initialValue: selectedDate.wrappedValue)
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.gainsBackground.ignoresSafeArea()
+                
+                VStack(spacing: 24) {
+                    DatePicker(
+                        "Select Date",
+                        selection: $tempDate,
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.graphical)
+                    .accentColor(.gainsPrimary)
+                    .padding()
+                    .background(Color.gainsCardBackground)
+                    .cornerRadius(16)
+                    .padding()
+                }
+            }
+            .navigationTitle("Select Date")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        isPresented = false
+                    }
+                    .foregroundColor(.gainsPrimary)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        selectedDate = tempDate
+                        onDateSelected(tempDate)
+                        isPresented = false
+                    }
+                    .foregroundColor(.gainsPrimary)
+                    .fontWeight(.semibold)
                 }
             }
         }

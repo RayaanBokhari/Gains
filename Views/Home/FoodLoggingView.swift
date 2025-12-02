@@ -27,6 +27,8 @@ struct FoodLoggingView: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showEstimation = false
+    @State private var showTemplates = false
+    @State private var showSaveTemplate = false
     
     // Estimated/editable values
     @State private var foodName: String = ""
@@ -42,10 +44,28 @@ struct FoodLoggingView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBackground.ignoresSafeArea()
+                Color.gainsBackground.ignoresSafeArea(.all)
                 
                 ScrollView {
                     VStack(spacing: 24) {
+                        // Use Template Button
+                        Button {
+                            showTemplates = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "bookmark.fill")
+                                    .font(.system(size: 14))
+                                Text("Use Template")
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+                            .foregroundColor(.gainsPrimary)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.gainsPrimary.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
                         // Image Upload Section
                         if let image = selectedImage {
                             ZStack(alignment: .topTrailing) {
@@ -213,12 +233,13 @@ struct FoodLoggingView: View {
                             .cornerRadius(16)
                             .padding(.horizontal)
                             
-                            // Save Button
-                            Button {
-                                Task {
-                                    await saveFood()
-                                }
-                            } label: {
+                            // Save Button and Save as Template
+                            VStack(spacing: 12) {
+                                Button {
+                                    Task {
+                                        await saveFood()
+                                    }
+                                } label: {
                                 HStack {
                                     if isSaving {
                                         ProgressView()
@@ -239,17 +260,37 @@ struct FoodLoggingView: View {
                                 .cornerRadius(12)
                             }
                             .disabled(!isValidInput || isSaving)
-                            .padding(.horizontal)
+                            
+                            Button {
+                                showSaveTemplate = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "bookmark")
+                                        .font(.system(size: 14))
+                                    Text("Save as Template")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .foregroundColor(.gainsPrimary)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.gainsPrimary.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                            .disabled(!isValidInput)
+                        }
+                        .padding(.horizontal)
                         }
                     }
                     .padding(.top)
                 }
+                .contentShape(Rectangle())
             }
             .navigationTitle("Log Food")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
+                        focusedField = nil
                         isPresented = false
                     }
                     .foregroundColor(.gainsPrimary)
@@ -265,15 +306,52 @@ struct FoodLoggingView: View {
                     .fontWeight(.semibold)
                 }
             }
-            .simultaneousGesture(
-                TapGesture()
-                    .onEnded { _ in
-                        focusedField = nil
-                    }
-            )
+            .scrollDismissesKeyboard(.interactively)
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(image: $selectedImage)
+        }
+        .sheet(isPresented: $showTemplates) {
+            MealTemplatesView { template in
+                // Pre-fill form with template data
+                foodName = template.name
+                calories = String(template.calories)
+                protein = String(format: "%.1f", template.protein)
+                carbs = String(format: "%.1f", template.carbs)
+                fats = String(format: "%.1f", template.fats)
+                showEstimation = true
+                
+                // Load photo if available
+                if let photoUrl = template.photoUrl {
+                    // Load image from URL
+                    Task {
+                        if let url = URL(string: photoUrl),
+                           let data = try? await URLSession.shared.data(from: url).0,
+                           let image = UIImage(data: data) {
+                            await MainActor.run {
+                                selectedImage = image
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showSaveTemplate) {
+            CreateMealTemplateView(
+                isPresented: $showSaveTemplate,
+                template: createTemplateFromCurrentFood(),
+                onSave: { template in
+                    Task {
+                        let firestore = FirestoreService.shared
+                        guard let userId = Auth.auth().currentUser?.uid else { return }
+                        do {
+                            try await firestore.saveMealTemplate(userId: userId, template: template)
+                        } catch {
+                            print("Error saving template: \(error)")
+                        }
+                    }
+                }
+            )
         }
     }
     
@@ -283,6 +361,26 @@ struct FoodLoggingView: View {
         Double(protein) != nil &&
         Double(carbs) != nil &&
         Double(fats) != nil
+    }
+    
+    private func createTemplateFromCurrentFood() -> MealTemplate? {
+        guard let cal = Int(calories),
+              let pro = Double(protein),
+              let car = Double(carbs),
+              let fat = Double(fats),
+              !foodName.isEmpty else {
+            return nil
+        }
+        
+        // Note: photoUrl would need to be uploaded first, but for simplicity
+        // we'll create template without photo for now
+        return MealTemplate(
+            name: foodName,
+            calories: cal,
+            protein: pro,
+            carbs: car,
+            fats: fat
+        )
     }
     
     private func estimateFood() async {

@@ -41,6 +41,26 @@ service cloud.firestore {
       match /profile/{profileId} {
         allow read, write: if isOwner(userId);
       }
+      
+      // Meal Templates subcollection
+      match /mealTemplates/{templateId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Exercise Templates subcollection
+      match /exerciseTemplates/{templateId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Streaks subcollection
+      match /streaks/{streakId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Achievements subcollection
+      match /achievements/{achievementId} {
+        allow read, write: if isOwner(userId);
+      }
     }
     
     // Community/public posts (if you implement social features)

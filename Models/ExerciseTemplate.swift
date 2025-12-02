@@ -14,14 +14,18 @@ struct ExerciseTemplate: Identifiable, Codable {
     var muscleGroups: [MuscleGroup]
     var equipment: String?
     var instructions: String?
+    var templateId: String? // Firestore document ID
+    var isDefault: Bool // Whether this is a default template
     
-    init(id: UUID = UUID(), name: String, category: ExerciseCategory, muscleGroups: [MuscleGroup] = [], equipment: String? = nil, instructions: String? = nil) {
+    init(id: UUID = UUID(), name: String, category: ExerciseCategory, muscleGroups: [MuscleGroup] = [], equipment: String? = nil, instructions: String? = nil, templateId: String? = nil, isDefault: Bool = false) {
         self.id = id
         self.name = name
         self.category = category
         self.muscleGroups = muscleGroups
         self.equipment = equipment
         self.instructions = instructions
+        self.templateId = templateId
+        self.isDefault = isDefault
     }
 }
 

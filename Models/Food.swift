@@ -63,15 +63,21 @@ struct DailyNutrition: Codable {
     }
     
     var proteinProgress: Double {
-        min(1.0, proteinConsumed / proteinGoal)
+        guard proteinGoal > 0 else { return 0.0 }
+        let progress = proteinConsumed / proteinGoal
+        return min(1.0, max(0.0, progress.isFinite ? progress : 0.0))
     }
     
     var carbsProgress: Double {
-        min(1.0, carbsConsumed / carbsGoal)
+        guard carbsGoal > 0 else { return 0.0 }
+        let progress = carbsConsumed / carbsGoal
+        return min(1.0, max(0.0, progress.isFinite ? progress : 0.0))
     }
     
     var fatsProgress: Double {
-        min(1.0, fatsConsumed / fatsGoal)
+        guard fatsGoal > 0 else { return 0.0 }
+        let progress = fatsConsumed / fatsGoal
+        return min(1.0, max(0.0, progress.isFinite ? progress : 0.0))
     }
 }
 
@@ -107,27 +113,42 @@ struct UserProfile: Codable {
 
 struct CommunityPost: Identifiable, Codable {
     let id: UUID
+    var userId: String
     var userName: String
     var userAvatar: String? // URL or system image name
-    var timeAgo: String
+    var timestamp: Date
     var text: String
     var imageUrl: String?
     var calories: Int?
     var protein: Double?
     var carbs: Double?
     var fats: Double?
+    var likes: [String] // Array of user IDs who liked
+    var likeCount: Int
+    var postId: String? // Firestore document ID
     
-    init(id: UUID = UUID(), userName: String, userAvatar: String? = nil, timeAgo: String, text: String, imageUrl: String? = nil, calories: Int? = nil, protein: Double? = nil, carbs: Double? = nil, fats: Double? = nil) {
+    init(id: UUID = UUID(), userId: String, userName: String, userAvatar: String? = nil, timestamp: Date = Date(), text: String, imageUrl: String? = nil, calories: Int? = nil, protein: Double? = nil, carbs: Double? = nil, fats: Double? = nil, likes: [String] = [], likeCount: Int = 0, postId: String? = nil) {
         self.id = id
+        self.userId = userId
         self.userName = userName
         self.userAvatar = userAvatar
-        self.timeAgo = timeAgo
+        self.timestamp = timestamp
         self.text = text
         self.imageUrl = imageUrl
         self.calories = calories
         self.protein = protein
         self.carbs = carbs
         self.fats = fats
+        self.likes = likes
+        self.likeCount = likeCount
+        self.postId = postId
+    }
+    
+    // Computed property for timeAgo (for backward compatibility)
+    var timeAgo: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: timestamp, relativeTo: Date())
     }
 }
 

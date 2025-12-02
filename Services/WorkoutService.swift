@@ -7,37 +7,46 @@
 
 import Foundation
 import Combine
+import FirebaseAuth
 
+@MainActor
 class WorkoutService: ObservableObject {
     @Published var workouts: [Workout] = []
     
-    init() {
-        loadWorkouts()
-    }
+    private let firestore = FirestoreService.shared
+    private let auth = AuthService.shared
     
-    func addWorkout(_ workout: Workout) {
-        workouts.append(workout)
-        saveWorkouts()
-    }
-    
-    func updateWorkout(_ workout: Workout) {
-        if let index = workouts.firstIndex(where: { $0.id == workout.id }) {
-            workouts[index] = workout
-            saveWorkouts()
+    func loadWorkouts() async {
+        guard let user = auth.user else { return }
+        
+        do {
+            workouts = try await firestore.fetchWorkouts(userId: user.uid)
+        } catch {
+            print("Error loading workouts: \(error)")
         }
     }
     
-    func deleteWorkout(_ workout: Workout) {
-        workouts.removeAll { $0.id == workout.id }
-        saveWorkouts()
+    func addWorkout(_ workout: Workout) async throws {
+        guard let user = auth.user else { return }
+        
+        try await firestore.saveWorkout(userId: user.uid, workout: workout)
+        await loadWorkouts()
     }
     
-    private func saveWorkouts() {
-        // TODO: Implement persistence (Core Data, UserDefaults, or file system)
+    func updateWorkout(_ workout: Workout) async throws {
+        guard let user = auth.user,
+              let workoutId = workout.workoutId else { return }
+        
+        try await firestore.updateWorkout(userId: user.uid, workoutId: workoutId, workout: workout)
+        await loadWorkouts()
     }
     
-    private func loadWorkouts() {
-        // TODO: Implement loading from persistence
+    func deleteWorkout(_ workout: Workout) async throws {
+        guard let user = auth.user,
+              let workoutId = workout.workoutId else { return }
+        
+        try await firestore.deleteWorkout(userId: user.uid, workoutId: workoutId)
+        await loadWorkouts()
     }
 }
 

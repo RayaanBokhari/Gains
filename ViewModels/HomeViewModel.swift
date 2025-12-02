@@ -85,11 +85,125 @@ final class HomeViewModel: ObservableObject {
         do {
             try await firestore.saveMeal(userId: user.uid, food: food, toDate: selectedDate)
             
+            // Update streaks and achievements
+            await updateStreaksAndAchievements(userId: user.uid)
+            
             // Refresh to get updated values
             await loadDate(selectedDate)
         } catch {
             errorMessage = "Failed to log food: \(error.localizedDescription)"
             print("Failed to log food: \(error)")
+        }
+    }
+    
+    private func updateStreaksAndAchievements(userId: String) async {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Fetch current streak
+        var streak = (try? await firestore.fetchStreak(userId: userId)) ?? Streak()
+        
+        // Check if user logged today
+        if let lastLogged = streak.lastLoggedDate {
+            let lastLoggedDay = calendar.startOfDay(for: lastLogged)
+            let daysSince = calendar.dateComponents([.day], from: lastLoggedDay, to: today).day ?? 0
+            
+            if daysSince == 0 {
+                // Already logged today, no change
+            } else if daysSince == 1 {
+                // Consecutive day
+                streak.currentStreak += 1
+                streak.longestStreak = max(streak.longestStreak, streak.currentStreak)
+            } else {
+                // Streak broken
+                streak.currentStreak = 1
+            }
+        } else {
+            // First time logging
+            streak.currentStreak = 1
+            streak.longestStreak = 1
+        }
+        
+        streak.lastLoggedDate = Date()
+        
+        // Save streak
+        do {
+            try await firestore.updateStreak(userId: userId, streak: streak)
+        } catch {
+            print("Error updating streak: \(error)")
+        }
+        
+        // Update achievements
+        await updateAchievements(userId: userId, streak: streak)
+    }
+    
+    private func updateAchievements(userId: String, streak: Streak) async {
+        var achievements = (try? await firestore.fetchAchievements(userId: userId)) ?? []
+        let allAchievements = Achievement.allAchievements()
+        
+        // Create a dictionary of existing achievements
+        var achievementDict: [String: Achievement] = [:]
+        for achievement in achievements {
+            achievementDict[achievement.id] = achievement
+        }
+        
+        // Check each achievement
+        for var achievement in allAchievements {
+            if let existing = achievementDict[achievement.id] {
+                achievement = existing
+            }
+            
+            var shouldUpdate = false
+            
+            switch achievement.id {
+            case "first_meal":
+                if achievement.unlockedAt == nil {
+                    achievement.unlockedAt = Date()
+                    achievement.progress = 1.0
+                    shouldUpdate = true
+                }
+                
+            case "week_warrior":
+                if achievement.unlockedAt == nil && streak.currentStreak >= 7 {
+                    achievement.unlockedAt = Date()
+                    achievement.progress = 1.0
+                    shouldUpdate = true
+                } else if achievement.unlockedAt == nil {
+                    achievement.progress = min(1.0, Double(streak.currentStreak) / 7.0)
+                    shouldUpdate = true
+                }
+                
+            case "month_master":
+                if achievement.unlockedAt == nil && streak.currentStreak >= 30 {
+                    achievement.unlockedAt = Date()
+                    achievement.progress = 1.0
+                    shouldUpdate = true
+                } else if achievement.unlockedAt == nil {
+                    achievement.progress = min(1.0, Double(streak.currentStreak) / 30.0)
+                    shouldUpdate = true
+                }
+                
+            case "centurion":
+                // This would need meal count, simplified for now
+                // Could fetch meal count from daily logs
+                break
+                
+            case "macro_master":
+                // This would need to check daily logs for macro completion
+                // Simplified for now
+                break
+                
+            default:
+                break
+            }
+            
+            if shouldUpdate {
+                do {
+                    try await firestore.updateAchievement(userId: userId, achievement: achievement)
+                } catch {
+                    print("Error updating achievement: \(error)")
+                }
+            }
         }
     }
     
@@ -195,6 +309,24 @@ final class HomeViewModel: ObservableObject {
     
     func refreshMeals() async {
         await loadDate(selectedDate)
+    }
+    
+    func goToPreviousDay() async {
+        let calendar = Calendar.current
+        if let previousDay = calendar.date(byAdding: .day, value: -1, to: selectedDate) {
+            await loadDate(previousDay)
+        }
+    }
+    
+    func goToNextDay() async {
+        let calendar = Calendar.current
+        // Don't allow going to future dates
+        guard !calendar.isDateInToday(selectedDate) else { return }
+        
+        if let nextDay = calendar.date(byAdding: .day, value: 1, to: selectedDate),
+           nextDay <= Date() {
+            await loadDate(nextDay)
+        }
     }
 }
 

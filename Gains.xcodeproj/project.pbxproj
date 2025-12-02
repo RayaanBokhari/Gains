@@ -54,6 +54,17 @@
 		B94DAB562ECFC86000DB65EB /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB572ECFC86000DB65EB /* EditProfileView.swift */; };
 		B9DDCC902ED1490A000E97E3 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = B9DDCC8F2ED1490A000E97E3 /* FirebaseStorage */; };
 		B9DDCC922ED14AE4000E97E3 /* UIImage+Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */; };
+		B9DDCC932ED14AE5000E97E3 /* MealTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC942ED14AE5000E97E3 /* MealTemplate.swift */; };
+		B9DDCC952ED14AE6000E97E3 /* Streak.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC962ED14AE6000E97E3 /* Streak.swift */; };
+		B9DDCC972ED14AE7000E97E3 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC982ED14AE7000E97E3 /* Achievement.swift */; };
+		B9DDCC992ED14AE8000E97E3 /* ProgressViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC9A2ED14AE8000E97E3 /* ProgressViewModel.swift */; };
+		B9DDCC9B2ED14AE9000E97E3 /* MealTemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC9C2ED14AE9000E97E3 /* MealTemplatesView.swift */; };
+		B9DDCC9D2ED14AEA000E97E3 /* StreakCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC9E2ED14AEA000E97E3 /* StreakCard.swift */; };
+		B9DDCC9F2ED14AEB000E97E3 /* AchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCCA02ED14AEB000E97E3 /* AchievementsView.swift */; };
+		B9DDCCA12ED14AEC000E97E3 /* CaloriesChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCCA22ED14AEC000E97E3 /* CaloriesChartView.swift */; };
+		B9DDCCA32ED14AED000E97E3 /* MacrosChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCCA42ED14AED000E97E3 /* MacrosChartView.swift */; };
+		B9DDCCA52ED14AEE000E97E3 /* WeightChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCCA62ED14AEE000E97E3 /* WeightChartView.swift */; };
+		B9DDCCA72ED14AEF000E97E3 /* CreatePostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCCA82ED14AEF000E97E3 /* CreatePostView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +131,17 @@
 		B94DAB4F2ECFC83000DB65EB /* MealCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCard.swift; sourceTree = "<group>"; };
 		B94DAB512ECFC84000DB65EB /* EditMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditMealView.swift; sourceTree = "<group>"; };
 		B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Base64.swift"; sourceTree = "<group>"; };
+		B9DDCC942ED14AE5000E97E3 /* MealTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTemplate.swift; sourceTree = "<group>"; };
+		B9DDCC962ED14AE6000E97E3 /* Streak.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Streak.swift; sourceTree = "<group>"; };
+		B9DDCC982ED14AE7000E97E3 /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
+		B9DDCC9A2ED14AE8000E97E3 /* ProgressViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressViewModel.swift; sourceTree = "<group>"; };
+		B9DDCC9C2ED14AE9000E97E3 /* MealTemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTemplatesView.swift; sourceTree = "<group>"; };
+		B9DDCC9E2ED14AEA000E97E3 /* StreakCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakCard.swift; sourceTree = "<group>"; };
+		B9DDCCA02ED14AEB000E97E3 /* AchievementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementsView.swift; sourceTree = "<group>"; };
+		B9DDCCA22ED14AEC000E97E3 /* CaloriesChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaloriesChartView.swift; sourceTree = "<group>"; };
+		B9DDCCA42ED14AED000E97E3 /* MacrosChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacrosChartView.swift; sourceTree = "<group>"; };
+		B9DDCCA62ED14AEE000E97E3 /* WeightChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChartView.swift; sourceTree = "<group>"; };
+		B9DDCCA82ED14AEF000E97E3 /* CreatePostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -207,6 +229,9 @@
 				B94DAB072ECFC50000DB65EB /* ExerciseTemplate.swift */,
 				B94DAB092ECFC50000DB65EB /* Workout.swift */,
 				B94DAB282ECFC60000DB65EB /* Food.swift */,
+				B9DDCC942ED14AE5000E97E3 /* MealTemplate.swift */,
+				B9DDCC962ED14AE6000E97E3 /* Streak.swift */,
+				B9DDCC982ED14AE7000E97E3 /* Achievement.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -220,6 +245,7 @@
 				B94DAB362ECFC60000DB65EB /* CommunityViewModel.swift */,
 				B94DAB382ECFC60000DB65EB /* ProfileViewModel.swift */,
 				B94DAB442ECFC80000DB65EB /* HomeViewModel.swift */,
+				B9DDCC9A2ED14AE8000E97E3 /* ProgressViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -305,8 +331,19 @@
 			isa = PBXGroup;
 			children = (
 				B94DAB0F2ECFC50000DB65EB /* ProgressView.swift */,
+				B9DDCCA92ED14AF0000E97E3 /* Charts */,
 			);
 			path = Progress;
+			sourceTree = "<group>";
+		};
+		B9DDCCA92ED14AF0000E97E3 /* Charts */ = {
+			isa = PBXGroup;
+			children = (
+				B9DDCCA22ED14AEC000E97E3 /* CaloriesChartView.swift */,
+				B9DDCCA42ED14AED000E97E3 /* MacrosChartView.swift */,
+				B9DDCCA62ED14AEE000E97E3 /* WeightChartView.swift */,
+			);
+			path = Charts;
 			sourceTree = "<group>";
 		};
 		B94DAB242ECFC50000DB65EB /* Exercises */ = {
@@ -325,6 +362,8 @@
 				B94DAB4F2ECFC83000DB65EB /* MealCard.swift */,
 				B94DAB512ECFC84000DB65EB /* EditMealView.swift */,
 				B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */,
+				B9DDCC9C2ED14AE9000E97E3 /* MealTemplatesView.swift */,
+				B9DDCC9E2ED14AEA000E97E3 /* StreakCard.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -341,6 +380,7 @@
 			isa = PBXGroup;
 			children = (
 				B94DAB2E2ECFC60000DB65EB /* CommunityView.swift */,
+				B9DDCCA82ED14AEF000E97E3 /* CreatePostView.swift */,
 			);
 			path = Community;
 			sourceTree = "<group>";
@@ -350,6 +390,7 @@
 			children = (
 				B94DAB302ECFC60000DB65EB /* ProfileView.swift */,
 				B94DAB572ECFC86000DB65EB /* EditProfileView.swift */,
+				B9DDCCA02ED14AEB000E97E3 /* AchievementsView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -555,6 +596,17 @@
 				B94DAB3D2ECFC70000DB65EB /* ChatGPTService.swift in Sources */,
 				B94DAB3F2ECFC70000DB65EB /* UserContextService.swift in Sources */,
 				B94DAB412ECFC70000DB65EB /* APIConfiguration.swift in Sources */,
+				B9DDCC932ED14AE5000E97E3 /* MealTemplate.swift in Sources */,
+				B9DDCC952ED14AE6000E97E3 /* Streak.swift in Sources */,
+				B9DDCC972ED14AE7000E97E3 /* Achievement.swift in Sources */,
+				B9DDCC992ED14AE8000E97E3 /* ProgressViewModel.swift in Sources */,
+				B9DDCC9B2ED14AE9000E97E3 /* MealTemplatesView.swift in Sources */,
+				B9DDCC9D2ED14AEA000E97E3 /* StreakCard.swift in Sources */,
+				B9DDCC9F2ED14AEB000E97E3 /* AchievementsView.swift in Sources */,
+				B9DDCCA12ED14AEC000E97E3 /* CaloriesChartView.swift in Sources */,
+				B9DDCCA32ED14AED000E97E3 /* MacrosChartView.swift in Sources */,
+				B9DDCCA52ED14AEE000E97E3 /* WeightChartView.swift in Sources */,
+				B9DDCCA72ED14AEF000E97E3 /* CreatePostView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

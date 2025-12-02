@@ -19,26 +19,33 @@ struct TabBarView: View {
                 }
                 .tag(0)
             
-            AICoachView()
+            WorkoutListView()
                 .tabItem {
-                    Image(systemName: selectedTab == 1 ? "message.fill" : "message")
-                    Text("AI Coach")
+                    Image(systemName: selectedTab == 1 ? "dumbbell.fill" : "dumbbell")
+                    Text("Workouts")
                 }
                 .tag(1)
             
-            CommunityView()
+            ProgressTrackingView()
                 .tabItem {
-                    Image(systemName: selectedTab == 2 ? "person.2.fill" : "person.2")
-                    Text("Community")
+                    Image(systemName: selectedTab == 2 ? "chart.line.uptrend.xyaxis" : "chart.line.uptrend.xyaxis")
+                    Text("Progress")
                 }
                 .tag(2)
             
-            ProfileView()
+            CommunityView()
                 .tabItem {
-                    Image(systemName: selectedTab == 3 ? "person.fill" : "person")
-                    Text("Profile")
+                    Image(systemName: selectedTab == 3 ? "person.2.fill" : "person.2")
+                    Text("Community")
                 }
                 .tag(3)
+            
+            ProfileView()
+                .tabItem {
+                    Image(systemName: selectedTab == 4 ? "person.fill" : "person")
+                    Text("Profile")
+                }
+                .tag(4)
         }
         .accentColor(.gainsPrimary)
         .onAppear {

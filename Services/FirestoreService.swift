@@ -48,6 +48,29 @@ final class FirestoreService {
         return log
     }
     
+    func fetchDailyLogsRange(userId: String, from startDate: Date, to endDate: Date) async throws -> [DailyLog] {
+        let startId = Self.id(for: startDate)
+        let endId = Self.id(for: endDate)
+        
+        let snapshot = try await db
+            .collection("users")
+            .document(userId)
+            .collection("dailyLogs")
+            .whereField("id", isGreaterThanOrEqualTo: startId)
+            .whereField("id", isLessThanOrEqualTo: endId)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> DailyLog? in
+            guard var log = try? doc.data(as: DailyLog.self) else {
+                return nil
+            }
+            log.id = doc.documentID
+            return log
+        }.sorted { log1, log2 in
+            (log1.date) < (log2.date)
+        }
+    }
+    
     // MARK: - Meals
     
     func saveMeal(userId: String, food: Food, toDate date: Date) async throws {
@@ -288,6 +311,310 @@ final class FirestoreService {
         guard snapshot.exists else { return nil }
         
         return try snapshot.data(as: UserProfile.self)
+    }
+    
+    // MARK: - Meal Templates
+    
+    func saveMealTemplate(userId: String, template: MealTemplate) async throws {
+        let templateRef: DocumentReference
+        if let templateId = template.mealTemplateId {
+            templateRef = db
+                .collection("users")
+                .document(userId)
+                .collection("mealTemplates")
+                .document(templateId)
+        } else {
+            templateRef = db
+                .collection("users")
+                .document(userId)
+                .collection("mealTemplates")
+                .document()
+        }
+        
+        var data = try Firestore.Encoder().encode(template)
+        data["id"] = templateRef.documentID
+        data["mealTemplateId"] = templateRef.documentID
+        data["createdAt"] = Timestamp(date: template.createdAt)
+        
+        try await templateRef.setData(data)
+    }
+    
+    func fetchMealTemplates(userId: String) async throws -> [MealTemplate] {
+        let snapshot = try await db
+            .collection("users")
+            .document(userId)
+            .collection("mealTemplates")
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> MealTemplate? in
+            guard var template = try? doc.data(as: MealTemplate.self) else {
+                return nil
+            }
+            template.mealTemplateId = doc.documentID
+            return template
+        }
+    }
+    
+    func deleteMealTemplate(userId: String, templateId: String) async throws {
+        let templateRef = db
+            .collection("users")
+            .document(userId)
+            .collection("mealTemplates")
+            .document(templateId)
+        
+        try await templateRef.delete()
+    }
+    
+    // MARK: - Workouts
+    
+    func saveWorkout(userId: String, workout: Workout) async throws {
+        let workoutRef: DocumentReference
+        if let workoutId = workout.workoutId {
+            workoutRef = db
+                .collection("users")
+                .document(userId)
+                .collection("workouts")
+                .document(workoutId)
+        } else {
+            workoutRef = db
+                .collection("users")
+                .document(userId)
+                .collection("workouts")
+                .document()
+        }
+        
+        var data = try Firestore.Encoder().encode(workout)
+        data["id"] = workoutRef.documentID
+        data["workoutId"] = workoutRef.documentID
+        data["date"] = Timestamp(date: workout.date)
+        
+        try await workoutRef.setData(data)
+    }
+    
+    func fetchWorkouts(userId: String) async throws -> [Workout] {
+        let snapshot = try await db
+            .collection("users")
+            .document(userId)
+            .collection("workouts")
+            .order(by: "date", descending: true)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> Workout? in
+            guard var workout = try? doc.data(as: Workout.self) else {
+                return nil
+            }
+            workout.workoutId = doc.documentID
+            return workout
+        }
+    }
+    
+    func updateWorkout(userId: String, workoutId: String, workout: Workout) async throws {
+        let workoutRef = db
+            .collection("users")
+            .document(userId)
+            .collection("workouts")
+            .document(workoutId)
+        
+        var data = try Firestore.Encoder().encode(workout)
+        data["id"] = workoutId
+        data["workoutId"] = workoutId
+        data["date"] = Timestamp(date: workout.date)
+        
+        try await workoutRef.setData(data, merge: true)
+    }
+    
+    func deleteWorkout(userId: String, workoutId: String) async throws {
+        let workoutRef = db
+            .collection("users")
+            .document(userId)
+            .collection("workouts")
+            .document(workoutId)
+        
+        try await workoutRef.delete()
+    }
+    
+    // MARK: - Exercise Templates
+    
+    func saveExerciseTemplate(userId: String, template: ExerciseTemplate) async throws {
+        let templateRef: DocumentReference
+        if let templateId = template.templateId {
+            templateRef = db
+                .collection("users")
+                .document(userId)
+                .collection("exerciseTemplates")
+                .document(templateId)
+        } else {
+            templateRef = db
+                .collection("users")
+                .document(userId)
+                .collection("exerciseTemplates")
+                .document()
+        }
+        
+        var data = try Firestore.Encoder().encode(template)
+        data["id"] = templateRef.documentID
+        data["templateId"] = templateRef.documentID
+        
+        try await templateRef.setData(data)
+    }
+    
+    func fetchExerciseTemplates(userId: String) async throws -> [ExerciseTemplate] {
+        let snapshot = try await db
+            .collection("users")
+            .document(userId)
+            .collection("exerciseTemplates")
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> ExerciseTemplate? in
+            guard var template = try? doc.data(as: ExerciseTemplate.self) else {
+                return nil
+            }
+            template.templateId = doc.documentID
+            return template
+        }
+    }
+    
+    func deleteExerciseTemplate(userId: String, templateId: String) async throws {
+        let templateRef = db
+            .collection("users")
+            .document(userId)
+            .collection("exerciseTemplates")
+            .document(templateId)
+        
+        try await templateRef.delete()
+    }
+    
+    // MARK: - Streaks
+    
+    func updateStreak(userId: String, streak: Streak) async throws {
+        let streakRef = db
+            .collection("users")
+            .document(userId)
+            .collection("streaks")
+            .document("current")
+        
+        var data = try Firestore.Encoder().encode(streak)
+        if let lastLogged = streak.lastLoggedDate {
+            data["lastLoggedDate"] = Timestamp(date: lastLogged)
+        }
+        
+        try await streakRef.setData(data, merge: true)
+    }
+    
+    func fetchStreak(userId: String) async throws -> Streak? {
+        let streakRef = db
+            .collection("users")
+            .document(userId)
+            .collection("streaks")
+            .document("current")
+        
+        let snapshot = try await streakRef.getDocument()
+        guard snapshot.exists else { return nil }
+        
+        return try snapshot.data(as: Streak.self)
+    }
+    
+    // MARK: - Achievements
+    
+    func updateAchievement(userId: String, achievement: Achievement) async throws {
+        let achievementRef = db
+            .collection("users")
+            .document(userId)
+            .collection("achievements")
+            .document(achievement.id)
+        
+        var data = try Firestore.Encoder().encode(achievement)
+        if let unlockedAt = achievement.unlockedAt {
+            data["unlockedAt"] = Timestamp(date: unlockedAt)
+        }
+        
+        try await achievementRef.setData(data, merge: true)
+    }
+    
+    func fetchAchievements(userId: String) async throws -> [Achievement] {
+        let snapshot = try await db
+            .collection("users")
+            .document(userId)
+            .collection("achievements")
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> Achievement? in
+            try? doc.data(as: Achievement.self)
+        }
+    }
+    
+    // MARK: - Community Posts
+    
+    func createPost(userId: String, post: CommunityPost) async throws {
+        let postRef = db
+            .collection("posts")
+            .document()
+        
+        var data = try Firestore.Encoder().encode(post)
+        data["id"] = postRef.documentID
+        data["postId"] = postRef.documentID
+        data["userId"] = userId
+        data["timestamp"] = Timestamp(date: post.timestamp)
+        data["likeCount"] = post.likes.count
+        
+        try await postRef.setData(data)
+    }
+    
+    func fetchPosts(limit: Int = 50) async throws -> [CommunityPost] {
+        let snapshot = try await db
+            .collection("posts")
+            .order(by: "timestamp", descending: true)
+            .limit(to: limit)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> CommunityPost? in
+            guard var post = try? doc.data(as: CommunityPost.self) else {
+                return nil
+            }
+            post.postId = doc.documentID
+            return post
+        }
+    }
+    
+    func likePost(postId: String, userId: String) async throws {
+        let postRef = db
+            .collection("posts")
+            .document(postId)
+        
+        let postDoc = try await postRef.getDocument()
+        guard var post = try? postDoc.data(as: CommunityPost.self) else {
+            throw NSError(domain: "FirestoreService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Post not found"])
+        }
+        
+        var likes = post.likes
+        if likes.contains(userId) {
+            // Unlike
+            likes.removeAll { $0 == userId }
+        } else {
+            // Like
+            likes.append(userId)
+        }
+        
+        try await postRef.updateData([
+            "likes": likes,
+            "likeCount": likes.count
+        ])
+    }
+    
+    func deletePost(postId: String, userId: String) async throws {
+        let postRef = db
+            .collection("posts")
+            .document(postId)
+        
+        // Verify ownership
+        let postDoc = try await postRef.getDocument()
+        guard let post = try? postDoc.data(as: CommunityPost.self),
+              post.userId == userId else {
+            throw NSError(domain: "FirestoreService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unauthorized"])
+        }
+        
+        try await postRef.delete()
     }
     
     // MARK: - Helpers

@@ -117,6 +117,29 @@ struct ProfileView: View {
                         .cornerRadius(16)
                         .padding(.horizontal)
                         
+                        // Achievements
+                        NavigationLink(destination: AchievementsView()) {
+                            HStack {
+                                Image(systemName: "trophy.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.yellow)
+                                
+                                Text("Achievements")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.gainsText)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gainsSecondaryText)
+                            }
+                            .padding()
+                            .background(Color.gainsCardBackground)
+                            .cornerRadius(16)
+                        }
+                        .padding(.horizontal)
+                        
                         // Connected Apps
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Connected Apps")
