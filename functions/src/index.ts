@@ -1,9 +1,22 @@
 import * as functions from "firebase-functions/v1";
 import OpenAI from "openai";
+import {
+  ChatCompletionMessageParam,
+  ChatCompletionContentPart,
+} from "openai/resources/chat/completions";
+
+// Support both text-only and vision messages
+type MessageContent = string | Array<{
+  type: "text" | "image_url";
+  text?: string;
+  image_url?: {
+    url: string;
+  };
+}>;
 
 interface ChatMessage {
   role: "system" | "user" | "assistant";
-  content: string;
+  content: MessageContent;
 }
 
 interface CallableData {
@@ -56,13 +69,48 @@ export const aiChat = functions
           apiKey,
         });
 
+        // Convert messages to proper OpenAI format
+        const openaiMessages: ChatCompletionMessageParam[] =
+          messages.map((msg) => {
+            // Handle different content types properly
+            if (typeof msg.content === "string") {
+              // Text-only message
+              return {
+                role: msg.role,
+                content: msg.content,
+              } as ChatCompletionMessageParam;
+            } else {
+              // Vision message with array content
+              const contentParts: ChatCompletionContentPart[] =
+                msg.content.map((part) => {
+                  if (part.type === "text" && part.text) {
+                    return {
+                      type: "text" as const,
+                      text: part.text,
+                    };
+                  } else if (part.type === "image_url" && part.image_url) {
+                    return {
+                      type: "image_url" as const,
+                      image_url: {
+                        url: part.image_url.url,
+                      },
+                    };
+                  }
+                  throw new Error("Invalid content part");
+                });
+
+              return {
+                role: msg.role,
+                content: contentParts,
+              } as ChatCompletionMessageParam;
+            }
+          });
+
         const response = await client.chat.completions.create({
           model: "gpt-4o-mini",
-          messages: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
+          messages: openaiMessages,
           temperature: 0.7,
+          max_tokens: 1000,
         });
 
         const reply =

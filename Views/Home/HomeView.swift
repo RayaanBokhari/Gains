@@ -10,6 +10,9 @@ import FirebaseAuth
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
+    @State private var showFoodLogging = false
+    @State private var showEditMeal = false
+    @State private var selectedMeal: Food?
     
     var body: some View {
         NavigationView {
@@ -88,7 +91,7 @@ struct HomeView: View {
                         // Action Buttons
                         HStack(spacing: 16) {
                             ActionButton(title: "Log Food", icon: "fork.knife") {
-                                // TODO: Show food logging sheet
+                                showFoodLogging = true
                             }
                             
                             ActionButton(title: "Log Water", icon: "drop.fill") {
@@ -107,17 +110,72 @@ struct HomeView: View {
                         }
                         .padding(.horizontal)
                         
-                        // Recent Activity (placeholder for now)
+                        // Today's Meals Section
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Recent Activity")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.gainsText)
-                                .padding(.horizontal)
+                            HStack {
+                                Text("Today's Meals")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.gainsText)
+                                
+                                if !viewModel.recentFoods.isEmpty {
+                                    Text("\(viewModel.recentFoods.count)")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.gainsPrimary)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.gainsPrimary.opacity(0.2))
+                                        .cornerRadius(12)
+                                }
+                            }
+                            .padding(.horizontal)
                             
-                            Text("No recent activity")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gainsSecondaryText)
+                            if viewModel.recentFoods.isEmpty {
+                                // Empty state
+                                VStack(spacing: 16) {
+                                    Image(systemName: "fork.knife")
+                                        .font(.system(size: 48))
+                                        .foregroundColor(.gainsSecondaryText)
+                                    
+                                    Text("No meals logged today")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.gainsText)
+                                    
+                                    Text("Start tracking your nutrition by logging your first meal")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.gainsSecondaryText)
+                                        .multilineTextAlignment(.center)
+                                    
+                                    Button {
+                                        showFoodLogging = true
+                                    } label: {
+                                        Text("Log Food")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 24)
+                                            .padding(.vertical, 12)
+                                            .background(Color.gainsPrimary)
+                                            .cornerRadius(12)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 40)
                                 .padding(.horizontal)
+                            } else {
+                                ForEach(viewModel.recentFoods) { food in
+                                    MealCard(
+                                        food: food,
+                                        onEdit: {
+                                            selectedMeal = food
+                                            showEditMeal = true
+                                        },
+                                        onDelete: {
+                                            Task {
+                                                await viewModel.deleteMeal(food)
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                         }
                         .padding(.top)
                     }
@@ -126,6 +184,31 @@ struct HomeView: View {
             .navigationBarHidden(true)
             .task {
                 await viewModel.loadTodayIfPossible()
+            }
+            .sheet(isPresented: $showFoodLogging) {
+                FoodLoggingView(
+                    isPresented: $showFoodLogging,
+                    onFoodLogged: { food in
+                        Task {
+                            await viewModel.logFood(food)
+                        }
+                    },
+                    selectedDate: viewModel.selectedDate
+                )
+            }
+            .sheet(isPresented: $showEditMeal) {
+                if let meal = selectedMeal {
+                    EditMealView(
+                        isPresented: $showEditMeal,
+                        food: meal,
+                        onMealUpdated: { updatedFood in
+                            Task {
+                                await viewModel.editMeal(updatedFood)
+                            }
+                        },
+                        selectedDate: viewModel.selectedDate
+                    )
+                }
             }
         }
     }
@@ -168,34 +251,6 @@ struct ActionButton: View {
             .background(Color.gainsPrimary)
             .cornerRadius(12)
         }
-    }
-}
-
-struct RecentFoodCard: View {
-    let food: Food
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(food.name)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.gainsText)
-                
-                Text(food.loggedAt, style: .time)
-                    .font(.system(size: 14))
-                    .foregroundColor(.gainsSecondaryText)
-            }
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14))
-                .foregroundColor(.gainsSecondaryText)
-        }
-        .padding()
-        .background(Color.gainsCardBackground)
-        .cornerRadius(12)
-        .padding(.horizontal)
     }
 }
 

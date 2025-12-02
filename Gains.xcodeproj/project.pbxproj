@@ -45,6 +45,14 @@
 		B94DAB3F2ECFC70000DB65EB /* UserContextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB402ECFC70000DB65EB /* UserContextService.swift */; };
 		B94DAB412ECFC70000DB65EB /* APIConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB422ECFC70000DB65EB /* APIConfiguration.swift */; };
 		B94DAB432ECFC80000DB65EB /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB442ECFC80000DB65EB /* HomeViewModel.swift */; };
+		B94DAB452ECFC85000DB65EB /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB462ECFC85000DB65EB /* StorageService.swift */; };
+		B94DAB522ECFC85000DB65EB /* ImageCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB532ECFC85000DB65EB /* ImageCacheService.swift */; };
+		B94DAB4A2ECFC81000DB65EB /* FoodLoggingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */; };
+		B94DAB4C2ECFC82000DB65EB /* ImageUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB4D2ECFC82000DB65EB /* ImageUtilities.swift */; };
+		B94DAB4E2ECFC83000DB65EB /* MealCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB4F2ECFC83000DB65EB /* MealCard.swift */; };
+		B94DAB502ECFC84000DB65EB /* EditMealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94DAB512ECFC84000DB65EB /* EditMealView.swift */; };
+		B9DDCC902ED1490A000E97E3 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = B9DDCC8F2ED1490A000E97E3 /* FirebaseStorage */; };
+		B9DDCC922ED14AE4000E97E3 /* UIImage+Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,6 +111,13 @@
 		B94DAB402ECFC70000DB65EB /* UserContextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserContextService.swift; sourceTree = "<group>"; };
 		B94DAB422ECFC70000DB65EB /* APIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfiguration.swift; sourceTree = "<group>"; };
 		B94DAB442ECFC80000DB65EB /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		B94DAB462ECFC85000DB65EB /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
+		B94DAB532ECFC85000DB65EB /* ImageCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheService.swift; sourceTree = "<group>"; };
+		B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLoggingView.swift; sourceTree = "<group>"; };
+		B94DAB4D2ECFC82000DB65EB /* ImageUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtilities.swift; sourceTree = "<group>"; };
+		B94DAB4F2ECFC83000DB65EB /* MealCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCard.swift; sourceTree = "<group>"; };
+		B94DAB512ECFC84000DB65EB /* EditMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditMealView.swift; sourceTree = "<group>"; };
+		B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Base64.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -131,6 +146,7 @@
 				B933B86F2ECFE26300DC9770 /* FirebaseAnalytics in Frameworks */,
 				B933B8712ECFE26300DC9770 /* FirebaseAuth in Frameworks */,
 				B933B8732ECFE26300DC9770 /* FirebaseFirestore in Frameworks */,
+				B9DDCC902ED1490A000E97E3 /* FirebaseStorage in Frameworks */,
 				B933B8792ECFE65300DC9770 /* FirebaseFunctions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -165,6 +181,7 @@
 				B94DAAD12ECFC2EE00DB65EB /* Gains */,
 				B94DAADF2ECFC2EF00DB65EB /* GainsTests */,
 				B94DAAE92ECFC2EF00DB65EB /* GainsUITests */,
+				B9DDCC8E2ED1490A000E97E3 /* Frameworks */,
 				B94DAAD02ECFC2EE00DB65EB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -226,6 +243,8 @@
 			children = (
 				B933B8762ECFE43700DC9770 /* AuthService.swift */,
 				B933B8742ECFE42400DC9770 /* FirestoreService.swift */,
+				B94DAB462ECFC85000DB65EB /* StorageService.swift */,
+				B94DAB532ECFC85000DB65EB /* ImageCacheService.swift */,
 				B94DAB192ECFC50000DB65EB /* ExerciseTemplateService.swift */,
 				B94DAB1B2ECFC50000DB65EB /* WorkoutService.swift */,
 				B94DAB3E2ECFC70000DB65EB /* ChatGPTService.swift */,
@@ -258,6 +277,7 @@
 			children = (
 				B94DAB1D2ECFC50000DB65EB /* DateFormatter+Extensions.swift */,
 				B94DAB1F2ECFC50000DB65EB /* WeightFormatter.swift */,
+				B94DAB4D2ECFC82000DB65EB /* ImageUtilities.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -299,6 +319,10 @@
 			isa = PBXGroup;
 			children = (
 				B94DAB2A2ECFC60000DB65EB /* HomeView.swift */,
+				B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */,
+				B94DAB4F2ECFC83000DB65EB /* MealCard.swift */,
+				B94DAB512ECFC84000DB65EB /* EditMealView.swift */,
+				B9DDCC912ED14AE4000E97E3 /* UIImage+Base64.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -327,6 +351,13 @@
 			path = Profile;
 			sourceTree = "<group>";
 		};
+		B9DDCC8E2ED1490A000E97E3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -351,6 +382,7 @@
 				B933B8702ECFE26300DC9770 /* FirebaseAuth */,
 				B933B8722ECFE26300DC9770 /* FirebaseFirestore */,
 				B933B8782ECFE65300DC9770 /* FirebaseFunctions */,
+				B9DDCC8F2ED1490A000E97E3 /* FirebaseStorage */,
 			);
 			productName = Gains;
 			productReference = B94DAACF2ECFC2EE00DB65EB /* Gains.app */;
@@ -481,6 +513,7 @@
 			files = (
 				B94DAAD52ECFC2EE00DB65EB /* ContentView.swift in Sources */,
 				B933B87B2ECFE68400DC9770 /* DailyLog.swift in Sources */,
+				B9DDCC922ED14AE4000E97E3 /* UIImage+Base64.swift in Sources */,
 				B94DAB022ECFC50000DB65EB /* Exercise.swift in Sources */,
 				B94DAB042ECFC50000DB65EB /* ExerciseSet.swift in Sources */,
 				B94DAB062ECFC50000DB65EB /* ExerciseTemplate.swift in Sources */,
@@ -493,14 +526,20 @@
 				B94DAB142ECFC50000DB65EB /* WorkoutDetailView.swift in Sources */,
 				B94DAB162ECFC50000DB65EB /* WorkoutListView.swift in Sources */,
 				B933B8752ECFE42900DC9770 /* FirestoreService.swift in Sources */,
+				B94DAB452ECFC85000DB65EB /* StorageService.swift in Sources */,
+				B94DAB522ECFC85000DB65EB /* ImageCacheService.swift in Sources */,
 				B94DAB182ECFC50000DB65EB /* ExerciseTemplateService.swift in Sources */,
 				B94DAB1A2ECFC50000DB65EB /* WorkoutService.swift in Sources */,
 				B933B8772ECFE43900DC9770 /* AuthService.swift in Sources */,
 				B94DAB1C2ECFC50000DB65EB /* DateFormatter+Extensions.swift in Sources */,
 				B94DAB1E2ECFC50000DB65EB /* WeightFormatter.swift in Sources */,
+				B94DAB4C2ECFC82000DB65EB /* ImageUtilities.swift in Sources */,
 				B94DAB252ECFC50000DB65EB /* colors.swift in Sources */,
 				B94DAB272ECFC60000DB65EB /* Food.swift in Sources */,
 				B94DAB292ECFC60000DB65EB /* HomeView.swift in Sources */,
+				B94DAB4A2ECFC81000DB65EB /* FoodLoggingView.swift in Sources */,
+				B94DAB4E2ECFC83000DB65EB /* MealCard.swift in Sources */,
+				B94DAB502ECFC84000DB65EB /* EditMealView.swift in Sources */,
 				B94DAB2B2ECFC60000DB65EB /* AICoachView.swift in Sources */,
 				B94DAB2D2ECFC60000DB65EB /* CommunityView.swift in Sources */,
 				B94DAB2F2ECFC60000DB65EB /* ProfileView.swift in Sources */,
@@ -886,6 +925,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B933B86D2ECFE26300DC9770 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFunctions;
+		};
+		B9DDCC8F2ED1490A000E97E3 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B933B86D2ECFE26300DC9770 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
