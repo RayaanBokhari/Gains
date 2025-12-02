@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @EnvironmentObject var authService: AuthService
     @StateObject private var viewModel = ProfileViewModel()
     @State private var showEditProfile = false
+    @State private var showSettings = false
+    @State private var showUpgradeAccount = false
     
     var body: some View {
         NavigationView {
@@ -29,9 +32,17 @@ struct ProfileView: View {
                                         .foregroundColor(.gainsText)
                                 )
                             
-                            Text(viewModel.profile.name)
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(.gainsText)
+                            VStack(spacing: 4) {
+                                Text(viewModel.profile.name)
+                                    .font(.system(size: 32, weight: .bold))
+                                    .foregroundColor(.gainsText)
+                                
+                                if let email = authService.userEmail {
+                                    Text(email)
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.gainsSecondaryText)
+                                }
+                            }
                             
                             Button {
                                 showEditProfile = true
@@ -46,6 +57,49 @@ struct ProfileView: View {
                             }
                         }
                         .padding(.top)
+                        
+                        // Anonymous Account Upgrade Banner
+                        if authService.isAnonymous {
+                            Button {
+                                showUpgradeAccount = true
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.orange)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Create an Account")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.gainsText)
+                                        
+                                        Text("Sign up to sync your data across devices")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.gainsSecondaryText)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.gainsSecondaryText)
+                                }
+                                .padding()
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color.orange.opacity(0.15), Color.orange.opacity(0.05)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(16)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                                )
+                            }
+                            .padding(.horizontal)
+                        }
                         
                         // Basic Information
                         VStack(alignment: .leading, spacing: 12) {
@@ -140,6 +194,31 @@ struct ProfileView: View {
                         }
                         .padding(.horizontal)
                         
+                        // Settings
+                        Button {
+                            showSettings = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gainsSecondaryText)
+                                
+                                Text("Settings")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.gainsText)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gainsSecondaryText)
+                            }
+                            .padding()
+                            .background(Color.gainsCardBackground)
+                            .cornerRadius(16)
+                        }
+                        .padding(.horizontal)
+                        
                         // Connected Apps
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Connected Apps")
@@ -167,6 +246,14 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+                    .environmentObject(authService)
+            }
+            .sheet(isPresented: $showUpgradeAccount) {
+                SignUpView()
+                    .environmentObject(authService)
             }
         }
     }
@@ -246,5 +333,5 @@ struct ConnectedAppIcon: View {
 
 #Preview {
     ProfileView()
+        .environmentObject(AuthService.shared)
 }
-

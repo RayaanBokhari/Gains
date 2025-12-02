@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct TabBarView: View {
+    @EnvironmentObject var authService: AuthService
     @State private var selectedTab = 0
     
     var body: some View {
@@ -41,6 +42,7 @@ struct TabBarView: View {
                 .tag(3)
             
             ProfileView()
+                .environmentObject(authService)
                 .tabItem {
                     Image(systemName: selectedTab == 4 ? "person.fill" : "person")
                     Text("Profile")
@@ -63,5 +65,5 @@ struct TabBarView: View {
 
 #Preview {
     TabBarView()
+        .environmentObject(AuthService.shared)
 }
-
