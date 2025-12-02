@@ -6,54 +6,101 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct CommunityView: View {
     @StateObject private var viewModel = CommunityViewModel()
+    @State private var showCreatePost = false
     
     var body: some View {
         NavigationView {
             ZStack {
                 Color.gainsBackground.ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Header
-                        HStack {
-                            Text("Community")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.gainsText)
-                            
-                            Spacer()
-                            
-                            Button(action: {}) {
-                                Image(systemName: "circle.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.gainsPrimary)
-                            }
-                        }
-                        .padding()
-                        
-                        // Stories
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                ForEach(viewModel.stories, id: \.self) { story in
-                                    StoryCircle(name: story)
+                if viewModel.isLoading && viewModel.posts.isEmpty {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
+                } else {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            // Header
+                            HStack {
+                                Text("Community")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundColor(.gainsText)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    showCreatePost = true
+                                } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.gainsPrimary)
                                 }
                             }
-                            .padding(.horizontal)
-                        }
-                        
-                        // Feed Posts
-                        VStack(spacing: 16) {
-                            ForEach(viewModel.posts) { post in
-                                CommunityPostCard(post: post)
+                            .padding()
+                            
+                            // Stories
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(viewModel.stories, id: \.self) { story in
+                                        StoryCircle(name: story)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                            
+                            // Feed Posts
+                            if viewModel.posts.isEmpty {
+                                VStack(spacing: 16) {
+                                    Image(systemName: "person.3.fill")
+                                        .font(.system(size: 48))
+                                        .foregroundColor(.gainsSecondaryText)
+                                    
+                                    Text("No Posts Yet")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.gainsText)
+                                    
+                                    Text("Be the first to share your progress!")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.gainsSecondaryText)
+                                }
+                                .padding()
+                            } else {
+                                VStack(spacing: 16) {
+                                    ForEach(viewModel.posts) { post in
+                                        CommunityPostCard(
+                                            post: post,
+                                            onLike: {
+                                                Task {
+                                                    await viewModel.likePost(post)
+                                                }
+                                            },
+                                            onDelete: {
+                                                Task {
+                                                    await viewModel.deletePost(post)
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                                .padding(.horizontal)
                             }
                         }
-                        .padding(.horizontal)
+                    }
+                    .refreshable {
+                        await viewModel.refreshPosts()
                     }
                 }
             }
             .navigationBarHidden(true)
+            .sheet(isPresented: $showCreatePost) {
+                CreatePostView(
+                    isPresented: $showCreatePost,
+                    viewModel: viewModel
+                )
+            }
         }
     }
 }
@@ -81,6 +128,25 @@ struct StoryCircle: View {
 
 struct CommunityPostCard: View {
     let post: CommunityPost
+    let onLike: () -> Void
+    let onDelete: (() -> Void)?
+    @State private var showDeleteConfirmation = false
+    
+    init(post: CommunityPost, onLike: @escaping () -> Void, onDelete: (() -> Void)? = nil) {
+        self.post = post
+        self.onLike = onLike
+        self.onDelete = onDelete
+    }
+    
+    private var isLiked: Bool {
+        guard let userId = AuthService.shared.user?.uid else { return false }
+        return post.likes.contains(userId)
+    }
+    
+    private var canDelete: Bool {
+        guard let userId = AuthService.shared.user?.uid else { return false }
+        return post.userId == userId
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -106,6 +172,19 @@ struct CommunityPostCard: View {
                 }
                 
                 Spacer()
+                
+                if canDelete {
+                    Menu {
+                        Button(role: .destructive, action: {
+                            showDeleteConfirmation = true
+                        }) {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.gainsSecondaryText)
+                    }
+                }
             }
             
             // Post Text
@@ -165,10 +244,33 @@ struct CommunityPostCard: View {
                     }
                 }
             }
+            
+            // Like Button
+            HStack(spacing: 16) {
+                Button(action: onLike) {
+                    HStack(spacing: 4) {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .foregroundColor(isLiked ? .red : .gainsSecondaryText)
+                        Text("\(post.likeCount)")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gainsSecondaryText)
+                    }
+                }
+                
+                Spacer()
+            }
         }
         .padding()
         .background(Color.gainsCardBackground)
         .cornerRadius(16)
+        .confirmationDialog("Delete Post", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete this post?")
+        }
     }
 }
 

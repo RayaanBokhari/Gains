@@ -13,22 +13,35 @@ import SwiftUI
 class WorkoutViewModel: ObservableObject {
     @Published var currentWorkout: Workout?
     @Published var workouts: [Workout] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String?
     
     private let workoutService = WorkoutService()
     
     init() {
-        loadWorkouts()
+        Task {
+            await loadWorkouts()
+        }
     }
     
     func startWorkout(name: String) {
         currentWorkout = Workout(name: name, date: Date())
     }
     
-    func endWorkout() {
-        if var workout = currentWorkout {
-            workoutService.addWorkout(workout)
-            currentWorkout = nil
-            loadWorkouts()
+    func endWorkout() async {
+        if let workout = currentWorkout {
+            isLoading = true
+            errorMessage = nil
+            defer { isLoading = false }
+            
+            do {
+                try await workoutService.addWorkout(workout)
+                currentWorkout = nil
+                await loadWorkouts()
+            } catch {
+                errorMessage = "Failed to save workout: \(error.localizedDescription)"
+                print("Error saving workout: \(error)")
+            }
         }
     }
     
@@ -36,8 +49,41 @@ class WorkoutViewModel: ObservableObject {
         currentWorkout?.exercises.append(exercise)
     }
     
-    private func loadWorkouts() {
+    func loadWorkouts() async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        
+        await workoutService.loadWorkouts()
         workouts = workoutService.workouts
+    }
+    
+    func updateWorkout(_ workout: Workout) async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        
+        do {
+            try await workoutService.updateWorkout(workout)
+            await loadWorkouts()
+        } catch {
+            errorMessage = "Failed to update workout: \(error.localizedDescription)"
+            print("Error updating workout: \(error)")
+        }
+    }
+    
+    func deleteWorkout(_ workout: Workout) async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        
+        do {
+            try await workoutService.deleteWorkout(workout)
+            await loadWorkouts()
+        } catch {
+            errorMessage = "Failed to delete workout: \(error.localizedDescription)"
+            print("Error deleting workout: \(error)")
+        }
     }
 }
 
