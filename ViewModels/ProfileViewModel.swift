@@ -8,23 +8,73 @@
 import Foundation
 import SwiftUI
 import Combine
+import FirebaseAuth
 
+@MainActor
 class ProfileViewModel: ObservableObject {
     @Published var profile: UserProfile
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
+    
+    private let firestore = FirestoreService.shared
+    private let auth = AuthService.shared
     
     init() {
-        var calendar = Calendar.current
-        var components = DateComponents()
-        components.year = 2025
-        components.month = 4
-        components.day = 23
-        let dateJoined = calendar.date(from: components) ?? Date()
-        self.profile = UserProfile(dateJoined: dateJoined)
+        // Default profile - will be replaced when loaded
+        self.profile = UserProfile()
     }
     
     var macroProgress: (protein: Double, carbs: Double, fats: Double) {
         // Sample progress: 25%, 90%, 25%
         return (0.25, 0.90, 0.25)
+    }
+    
+    func loadProfile() async {
+        guard let user = auth.user else {
+            print("⚠️ ProfileViewModel: No user signed in")
+            return
+        }
+        
+        print("📱 ProfileViewModel: Loading profile for user: \(user.uid)")
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        
+        do {
+            if let fetchedProfile = try await firestore.fetchUserProfile(userId: user.uid) {
+                print("✅ ProfileViewModel: Successfully loaded profile")
+                profile = fetchedProfile
+            } else {
+                print("📝 ProfileViewModel: No profile found, creating default")
+                // No profile exists, create default one
+                profile = UserProfile(dateJoined: Date())
+                // Save default profile
+                try await firestore.saveUserProfile(userId: user.uid, profile: profile)
+                print("✅ ProfileViewModel: Default profile created and saved")
+            }
+        } catch {
+            errorMessage = "Failed to load profile: \(error.localizedDescription)"
+            print("❌ ProfileViewModel: Error loading profile: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
+        }
+    }
+    
+    func saveProfile() async {
+        guard let user = auth.user else {
+            errorMessage = "You must be signed in"
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        
+        do {
+            try await firestore.saveUserProfile(userId: user.uid, profile: profile)
+        } catch {
+            errorMessage = "Failed to save profile: \(error.localizedDescription)"
+            print("Error saving profile: \(error)")
+        }
     }
 }
 

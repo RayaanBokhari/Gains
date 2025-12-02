@@ -256,6 +256,35 @@ final class FirestoreService {
         ], merge: true)
     }
     
+    // MARK: - User Profile
+    
+    func saveUserProfile(userId: String, profile: UserProfile) async throws {
+        let profileRef = db
+            .collection("users")
+            .document(userId)
+            .collection("profile")
+            .document("data")
+        
+        var data = try Firestore.Encoder().encode(profile)
+        // Ensure dateJoined is stored as Timestamp
+        data["dateJoined"] = Timestamp(date: profile.dateJoined)
+        
+        try await profileRef.setData(data, merge: true)
+    }
+    
+    func fetchUserProfile(userId: String) async throws -> UserProfile? {
+        let profileRef = db
+            .collection("users")
+            .document(userId)
+            .collection("profile")
+            .document("data")
+        
+        let snapshot = try await profileRef.getDocument()
+        guard snapshot.exists else { return nil }
+        
+        return try snapshot.data(as: UserProfile.self)
+    }
+    
     // MARK: - Helpers
     
     static func todayId() -> String {

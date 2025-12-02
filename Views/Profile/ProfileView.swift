@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @State private var showEditProfile = false
     
     var body: some View {
         NavigationView {
@@ -31,6 +32,18 @@ struct ProfileView: View {
                             Text(viewModel.profile.name)
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.gainsText)
+                            
+                            Button {
+                                showEditProfile = true
+                            } label: {
+                                Text("Edit Profile")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.gainsPrimary)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 8)
+                                    .background(Color.gainsPrimary.opacity(0.1))
+                                    .cornerRadius(8)
+                            }
                         }
                         .padding(.top)
                         
@@ -53,7 +66,9 @@ struct ProfileView: View {
                                 .foregroundColor(.gainsText)
                             
                             // Daily Calories
-                            NavigationLink(destination: EmptyView()) {
+                            Button {
+                                showEditProfile = true
+                            } label: {
                                 HStack {
                                     Text("Daily Calories")
                                         .font(.system(size: 16))
@@ -123,6 +138,12 @@ struct ProfileView: View {
                 }
             }
             .navigationBarHidden(true)
+            .task {
+                await viewModel.loadProfile()
+            }
+            .sheet(isPresented: $showEditProfile) {
+                EditProfileView(viewModel: viewModel)
+            }
         }
     }
     
