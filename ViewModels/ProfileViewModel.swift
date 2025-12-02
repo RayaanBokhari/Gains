@@ -62,18 +62,23 @@ class ProfileViewModel: ObservableObject {
     func saveProfile() async {
         guard let user = auth.user else {
             errorMessage = "You must be signed in"
+            print("❌ ProfileViewModel: Cannot save - no user signed in")
             return
         }
         
+        print("💾 ProfileViewModel: Saving profile for user: \(user.uid)")
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
         
         do {
             try await firestore.saveUserProfile(userId: user.uid, profile: profile)
+            print("✅ ProfileViewModel: Profile successfully saved to Firestore")
+            print("📊 ProfileViewModel: Saved data - Name: \(profile.name), Weight: \(profile.weight), Units: \(profile.useMetricUnits ? "Metric" : "Imperial")")
         } catch {
             errorMessage = "Failed to save profile: \(error.localizedDescription)"
-            print("Error saving profile: \(error)")
+            print("❌ ProfileViewModel: Error saving profile: \(error)")
+            print("❌ ProfileViewModel: Error details: \(error.localizedDescription)")
         }
     }
 }

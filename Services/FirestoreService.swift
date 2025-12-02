@@ -269,7 +269,12 @@ final class FirestoreService {
         // Ensure dateJoined is stored as Timestamp
         data["dateJoined"] = Timestamp(date: profile.dateJoined)
         
+        print("🔥 FirestoreService: Saving profile to users/\(userId)/profile/data")
+        print("🔥 FirestoreService: Profile data keys: \(data.keys.sorted())")
+        
         try await profileRef.setData(data, merge: true)
+        
+        print("✅ FirestoreService: Profile successfully saved to Firestore")
     }
     
     func fetchUserProfile(userId: String) async throws -> UserProfile? {

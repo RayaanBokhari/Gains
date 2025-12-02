@@ -78,12 +78,13 @@ struct DailyNutrition: Codable {
 struct UserProfile: Codable {
     var name: String
     var dateJoined: Date
-    var weight: Double // in kg or lbs
-    var height: String // e.g., "5 ft 10 in"
+    var weight: Double // in kg (metric) or lbs (imperial)
+    var height: String // e.g., "5 ft 10 in" (imperial) or "178 cm" (metric)
     var gender: String
     var dailyCaloriesGoal: Int
     var macros: MacroGoals
     var waterGoal: Double // in oz
+    var useMetricUnits: Bool // true for metric (kg, cm), false for imperial (lbs, ft/in)
     
     struct MacroGoals: Codable {
         var protein: Double
@@ -91,7 +92,7 @@ struct UserProfile: Codable {
         var fats: Double
     }
     
-    init(name: String = "Alex", dateJoined: Date = Date(), weight: Double = 116, height: String = "5 ft 10 in", gender: String = "Male", dailyCaloriesGoal: Int = 2460, macros: MacroGoals = MacroGoals(protein: 450, carbs: 202, fats: 33), waterGoal: Double = 96) {
+    init(name: String = "Alex", dateJoined: Date = Date(), weight: Double = 116, height: String = "5 ft 10 in", gender: String = "Male", dailyCaloriesGoal: Int = 2460, macros: MacroGoals = MacroGoals(protein: 450, carbs: 202, fats: 33), waterGoal: Double = 96, useMetricUnits: Bool = false) {
         self.name = name
         self.dateJoined = dateJoined
         self.weight = weight
@@ -100,6 +101,7 @@ struct UserProfile: Codable {
         self.dailyCaloriesGoal = dailyCaloriesGoal
         self.macros = macros
         self.waterGoal = waterGoal
+        self.useMetricUnits = useMetricUnits
     }
 }
 

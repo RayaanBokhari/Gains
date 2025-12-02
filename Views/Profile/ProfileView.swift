@@ -50,9 +50,10 @@ struct ProfileView: View {
                         // Basic Information
                         VStack(alignment: .leading, spacing: 12) {
                             InfoRow(label: "Date Joined", value: formatDate(viewModel.profile.dateJoined))
-                            InfoRow(label: "Weight", value: "\(Int(viewModel.profile.weight)) kg")
+                            InfoRow(label: "Weight", value: "\(Int(viewModel.profile.weight)) \(viewModel.profile.useMetricUnits ? "kg" : "lbs")")
                             InfoRow(label: "Height", value: viewModel.profile.height)
                             InfoRow(label: "Gender", value: viewModel.profile.gender)
+                            InfoRow(label: "Units", value: viewModel.profile.useMetricUnits ? "Metric" : "Imperial")
                         }
                         .padding()
                         .background(Color.gainsCardBackground)

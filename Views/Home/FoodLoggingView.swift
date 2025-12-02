@@ -14,6 +14,8 @@ struct FoodLoggingView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var chatGPTService = ChatGPTService()
     
+    @FocusState private var focusedField: Field?
+    
     @Binding var isPresented: Bool
     let onFoodLogged: (Food) -> Void
     let selectedDate: Date
@@ -32,6 +34,10 @@ struct FoodLoggingView: View {
     @State private var protein: String = ""
     @State private var carbs: String = ""
     @State private var fats: String = ""
+    
+    enum Field {
+        case description, name, calories, protein, carbs, fats
+    }
     
     var body: some View {
         NavigationView {
@@ -101,6 +107,7 @@ struct FoodLoggingView: View {
                             
                             TextField("What did you eat?", text: $foodDescription, axis: .vertical)
                                 .textFieldStyle(.plain)
+                                .focused($focusedField, equals: .description)
                                 .padding()
                                 .background(Color.gainsCardBackground)
                                 .cornerRadius(12)
@@ -186,6 +193,7 @@ struct FoodLoggingView: View {
                                     
                                     TextField("Name", text: $foodName)
                                         .textFieldStyle(.plain)
+                                        .focused($focusedField, equals: .name)
                                         .padding()
                                         .background(Color.gainsBackground)
                                         .cornerRadius(8)
@@ -194,10 +202,10 @@ struct FoodLoggingView: View {
                                 
                                 // Nutrition Values in Grid
                                 VStack(spacing: 12) {
-                                    NutritionInputRow(label: "Calories", value: $calories, unit: "kcal")
-                                    NutritionInputRow(label: "Protein", value: $protein, unit: "g")
-                                    NutritionInputRow(label: "Carbs", value: $carbs, unit: "g")
-                                    NutritionInputRow(label: "Fats", value: $fats, unit: "g")
+                                    NutritionInputRow(label: "Calories", value: $calories, unit: "kcal", focusedField: $focusedField, fieldValue: .calories)
+                                    NutritionInputRow(label: "Protein", value: $protein, unit: "g", focusedField: $focusedField, fieldValue: .protein)
+                                    NutritionInputRow(label: "Carbs", value: $carbs, unit: "g", focusedField: $focusedField, fieldValue: .carbs)
+                                    NutritionInputRow(label: "Fats", value: $fats, unit: "g", focusedField: $focusedField, fieldValue: .fats)
                                 }
                             }
                             .padding()
@@ -247,6 +255,22 @@ struct FoodLoggingView: View {
                     .foregroundColor(.gainsPrimary)
                 }
             }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        focusedField = nil
+                    }
+                    .foregroundColor(.gainsPrimary)
+                    .fontWeight(.semibold)
+                }
+            }
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        focusedField = nil
+                    }
+            )
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(image: $selectedImage)
@@ -349,10 +373,12 @@ struct FoodLoggingView: View {
     }
 }
 
-struct NutritionInputRow: View {
+struct NutritionInputRow<Field: Hashable>: View {
     let label: String
     @Binding var value: String
     let unit: String
+    var focusedField: FocusState<Field?>.Binding
+    var fieldValue: Field?
     
     var body: some View {
         HStack {
@@ -364,6 +390,7 @@ struct NutritionInputRow: View {
             TextField("0", text: $value)
                 .textFieldStyle(.plain)
                 .keyboardType(.decimalPad)
+                .focused(focusedField, equals: fieldValue)
                 .padding(10)
                 .background(Color.gainsBackground)
                 .cornerRadius(8)

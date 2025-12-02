@@ -13,6 +13,8 @@ import UIKit
 struct EditMealView: View {
     @Environment(\.dismiss) var dismiss
     
+    @FocusState private var focusedField: Field?
+    
     @Binding var isPresented: Bool
     let food: Food
     let onMealUpdated: (Food) -> Void
@@ -29,6 +31,10 @@ struct EditMealView: View {
     @State private var errorMessage: String?
     @State private var currentPhotoUrl: String?
     @State private var shouldRemovePhoto = false
+    
+    enum Field {
+        case name, calories, protein, carbs, fats
+    }
     
     init(isPresented: Binding<Bool>, food: Food, onMealUpdated: @escaping (Food) -> Void, selectedDate: Date) {
         self._isPresented = isPresented
@@ -155,6 +161,7 @@ struct EditMealView: View {
                             
                             TextField("Name", text: $foodName)
                                 .textFieldStyle(.plain)
+                                .focused($focusedField, equals: .name)
                                 .padding()
                                 .background(Color.gainsCardBackground)
                                 .cornerRadius(12)
@@ -169,10 +176,10 @@ struct EditMealView: View {
                                 .foregroundColor(.gainsText)
                             
                             VStack(spacing: 12) {
-                                NutritionInputRow(label: "Calories", value: $calories, unit: "kcal")
-                                NutritionInputRow(label: "Protein", value: $protein, unit: "g")
-                                NutritionInputRow(label: "Carbs", value: $carbs, unit: "g")
-                                NutritionInputRow(label: "Fats", value: $fats, unit: "g")
+                                NutritionInputRow<Field>(label: "Calories", value: $calories, unit: "kcal", focusedField: $focusedField, fieldValue: .calories)
+                                NutritionInputRow<Field>(label: "Protein", value: $protein, unit: "g", focusedField: $focusedField, fieldValue: .protein)
+                                NutritionInputRow<Field>(label: "Carbs", value: $carbs, unit: "g", focusedField: $focusedField, fieldValue: .carbs)
+                                NutritionInputRow<Field>(label: "Fats", value: $fats, unit: "g", focusedField: $focusedField, fieldValue: .fats)
                             }
                         }
                         .padding()
@@ -233,6 +240,22 @@ struct EditMealView: View {
                     .foregroundColor(.gainsPrimary)
                 }
             }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        focusedField = nil
+                    }
+                    .foregroundColor(.gainsPrimary)
+                    .fontWeight(.semibold)
+                }
+            }
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        focusedField = nil
+                    }
+            )
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(image: $selectedImage)
