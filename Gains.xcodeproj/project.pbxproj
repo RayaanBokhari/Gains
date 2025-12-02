@@ -69,6 +69,8 @@
 		B9DDCCAD2ED1F00100E97E3 /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDCCAE2ED1F00100E97E3 /* SignUpView.swift */; };
 		B9FCF7412EDF94AA00C112ED /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = B9FCF7402EDF94AA00C112ED /* GoogleSignIn */; };
 		B9FCF7432EDF94AA00C112ED /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = B9FCF7422EDF94AA00C112ED /* GoogleSignInSwift */; };
+		B9FCF7482EDF96FA00C112ED /* ActiveWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7462EDF96FA00C112ED /* ActiveWorkoutView.swift */; };
+		B9FCF7492EDF96FA00C112ED /* AddExerciseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7472EDF96FA00C112ED /* AddExerciseView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -148,6 +150,8 @@
 		B9DDCCA82ED14AEF000E97E3 /* CreatePostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostView.swift; sourceTree = "<group>"; };
 		B9DDCCAC2ED1F00000E97E3 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		B9DDCCAE2ED1F00100E97E3 /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
+		B9FCF7462EDF96FA00C112ED /* ActiveWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveWorkoutView.swift; sourceTree = "<group>"; };
+		B9FCF7472EDF96FA00C112ED /* AddExerciseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExerciseView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -335,6 +339,8 @@
 		B94DAB212ECFC50000DB65EB /* Workouts */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF7462EDF96FA00C112ED /* ActiveWorkoutView.swift */,
+				B9FCF7472EDF96FA00C112ED /* AddExerciseView.swift */,
 				B94DAB152ECFC50000DB65EB /* WorkoutDetailView.swift */,
 				B94DAB172ECFC50000DB65EB /* WorkoutListView.swift */,
 			);
@@ -597,6 +603,8 @@
 				B94DAB062ECFC50000DB65EB /* ExerciseTemplate.swift in Sources */,
 				B94DAB082ECFC50000DB65EB /* Workout.swift in Sources */,
 				B94DAB0A2ECFC50000DB65EB /* WorkoutViewModel.swift in Sources */,
+				B9FCF7482EDF96FA00C112ED /* ActiveWorkoutView.swift in Sources */,
+				B9FCF7492EDF96FA00C112ED /* AddExerciseView.swift in Sources */,
 				B94DAB0C2ECFC50000DB65EB /* ExerciseListView.swift in Sources */,
 				B94DAB0E2ECFC50000DB65EB /* ProgressView.swift in Sources */,
 				B94DAB102ECFC50000DB65EB /* SettingsView.swift in Sources */,

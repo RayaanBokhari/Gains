@@ -384,12 +384,16 @@ final class FirestoreService {
                 .document()
         }
         
+        print("FirestoreService: Saving workout to users/\(userId)/workouts/\(workoutRef.documentID)")
+        
         var data = try Firestore.Encoder().encode(workout)
-        data["id"] = workoutRef.documentID
+        // Don't overwrite 'id' - keep the UUID string from encoding
+        // Only set workoutId to the Firestore document ID
         data["workoutId"] = workoutRef.documentID
         data["date"] = Timestamp(date: workout.date)
         
         try await workoutRef.setData(data)
+        print("FirestoreService: Workout document saved successfully")
     }
     
     func fetchWorkouts(userId: String) async throws -> [Workout] {

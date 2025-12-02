@@ -54,9 +54,22 @@ struct WorkoutListView: View {
                                 NavigationLink(destination: WorkoutDetailView(workout: workout)) {
                                     WorkoutRowView(workout: workout)
                                 }
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        Task {
+                                            await viewModel.deleteWorkout(workout)
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                             }
                         }
                         .padding()
+                    }
+                    .refreshable {
+                        // Force a fresh fetch from Firestore
+                        await viewModel.refreshWorkouts()
                     }
                 }
                 
@@ -97,8 +110,8 @@ struct WorkoutListView: View {
                     }
                 }
             }
-            .task {
-                await viewModel.loadWorkouts()
+            .onAppear {
+                viewModel.startListening()
             }
             .sheet(isPresented: $showAICoach) {
                 AICoachView()
@@ -114,6 +127,7 @@ struct NewWorkoutView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: WorkoutViewModel
     @State private var workoutName = ""
+    @State private var showActiveWorkout = false
     
     var body: some View {
         NavigationView {
@@ -138,10 +152,7 @@ struct NewWorkoutView: View {
                     Button {
                         if !workoutName.isEmpty {
                             viewModel.startWorkout(name: workoutName)
-                            Task {
-                                await viewModel.endWorkout()
-                            }
-                            dismiss()
+                            showActiveWorkout = true
                         }
                     } label: {
                         Text("Start Workout")
@@ -168,6 +179,12 @@ struct NewWorkoutView: View {
                     }
                     .foregroundColor(.gainsPrimary)
                 }
+            }
+            .fullScreenCover(isPresented: $showActiveWorkout, onDismiss: {
+                // Dismiss this sheet too when active workout is dismissed
+                dismiss()
+            }) {
+                ActiveWorkoutView(viewModel: viewModel)
             }
         }
     }
