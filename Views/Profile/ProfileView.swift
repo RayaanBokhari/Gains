@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var showEditProfile = false
     @State private var showSettings = false
     @State private var showUpgradeAccount = false
+    @State private var showGoalsSettings = false
     
     var body: some View {
         NavigationView {
@@ -116,9 +117,21 @@ struct ProfileView: View {
                         
                         // Goals & Targets
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Goals & Targets")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.gainsText)
+                            HStack {
+                                Text("Goals & Targets")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(.gainsText)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    showGoalsSettings = true
+                                } label: {
+                                    Text("Edit")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.gainsPrimary)
+                                }
+                            }
                             
                             // Daily Calories
                             Button {
@@ -254,6 +267,9 @@ struct ProfileView: View {
             .sheet(isPresented: $showUpgradeAccount) {
                 SignUpView()
                     .environmentObject(authService)
+            }
+            .sheet(isPresented: $showGoalsSettings) {
+                GoalsSettingsView(profileViewModel: viewModel)
             }
         }
     }

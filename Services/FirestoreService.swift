@@ -621,6 +621,56 @@ final class FirestoreService {
         try await postRef.delete()
     }
     
+    // MARK: - Workout Plans
+    
+    func saveWorkoutPlan(userId: String, plan: WorkoutPlan) async throws {
+        let planRef: DocumentReference
+        if let planId = plan.planId {
+            planRef = db.collection("users").document(userId)
+                .collection("workoutPlans").document(planId)
+        } else {
+            planRef = db.collection("users").document(userId)
+                .collection("workoutPlans").document()
+        }
+        
+        var data = try Firestore.Encoder().encode(plan)
+        data["planId"] = planRef.documentID
+        data["createdAt"] = Timestamp(date: plan.createdAt)
+        
+        try await planRef.setData(data)
+    }
+    
+    func fetchWorkoutPlans(userId: String) async throws -> [WorkoutPlan] {
+        let snapshot = try await db.collection("users").document(userId)
+            .collection("workoutPlans")
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> WorkoutPlan? in
+            var plan = try? doc.data(as: WorkoutPlan.self)
+            plan?.planId = doc.documentID
+            return plan
+        }
+    }
+    
+    func updateWorkoutPlan(userId: String, plan: WorkoutPlan) async throws {
+        guard let planId = plan.planId else { return }
+        let planRef = db.collection("users").document(userId)
+            .collection("workoutPlans").document(planId)
+        
+        var data = try Firestore.Encoder().encode(plan)
+        data["planId"] = planId
+        data["createdAt"] = Timestamp(date: plan.createdAt)
+        
+        try await planRef.setData(data, merge: true)
+    }
+    
+    func deleteWorkoutPlan(userId: String, planId: String) async throws {
+        try await db.collection("users").document(userId)
+            .collection("workoutPlans").document(planId)
+            .delete()
+    }
+    
     // MARK: - Helpers
     
     static func todayId() -> String {

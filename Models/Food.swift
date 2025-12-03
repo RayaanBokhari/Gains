@@ -92,13 +92,32 @@ struct UserProfile: Codable {
     var waterGoal: Double // in oz
     var useMetricUnits: Bool // true for metric (kg, cm), false for imperial (lbs, ft/in)
     
+    // NEW: Goal & Training Context
+    var primaryGoal: FitnessGoal?
+    var targetWeight: Double?
+    var targetDate: Date?
+    var trainingExperience: TrainingExperience?
+    var trainingSplit: TrainingSplit?
+    var activityLevel: ActivityLevel?
+    var preferredTrainingDays: [Weekday]?
+    
+    // NEW: Diet & Lifestyle Context
+    var dietType: DietType?
+    var allergies: [String]?
+    var dislikedFoods: [String]?
+    var mealPattern: MealPattern?
+    
+    // NEW: Coaching Preferences
+    var coachingStyle: CoachingStyle?
+    var detailPreference: DetailPreference?
+    
     struct MacroGoals: Codable {
         var protein: Double
         var carbs: Double
         var fats: Double
     }
     
-    init(name: String = "Alex", dateJoined: Date = Date(), weight: Double = 116, height: String = "5 ft 10 in", gender: String = "Male", dailyCaloriesGoal: Int = 2460, macros: MacroGoals = MacroGoals(protein: 450, carbs: 202, fats: 33), waterGoal: Double = 96, useMetricUnits: Bool = false) {
+    init(name: String = "Alex", dateJoined: Date = Date(), weight: Double = 116, height: String = "5 ft 10 in", gender: String = "Male", dailyCaloriesGoal: Int = 2460, macros: MacroGoals = MacroGoals(protein: 450, carbs: 202, fats: 33), waterGoal: Double = 96, useMetricUnits: Bool = false, primaryGoal: FitnessGoal? = nil, targetWeight: Double? = nil, targetDate: Date? = nil, trainingExperience: TrainingExperience? = nil, trainingSplit: TrainingSplit? = nil, activityLevel: ActivityLevel? = nil, preferredTrainingDays: [Weekday]? = nil, dietType: DietType? = nil, allergies: [String]? = nil, dislikedFoods: [String]? = nil, mealPattern: MealPattern? = nil, coachingStyle: CoachingStyle? = nil, detailPreference: DetailPreference? = nil) {
         self.name = name
         self.dateJoined = dateJoined
         self.weight = weight
@@ -108,6 +127,36 @@ struct UserProfile: Codable {
         self.macros = macros
         self.waterGoal = waterGoal
         self.useMetricUnits = useMetricUnits
+        self.primaryGoal = primaryGoal
+        self.targetWeight = targetWeight
+        self.targetDate = targetDate
+        self.trainingExperience = trainingExperience
+        self.trainingSplit = trainingSplit
+        self.activityLevel = activityLevel
+        self.preferredTrainingDays = preferredTrainingDays
+        self.dietType = dietType
+        self.allergies = allergies
+        self.dislikedFoods = dislikedFoods
+        self.mealPattern = mealPattern
+        self.coachingStyle = coachingStyle
+        self.detailPreference = detailPreference
+    }
+    
+    // Computed descriptions for AI context
+    var goalDescription: String {
+        primaryGoal?.rawValue ?? "Not set"
+    }
+    
+    var targetDateString: String {
+        guard let date = targetDate else { return "Not set" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
+    
+    var restrictionsDescription: String {
+        let restrictions = (allergies ?? []) + (dislikedFoods?.map { "dislikes \($0)" } ?? [])
+        return restrictions.isEmpty ? "None" : restrictions.joined(separator: ", ")
     }
 }
 

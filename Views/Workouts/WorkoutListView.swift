@@ -7,15 +7,66 @@
 
 import SwiftUI
 
+enum WorkoutTab: String, CaseIterable {
+    case history = "History"
+    case plans = "Plans"
+}
+
 struct WorkoutListView: View {
     @StateObject private var viewModel = WorkoutViewModel()
     @State private var showAICoach = false
     @State private var showNewWorkout = false
+    @State private var selectedTab: WorkoutTab = .history
     
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.gainsBackground.ignoresSafeArea()
+            VStack(spacing: 0) {
+                // Tab selector
+                Picker("", selection: $selectedTab) {
+                    ForEach(WorkoutTab.allCases, id: \.self) { tab in
+                        Text(tab.rawValue).tag(tab)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding()
+                
+                // Content
+                switch selectedTab {
+                case .history:
+                    WorkoutHistoryView(viewModel: viewModel, showAICoach: $showAICoach, showNewWorkout: $showNewWorkout)
+                case .plans:
+                    WorkoutPlansContentView()
+                }
+            }
+            .background(Color.gainsBackground)
+            .navigationTitle("Workouts")
+            .toolbar {
+                if selectedTab == .history {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            showNewWorkout = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundColor(.gainsPrimary)
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showAICoach) {
+                AICoachView()
+            }
+        }
+    }
+}
+
+struct WorkoutHistoryView: View {
+    @ObservedObject var viewModel: WorkoutViewModel
+    @Binding var showAICoach: Bool
+    @Binding var showNewWorkout: Bool
+    
+    var body: some View {
+        ZStack {
+            Color.gainsBackground.ignoresSafeArea()
                 
                 if viewModel.isLoading {
                     ProgressView()
@@ -99,25 +150,25 @@ struct WorkoutListView: View {
                     }
                 }
             }
-            .navigationTitle("Workouts")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showNewWorkout = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .foregroundColor(.gainsPrimary)
-                    }
-                }
-            }
-            .onAppear {
-                viewModel.startListening()
-            }
-            .sheet(isPresented: $showAICoach) {
-                AICoachView()
-            }
-            .sheet(isPresented: $showNewWorkout) {
-                NewWorkoutView(viewModel: viewModel)
+        .onAppear {
+            viewModel.startListening()
+        }
+        .sheet(isPresented: $showNewWorkout) {
+            NewWorkoutView(viewModel: viewModel)
+        }
+    }
+}
+
+// Extension for toolbar on WorkoutListView
+extension WorkoutListView {
+    @ToolbarContentBuilder
+    func workoutToolbar() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button {
+                showNewWorkout = true
+            } label: {
+                Image(systemName: "plus")
+                    .foregroundColor(.gainsPrimary)
             }
         }
     }

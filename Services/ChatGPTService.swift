@@ -252,5 +252,142 @@ class ChatGPTService: ObservableObject {
             )
         }
     }
+    
+    /// Generates a personalized workout plan based on user preferences
+    func generateWorkoutPlan(
+        goal: FitnessGoal,
+        experience: TrainingExperience,
+        daysPerWeek: Int,
+        split: TrainingSplit?,
+        equipment: [String]?,
+        constraints: String?
+    ) async throws -> WorkoutPlan {
+        // Ensure user is authenticated
+        guard Auth.auth().currentUser != nil else {
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "You must be signed in to generate workout plans."]
+            )
+        }
+        
+        let prompt = """
+        Generate a \(daysPerWeek)-day workout plan:
+        Goal: \(goal.rawValue), Experience: \(experience.rawValue), Split: \(split?.rawValue ?? "Any")
+        Equipment: \(equipment?.joined(separator: ", ") ?? "Full gym")
+        \(constraints != nil ? "Constraints: \(constraints!)" : "")
+        
+        Return ONLY valid JSON (no markdown, no extra text):
+        {"name":"Plan name","description":"Brief desc","durationWeeks":4,"workoutTemplates":[{"name":"Day 1","dayNumber":1,"exercises":[{"name":"Exercise","targetSets":3,"targetReps":"8-12","restSeconds":90,"notes":"Cue","alternatives":["Alt1"]}],"notes":"Notes"}]}
+        
+        Include 4-5 exercises per day with 1-2 alternatives each. Keep notes brief.
+        """
+        
+        let systemMessage = ChatGPTRequest.Message(
+            role: "system",
+            content: "You are a fitness expert. Return ONLY compact valid JSON for workout plans. No markdown. Keep descriptions and notes brief to stay within token limits."
+        )
+        
+        let userMessage = ChatGPTRequest.Message(
+            role: "user",
+            content: prompt
+        )
+        
+        let messages = [systemMessage, userMessage]
+        let reply = try await sendMessageWithVision(messages: messages)
+        
+        // Parse JSON response
+        var jsonString = reply.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Remove markdown code blocks if present
+        if jsonString.hasPrefix("```json") {
+            jsonString = jsonString.replacingOccurrences(of: "```json", with: "")
+                .replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if jsonString.hasPrefix("```") {
+            jsonString = jsonString.replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        // Find JSON object bounds
+        if let start = jsonString.firstIndex(of: "{"),
+           let end = jsonString.lastIndex(of: "}") {
+            jsonString = String(jsonString[start...end])
+        }
+        
+        guard let jsonData = jsonString.data(using: .utf8) else {
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -3,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to parse workout plan response"]
+            )
+        }
+        
+        do {
+            // Decode the plan structure
+            struct PlanResponse: Codable {
+                let name: String
+                let description: String?
+                let durationWeeks: Int
+                let workoutTemplates: [WorkoutTemplateResponse]
+            }
+            
+            struct WorkoutTemplateResponse: Codable {
+                let name: String
+                let dayNumber: Int
+                let exercises: [PlannedExerciseResponse]
+                let notes: String?
+            }
+            
+            struct PlannedExerciseResponse: Codable {
+                let name: String
+                let targetSets: Int
+                let targetReps: String
+                let restSeconds: Int?
+                let notes: String?
+                let alternatives: [String]?
+            }
+            
+            let planResponse = try JSONDecoder().decode(PlanResponse.self, from: jsonData)
+            
+            // Convert to WorkoutPlan model
+            let workoutTemplates = planResponse.workoutTemplates.map { template in
+                WorkoutTemplate(
+                    name: template.name,
+                    dayNumber: template.dayNumber,
+                    exercises: template.exercises.map { exercise in
+                        PlannedExercise(
+                            name: exercise.name,
+                            targetSets: exercise.targetSets,
+                            targetReps: exercise.targetReps,
+                            restSeconds: exercise.restSeconds,
+                            notes: exercise.notes,
+                            alternatives: exercise.alternatives
+                        )
+                    },
+                    notes: template.notes
+                )
+            }
+            
+            return WorkoutPlan(
+                name: planResponse.name,
+                description: planResponse.description,
+                goal: goal,
+                difficulty: experience == .beginner ? .beginner : experience == .intermediate ? .intermediate : .advanced,
+                durationWeeks: planResponse.durationWeeks,
+                daysPerWeek: daysPerWeek,
+                workoutTemplates: workoutTemplates,
+                createdBy: .ai
+            )
+        } catch {
+            print("Failed to decode workout plan JSON. Raw response: \(reply)")
+            print("Cleaned JSON string: \(jsonString)")
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -4,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to decode workout plan. Please try again."]
+            )
+        }
+    }
 }
 

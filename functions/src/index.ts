@@ -106,11 +106,18 @@ export const aiChat = functions
             }
           });
 
+        // Check if this is a workout plan request (needs more tokens)
+        const isWorkoutPlanRequest = messages.some((msg) => {
+          if (typeof msg.content !== "string") return false;
+          return msg.content.includes("workout plan") &&
+            msg.content.includes("JSON");
+        });
+
         const response = await client.chat.completions.create({
           model: "gpt-4o-mini",
           messages: openaiMessages,
           temperature: 0.7,
-          max_tokens: 1000,
+          max_tokens: isWorkoutPlanRequest ? 4000 : 1000,
         });
 
         const reply =

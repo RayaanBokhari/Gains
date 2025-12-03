@@ -328,5 +328,65 @@ final class HomeViewModel: ObservableObject {
             await loadDate(nextDay)
         }
     }
+    
+    // MARK: - Weekly Nutrition Summary
+    
+    func calculateWeeklySummary() async -> WeeklyNutritionSummary? {
+        guard let user = auth.user else { return nil }
+        
+        let calendar = Calendar.current
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        
+        do {
+            let logs = try await firestore.fetchDailyLogsRange(userId: user.uid, from: weekAgo, to: Date())
+            
+            guard !logs.isEmpty else { return nil }
+            
+            let totalCalories = logs.reduce(0) { $0 + $1.calories }
+            let totalProtein = logs.reduce(0.0) { $0 + Double($1.protein) }
+            let totalCarbs = logs.reduce(0.0) { $0 + Double($1.carbs) }
+            let totalFats = logs.reduce(0.0) { $0 + Double($1.fats) }
+            
+            let avgCalories = Double(totalCalories) / Double(logs.count)
+            let avgProtein = totalProtein / Double(logs.count)
+            let avgCarbs = totalCarbs / Double(logs.count)
+            let avgFats = totalFats / Double(logs.count)
+            
+            // Get goals from profile
+            let profile = try? await firestore.fetchUserProfile(userId: user.uid)
+            let calorieGoal = Double(profile?.dailyCaloriesGoal ?? 2460)
+            let proteinGoal = profile?.macros.protein ?? 450
+            
+            // Calculate days on target (within ±10%)
+            let daysOnCalorieTarget = logs.filter { log in
+                let accuracy = Double(log.calories) / calorieGoal
+                return accuracy >= 0.9 && accuracy <= 1.1
+            }.count
+            
+            let daysOnProteinTarget = logs.filter { log in
+                let accuracy = Double(log.protein) / proteinGoal
+                return accuracy >= 0.9 && accuracy <= 1.1
+            }.count
+            
+            // Get streak
+            let streak = (try? await firestore.fetchStreak(userId: user.uid)) ?? Streak()
+            
+            return WeeklyNutritionSummary(
+                avgCalories: avgCalories,
+                avgProtein: avgProtein,
+                avgCarbs: avgCarbs,
+                avgFats: avgFats,
+                calorieGoal: calorieGoal,
+                proteinGoal: proteinGoal,
+                daysLogged: logs.count,
+                daysOnCalorieTarget: daysOnCalorieTarget,
+                daysOnProteinTarget: daysOnProteinTarget,
+                loggingStreak: streak.currentStreak
+            )
+        } catch {
+            print("Error calculating weekly summary: \(error)")
+            return nil
+        }
+    }
 }
 

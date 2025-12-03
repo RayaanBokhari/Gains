@@ -1,0 +1,246 @@
+If you want the coach to feel actually personalized and “longitudinal” (not just one-day reactive), I’d add three big buckets:
+richer profile & goals
+trends, not just today
+tighter behavior instructions / guardrails
+I’ll break those down and then show a concrete updated buildSystemPrompt skeleton you can drop in.
+1. Enrich the user profile section
+Right now you only pass static body data and macro goals. I’d extend Profile to support things like:
+Goal & training context
+Primary goal (enum): bulk, cut, recomp, maintenance
+Target weight + target date
+Training experience: beginner / intermediate / advanced
+Training style: e.g. push/pull/legs, upper/lower, full body, etc.
+Activity level: sedentary, lightly active, very active…
+Preferred training days or schedule (Mon/Tue/Thu/Sat, etc.)
+Diet & lifestyle context
+Diet type: omnivore / vegetarian / vegan / halal / etc.
+Dietary restrictions / allergies
+Foods they dislike or are avoiding
+Typical eating pattern: “3 meals, 1 snack” vs “2 big meals”
+Cooking ability & constraints: hates cooking, likes batch cooking, etc.
+Budget/constraints: “on a budget”, “eats out a lot”
+Example extra profile block in the prompt:
+Profile Information:
+- Name: \(profile.name)
+- Goal: \(profile.goalDescription) // e.g. "Lean bulk"
+- Current Weight: \(Int(profile.weight)) kg
+- Target Weight: \(Int(profile.targetWeight)) kg by \(profile.targetDateString)
+- Training Experience: \(profile.trainingExperience)
+- Training Split: \(profile.trainingSplit)
+- Activity Level: \(profile.activityLevel)
+- Diet Type: \(profile.dietType)
+- Restrictions/Allergies: \(profile.restrictionsDescription)
+- Food Dislikes: \(profile.dislikedFoods.joined(separator: ", "))
+- Typical Meal Pattern: \(profile.mealPatternDescription)
+(You can back these by enums and computed description properties.)
+2. Add trends instead of only “today”
+Coaching gets way smarter if the model can see a week pattern instead of just one day.
+Consider keeping a small history (e.g. last 7 days) in NutritionViewModel and summarizing it into something compact:
+Average calorie intake vs goal
+Average protein vs goal
+Number of days hit within ±5–10% of targets
+Biggest struggle: “often under on protein”, “often over on calories at night”, etc.
+Streaks: days logging food, days hitting water goal
+In your context building:
+if let weekly = nutritionViewModel?.weeklySummary {
+    context += """
+
+    Weekly Nutrition Summary (last 7 days):
+    - Avg Calories: \(Int(weekly.avgCalories)) / \(Int(weekly.calorieGoal)) 
+      (Days on target: \(weekly.daysOnCalorieTarget)/7)
+    - Avg Protein: \(Int(weekly.avgProtein))g / \(Int(weekly.proteinGoal))g
+    - Logging Streak: \(weekly.loggingStreak) days
+    - Common Pattern: \(weekly.notablePatternDescription)
+    """
+}
+You don’t have to give the raw 7-day table; high-level stats are enough and cheaper on tokens.
+3. Include training / recovery context
+If Gains has (or will have) workout logging, pass just enough for the coach to say smart things like “you squatted yesterday, maybe don’t max out legs today” or “you’ve only trained twice this week.”
+From a hypothetical WorkoutViewModel:
+Training frequency this week
+Last workout: date, main muscle groups, RPE or “how hard it felt”
+Soreness/fatigue check-ins (user-reported)
+Sleep duration/quality last night if you track it
+Prompt snippet:
+if let training = workoutViewModel?.weeklyTrainingSummary {
+    context += """
+
+    Training Summary:
+    - Sessions This Week: \(training.sessionsThisWeek)
+    - Last Workout: \(training.lastWorkoutDescription) 
+      on \(training.lastWorkoutDateString)
+    - Reported Soreness: \(training.sorenessDescription)
+    - Avg Sleep (last 3 days): \(training.avgSleepHours) hours
+    """
+}
+Even a minimal version (sessions this week + last workout focus) will help a ton for “Should I train today?” type questions.
+4. Behavior/preferences & conversational style
+Let users choose how they want the coach to behave and encode that into the prompt:
+In Profile:
+coachingStyle: gentle, neutral, toughLove
+detailPreference: high-level, medium, nerdy/deep
+checkInPreference: e.g. “focus on long-term consistency, don’t nitpick single meals”
+Then add:
+context += """
+
+User Coaching Preferences:
+- Coaching Style: \(profile.coachingStyleDescription) 
+- Detail Level: \(profile.detailPreferenceDescription)
+- Motivation Style: \(profile.motivationStyleDescription)
+"""
+And tighten your “Instructions” section to obey those:
+context += """
+
+Instructions for the AI Coach:
+- Be friendly, encouraging, and supportive by default. Respect the user's coaching style preferences.
+- Always ground advice in the user's goals, profile, and recent trends.
+- Prefer sustainable, realistic suggestions over extreme or crash approaches.
+- Ask 1–3 targeted follow-up questions when the user’s request is ambiguous.
+- Keep responses concise but informative (1–3 short paragraphs, plus lists if needed).
+- When suggesting changes, explain the "why" in simple terms (no heavy jargon).
+- If asked about nutrition, use their current macro and calorie data and weekly trends.
+- If asked about fitness, consider recent training load, soreness, sleep, and experience level.
+- Highlight wins and consistency, not just problems.
+- If data is missing, clearly say what’s missing and make reasonable assumptions (state them).
+- Do NOT provide medical diagnoses or advice for serious symptoms; instead recommend consulting a healthcare professional.
+"""
+That “do not diagnose” line is important for safety and App Store review friendliness.
+5. Time & day context
+It also helps to give the model a hint of when the user is asking:
+Local time (morning vs night)
+Day of week (weekend vs weekday)
+You can pass this via:
+let now = Date()
+let formatter = DateFormatter()
+formatter.dateStyle = .medium
+formatter.timeStyle = .short
+
+context += """
+
+Current Context:
+- Today: \(formatter.string(from: now))
+- Day of Week: \(now.weekdayName)
+- Time of Day: \(now.timeOfDayBucket) // e.g. "morning", "afternoon", "late night"
+"""
+(You can add simple Date extensions for weekdayName and timeOfDayBucket.)
+This lets the coach say things like “Since it’s already late evening…” or “Good morning, here’s how to structure today.”
+6. Putting it together (updated skeleton)
+Here’s a more complete version of your buildSystemPrompt that includes the ideas above, with optional extra view models commented so it compiles even if you don’t have them yet:
+class UserContextService: ObservableObject {
+    @Published var nutritionViewModel: NutritionViewModel?
+    @Published var profileViewModel: ProfileViewModel?
+    // Optional:
+    // @Published var workoutViewModel: WorkoutViewModel?
+    
+    func buildSystemPrompt() -> String {
+        var context = """
+        You are an AI fitness and nutrition coach for the Gains app.
+        You help users with their fitness goals, training, and nutrition in a way that is sustainable,
+        evidence-informed, and tailored to their profile and preferences.
+
+        User Context:
+        """
+        
+        if let profile = profileViewModel?.profile {
+            context += """
+
+            Profile Information:
+            - Name: \(profile.name)
+            - Goal: \(profile.goalDescription)
+            - Current Weight: \(Int(profile.weight)) kg
+            - Target Weight: \(Int(profile.targetWeight)) kg by \(profile.targetDateString)
+            - Height: \(profile.height)
+            - Gender: \(profile.gender)
+            - Activity Level: \(profile.activityLevel)
+            - Training Experience: \(profile.trainingExperience)
+            - Training Split: \(profile.trainingSplit)
+            - Daily Calorie Goal: \(profile.dailyCaloriesGoal) calories
+            - Protein Goal: \(Int(profile.macros.protein))g
+            - Carbs Goal: \(Int(profile.macros.carbs))g
+            - Fats Goal: \(Int(profile.macros.fats))g
+            - Water Goal: \(Int(profile.waterGoal)) oz
+            - Diet Type: \(profile.dietType)
+            - Restrictions/Allergies: \(profile.restrictionsDescription)
+            - Food Dislikes: \(profile.dislikedFoods.joined(separator: ", "))
+            - Meal Pattern: \(profile.mealPatternDescription)
+
+            Coaching Preferences:
+            - Coaching Style: \(profile.coachingStyleDescription)
+            - Detail Level: \(profile.detailPreferenceDescription)
+            - Motivation Style: \(profile.motivationStyleDescription)
+            """
+        }
+        
+        if let nutrition = nutritionViewModel?.dailyNutrition {
+            context += """
+
+            Today's Nutrition Progress:
+            - Calories Consumed: \(nutrition.caloriesConsumed) / \(nutrition.caloriesGoal) (Remaining: \(nutrition.caloriesRemaining))
+            - Protein: \(Int(nutrition.proteinConsumed))g / \(Int(nutrition.proteinGoal))g (\(Int(nutrition.proteinProgress * 100))%)
+            - Carbs: \(Int(nutrition.carbsConsumed))g / \(Int(nutrition.carbsGoal))g (\(Int(nutrition.carbsProgress * 100))%)
+            - Fats: \(Int(nutrition.fatsConsumed))g / \(Int(nutrition.fatsGoal))g (\(Int(nutrition.fatsProgress * 100))%)
+            - Water: \(Int(nutrition.waterConsumed)) oz / \(Int(nutrition.waterGoal)) oz
+            """
+            
+            if !nutrition.foods.isEmpty {
+                context += "\n\nRecent Foods Logged (most recent first):\n"
+                for food in nutrition.foods.prefix(5) {
+                    context += "- \(food.name): \(food.calories) cal, \(Int(food.protein))g protein, \(Int(food.carbs))g carbs, \(Int(food.fats))g fats\n"
+                }
+            }
+        }
+        
+        if let weekly = nutritionViewModel?.weeklySummary {
+            context += """
+
+            Weekly Nutrition Summary (last 7 days):
+            - Avg Calories: \(Int(weekly.avgCalories)) / \(Int(weekly.calorieGoal)) (Days on target: \(weekly.daysOnCalorieTarget)/7)
+            - Avg Protein: \(Int(weekly.avgProtein))g / \(Int(weekly.proteinGoal))g
+            - Logging Streak: \(weekly.loggingStreak) days
+            - Notable Pattern: \(weekly.notablePatternDescription)
+            """
+        }
+        
+        /*
+        if let training = workoutViewModel?.weeklyTrainingSummary {
+            context += """
+
+            Training Summary:
+            - Sessions This Week: \(training.sessionsThisWeek)
+            - Last Workout: \(training.lastWorkoutDescription) on \(training.lastWorkoutDateString)
+            - Reported Soreness: \(training.sorenessDescription)
+            - Avg Sleep (last 3 days): \(training.avgSleepHours) hours
+            """
+        }
+        */
+        
+        // Add current date/time context if useful
+        let now = Date()
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        
+        context += """
+
+        Current Context:
+        - Local Date & Time: \(formatter.string(from: now))
+        """
+
+        context += """
+
+        Instructions for the AI Coach:
+        - Be friendly, encouraging, and supportive while respecting the user's coaching style preferences.
+        - Always ground advice in the user's goals, profile, and recent trends (not just a single meal).
+        - Provide specific, actionable suggestions (e.g., "Add 20–30g protein at dinner" instead of vague advice).
+        - Keep responses concise but informative (1–3 short paragraphs plus bullet points if needed).
+        - Ask 1–3 targeted follow-up questions when clarification is needed before giving a detailed plan.
+        - If asked about nutrition, use their current macro data and weekly trends.
+        - If asked about fitness, consider their training experience, recent training load, and soreness.
+        - Emphasize long-term consistency over perfection. Normalize occasional imperfect days.
+        - If information is missing, say what is missing and make reasonable assumptions, stating them explicitly.
+        - Do NOT provide medical diagnoses or recommend extreme diets, supplements, or unsafe practices.
+        """
+        
+        return context
+    }
+}

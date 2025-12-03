@@ -177,5 +177,59 @@ class WorkoutViewModel: ObservableObject {
             print("Error deleting workout: \(error)")
         }
     }
+    
+    // MARK: - Weekly Training Summary
+    
+    var weeklyTrainingSummary: WeeklyTrainingSummary {
+        let calendar = Calendar.current
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        
+        let thisWeekWorkouts = workouts.filter { $0.date >= weekAgo }
+        
+        // Calculate muscle groups worked
+        var muscleGroups: [String: Int] = [:]
+        var totalVolume: Double = 0
+        var totalExercises = 0
+        var totalSets = 0
+        
+        for workout in thisWeekWorkouts {
+            for exercise in workout.exercises {
+                totalExercises += 1
+                for set in exercise.sets {
+                    totalSets += 1
+                    if let weight = set.weight, let reps = set.reps {
+                        totalVolume += weight * Double(reps)
+                    }
+                }
+                // Map exercise to muscle group (simplified)
+                // You could use ExerciseTemplate's muscleGroups for accuracy
+                let exerciseName = exercise.name.lowercased()
+                if exerciseName.contains("chest") || exerciseName.contains("bench") || exerciseName.contains("press") {
+                    muscleGroups["Chest", default: 0] += 1
+                }
+                if exerciseName.contains("back") || exerciseName.contains("pull") || exerciseName.contains("row") {
+                    muscleGroups["Back", default: 0] += 1
+                }
+                if exerciseName.contains("leg") || exerciseName.contains("squat") || exerciseName.contains("deadlift") {
+                    muscleGroups["Legs", default: 0] += 1
+                }
+                if exerciseName.contains("shoulder") || exerciseName.contains("deltoid") {
+                    muscleGroups["Shoulders", default: 0] += 1
+                }
+                if exerciseName.contains("arm") || exerciseName.contains("bicep") || exerciseName.contains("tricep") {
+                    muscleGroups["Arms", default: 0] += 1
+                }
+            }
+        }
+        
+        return WeeklyTrainingSummary(
+            sessionsThisWeek: thisWeekWorkouts.count,
+            totalVolume: totalVolume,
+            muscleGroupsWorked: muscleGroups,
+            lastWorkout: workouts.first,
+            averageExercisesPerSession: thisWeekWorkouts.isEmpty ? 0 : Double(totalExercises) / Double(thisWeekWorkouts.count),
+            averageSetsPerSession: thisWeekWorkouts.isEmpty ? 0 : Double(totalSets) / Double(thisWeekWorkouts.count)
+        )
+    }
 }
 
