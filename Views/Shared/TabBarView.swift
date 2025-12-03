@@ -51,15 +51,41 @@ struct TabBarView: View {
         }
         .accentColor(.gainsPrimary)
         .onAppear {
-            // Customize tab bar appearance
-            let appearance = UITabBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(Color.gainsCardBackground)
-            appearance.shadowColor = .clear
-            
-            UITabBar.appearance().standardAppearance = appearance
-            UITabBar.appearance().scrollEdgeAppearance = appearance
+            configureTabBarAppearance()
         }
+    }
+    
+    private func configureTabBarAppearance() {
+        // Create frosted glass effect
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        
+        // Background with blur effect
+        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        appearance.backgroundColor = UIColor(Color.gainsCardSurface.opacity(0.7))
+        
+        // Remove the default separator line
+        appearance.shadowColor = .clear
+        appearance.shadowImage = UIImage()
+        
+        // Normal state
+        let normalAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor(Color.gainsTextMuted),
+            .font: UIFont.systemFont(ofSize: 10, weight: .medium)
+        ]
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color.gainsTextMuted)
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = normalAttributes
+        
+        // Selected state
+        let selectedAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor(Color.gainsPrimary),
+            .font: UIFont.systemFont(ofSize: 10, weight: .semibold)
+        ]
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color.gainsPrimary)
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = selectedAttributes
+        
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 }
 

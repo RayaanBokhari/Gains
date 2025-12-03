@@ -20,42 +20,98 @@ struct WorkoutListView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Tab selector
-                Picker("", selection: $selectedTab) {
-                    ForEach(WorkoutTab.allCases, id: \.self) { tab in
-                        Text(tab.rawValue).tag(tab)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
+            ZStack {
+                // Gradient background
+                LinearGradient(
+                    colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
-                // Content
-                switch selectedTab {
-                case .history:
-                    WorkoutHistoryView(viewModel: viewModel, showAICoach: $showAICoach, showNewWorkout: $showNewWorkout)
-                case .plans:
-                    WorkoutPlansContentView()
-                }
-            }
-            .background(Color.gainsBackground)
-            .navigationTitle("Workouts")
-            .toolbar {
-                if selectedTab == .history {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            showNewWorkout = true
-                        } label: {
-                            Image(systemName: "plus")
-                                .foregroundColor(.gainsPrimary)
-                        }
+                VStack(spacing: 0) {
+                    // Custom Header
+                    headerSection
+                    
+                    // Tab selector with frosted look
+                    tabSelector
+                        .padding(.horizontal, GainsDesign.paddingHorizontal)
+                        .padding(.bottom, 16)
+                    
+                    // Content
+                    switch selectedTab {
+                    case .history:
+                        WorkoutHistoryView(viewModel: viewModel, showAICoach: $showAICoach, showNewWorkout: $showNewWorkout)
+                    case .plans:
+                        WorkoutPlansContentView()
                     }
                 }
             }
+            .navigationBarHidden(true)
             .sheet(isPresented: $showAICoach) {
                 AICoachView()
             }
         }
+    }
+    
+    private var headerSection: some View {
+        HStack {
+            Text("Workouts")
+                .font(.system(size: 34, weight: .bold))
+                .foregroundColor(.white)
+            
+            Spacer()
+            
+            if selectedTab == .history {
+                Button {
+                    showNewWorkout = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color.gainsPrimary, Color.gainsAccentTeal],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+            }
+        }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .padding(.top, GainsDesign.titlePaddingTop)
+        .padding(.bottom, 20)
+    }
+    
+    private var tabSelector: some View {
+        HStack(spacing: 0) {
+            ForEach(WorkoutTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        selectedTab = tab
+                    }
+                } label: {
+                    Text(tab.rawValue)
+                        .font(.system(size: 15, weight: selectedTab == tab ? .semibold : .medium))
+                        .foregroundColor(selectedTab == tab ? .white : .gainsTextSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            Group {
+                                if selectedTab == tab {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.gainsCardSurface)
+                                }
+                            }
+                        )
+                }
+            }
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.gainsBgTertiary.opacity(0.5))
+        )
     }
 }
 
@@ -66,90 +122,47 @@ struct WorkoutHistoryView: View {
     
     var body: some View {
         ZStack {
-            Color.gainsBackground.ignoresSafeArea()
-                
-                if viewModel.isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
-                } else if viewModel.workouts.isEmpty {
-                    // Empty state
-                    VStack(spacing: 16) {
-                        Image(systemName: "dumbbell.fill")
-                            .font(.system(size: 48))
-                            .foregroundColor(.gainsSecondaryText)
-                        
-                        Text("No Workouts Yet")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.gainsText)
-                        
-                        Text("Start tracking your fitness journey")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gainsSecondaryText)
-                        
-                        Button {
-                            showNewWorkout = true
-                        } label: {
-                            Text("Start Workout")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 24)
-                                .padding(.vertical, 12)
-                                .background(Color.gainsPrimary)
-                                .cornerRadius(12)
-                        }
-                    }
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(viewModel.workouts) { workout in
-                                NavigationLink(destination: WorkoutDetailView(workout: workout)) {
-                                    WorkoutRowView(workout: workout)
-                                }
-                                .contextMenu {
-                                    Button(role: .destructive) {
-                                        Task {
-                                            await viewModel.deleteWorkout(workout)
-                                        }
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
+            if viewModel.isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
+            } else if viewModel.workouts.isEmpty {
+                // Empty state
+                emptyState
+            } else {
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 12) {
+                        ForEach(viewModel.workouts) { workout in
+                            NavigationLink(destination: WorkoutDetailView(workout: workout)) {
+                                WorkoutRowView(workout: workout)
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    Task {
+                                        await viewModel.deleteWorkout(workout)
                                     }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
                                 }
                             }
                         }
-                        .padding()
                     }
-                    .refreshable {
-                        // Force a fresh fetch from Firestore
-                        await viewModel.refreshWorkouts()
-                    }
+                    .padding(.horizontal, GainsDesign.paddingHorizontal)
+                    .padding(.bottom, 100)
                 }
-                
-                // AI Coach Floating Button
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Button {
-                            showAICoach = true
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 16, weight: .semibold))
-                                Text("AI Coach")
-                                    .font(.system(size: 14, weight: .semibold))
-                            }
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(Color.gainsPrimary)
-                            .cornerRadius(24)
-                            .shadow(color: Color.gainsPrimary.opacity(0.4), radius: 8, x: 0, y: 4)
-                        }
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 20)
-                    }
+                .refreshable {
+                    await viewModel.refreshWorkouts()
                 }
             }
+            
+            // AI Coach Floating Button
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    aiCoachButton
+                }
+            }
+        }
         .onAppear {
             viewModel.startListening()
         }
@@ -157,20 +170,82 @@ struct WorkoutHistoryView: View {
             NewWorkoutView(viewModel: viewModel)
         }
     }
-}
-
-// Extension for toolbar on WorkoutListView
-extension WorkoutListView {
-    @ToolbarContentBuilder
-    func workoutToolbar() -> some ToolbarContent {
-        ToolbarItem(placement: .navigationBarTrailing) {
+    
+    private var emptyState: some View {
+        VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(Color.gainsBgTertiary)
+                    .frame(width: 80, height: 80)
+                
+                Image(systemName: "dumbbell.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(.gainsTextMuted)
+            }
+            
+            VStack(spacing: 8) {
+                Text("No Workouts Yet")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Text("Start tracking your fitness journey")
+                    .font(.system(size: 15))
+                    .foregroundColor(.gainsTextSecondary)
+            }
+            
             Button {
                 showNewWorkout = true
             } label: {
-                Image(systemName: "plus")
-                    .foregroundColor(.gainsPrimary)
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Start Workout")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(14)
+                .shadow(color: Color.gainsPrimary.opacity(0.3), radius: 12, x: 0, y: 6)
             }
         }
+        .padding()
+    }
+    
+    private var aiCoachButton: some View {
+        Button {
+            showAICoach = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("AI Coach")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
+            .background(
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+            )
+            .shadow(color: Color.gainsPrimary.opacity(0.4), radius: 12, x: 0, y: 6)
+        }
+        .padding(.trailing, GainsDesign.paddingHorizontal)
+        .padding(.bottom, 24)
     }
 }
 
@@ -183,22 +258,23 @@ struct NewWorkoutView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBackground.ignoresSafeArea()
+                Color.gainsBgPrimary.ignoresSafeArea()
                 
                 VStack(spacing: 24) {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("Workout Name")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.gainsSecondaryText)
+                            .foregroundColor(.gainsTextSecondary)
                         
                         TextField("e.g., Push Day, Leg Day", text: $workoutName)
                             .textFieldStyle(.plain)
+                            .font(.system(size: 16))
                             .padding()
-                            .background(Color.gainsCardBackground)
-                            .cornerRadius(12)
-                            .foregroundColor(.gainsText)
+                            .background(Color.gainsCardSurface)
+                            .cornerRadius(GainsDesign.cornerRadiusSmall)
+                            .foregroundColor(.white)
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, GainsDesign.paddingHorizontal)
                     
                     Button {
                         if !workoutName.isEmpty {
@@ -210,16 +286,28 @@ struct NewWorkoutView: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(workoutName.isEmpty ? Color.gray.opacity(0.3) : Color.gainsPrimary)
-                            .cornerRadius(12)
+                            .frame(height: GainsDesign.buttonHeightLarge)
+                            .background(
+                                Group {
+                                    if workoutName.isEmpty {
+                                        Color.gainsTextMuted.opacity(0.3)
+                                    } else {
+                                        LinearGradient(
+                                            colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    }
+                                }
+                            )
+                            .cornerRadius(GainsDesign.cornerRadiusSmall)
                     }
                     .disabled(workoutName.isEmpty)
-                    .padding(.horizontal)
+                    .padding(.horizontal, GainsDesign.paddingHorizontal)
                     
                     Spacer()
                 }
-                .padding(.top)
+                .padding(.top, 24)
             }
             .navigationTitle("New Workout")
             .navigationBarTitleDisplayMode(.inline)
@@ -232,7 +320,6 @@ struct NewWorkoutView: View {
                 }
             }
             .fullScreenCover(isPresented: $showActiveWorkout, onDismiss: {
-                // Dismiss this sheet too when active workout is dismissed
                 dismiss()
             }) {
                 ActiveWorkoutView(viewModel: viewModel)
@@ -245,36 +332,52 @@ struct WorkoutRowView: View {
     let workout: Workout
     
     var body: some View {
-        HStack {
+        HStack(spacing: 14) {
+            // Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gainsPrimary.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                
+                Image(systemName: "figure.strengthtraining.traditional")
+                    .font(.system(size: 18))
+                    .foregroundColor(.gainsPrimary)
+            }
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(workout.name)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.gainsText)
+                    .foregroundColor(.white)
                 
-                HStack(spacing: 12) {
-                    Label("\(workout.exercises.count) exercises", systemImage: "figure.strengthtraining.traditional")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gainsSecondaryText)
+                HStack(spacing: 8) {
+                    Text("\(workout.exercises.count) exercises")
+                        .font(.system(size: 13))
+                        .foregroundColor(.gainsTextSecondary)
+                    
+                    Circle()
+                        .fill(Color.gainsTextMuted)
+                        .frame(width: 3, height: 3)
                     
                     Text(workout.date, style: .date)
-                        .font(.system(size: 12))
-                        .foregroundColor(.gainsSecondaryText)
+                        .font(.system(size: 13))
+                        .foregroundColor(.gainsTextMuted)
                 }
             }
             
             Spacer()
             
             Image(systemName: "chevron.right")
-                .font(.system(size: 14))
-                .foregroundColor(.gainsSecondaryText)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.gainsTextMuted)
         }
-        .padding()
-        .background(Color.gainsCardBackground)
-        .cornerRadius(12)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                .fill(Color.gainsCardSurface)
+        )
     }
 }
 
 #Preview {
     WorkoutListView()
 }
-

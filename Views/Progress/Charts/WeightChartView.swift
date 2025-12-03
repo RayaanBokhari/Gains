@@ -14,19 +14,46 @@ struct WeightChartView: View {
     // For now, this is a placeholder that can be extended
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Weight")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.gainsText)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Weight")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Image(systemName: "scalemass.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gainsAccentPurple)
+            }
             
-            Text("Weight tracking coming soon")
-                .font(.system(size: 14))
-                .foregroundColor(.gainsSecondaryText)
-                .frame(height: 200)
+            // Placeholder state
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(Color.gainsAccentPurple.opacity(0.15))
+                        .frame(width: 56, height: 56)
+                    
+                    Image(systemName: "scalemass")
+                        .font(.system(size: 24))
+                        .foregroundColor(.gainsAccentPurple)
+                }
+                
+                Text("Weight tracking coming soon")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.white)
+                
+                Text("Track your weight progress over time")
+                    .font(.system(size: 13))
+                    .foregroundColor(.gainsTextSecondary)
+            }
+            .frame(height: 160)
+            .frame(maxWidth: .infinity)
         }
-        .padding()
-        .background(Color.gainsCardBackground)
-        .cornerRadius(16)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                .fill(Color.gainsCardSurface)
+        )
     }
 }
-

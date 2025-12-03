@@ -20,168 +20,57 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBackground.ignoresSafeArea()
+                // Gradient background
+                LinearGradient(
+                    colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 List {
                     // Account Section
                     Section {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack(spacing: 16) {
-                                // User Avatar
-                                Circle()
-                                    .fill(Color.gainsPrimary.opacity(0.2))
-                                    .frame(width: 50, height: 50)
-                                    .overlay(
-                                        Text(String(authService.displayName?.prefix(1) ?? "U"))
-                                            .font(.system(size: 20, weight: .bold))
-                                            .foregroundColor(.gainsPrimary)
-                                    )
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(authService.displayName ?? "User")
-                                        .font(.system(size: 17, weight: .semibold))
-                                        .foregroundColor(.gainsText)
-                                    
-                                    if let email = authService.userEmail {
-                                        Text(email)
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.gainsSecondaryText)
-                                    }
-                                }
-                                
-                                Spacer()
-                            }
-                            
-                            // Account Status Badge
-                            HStack(spacing: 6) {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.green)
-                                Text("Verified Account")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.green)
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(8)
-                        }
-                        .padding(.vertical, 8)
+                        accountCard
                     } header: {
                         Text("Account")
+                            .foregroundColor(.gainsTextSecondary)
                     }
+                    .listRowBackground(Color.gainsCardSurface)
                     
                     // API Configuration Section
                     Section {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("OpenAI API Key")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.gainsText)
-                            
-                            Text("Required for AI Coach functionality. Get your API key from platform.openai.com")
-                                .font(.system(size: 12))
-                                .foregroundColor(.gainsSecondaryText)
-                            
-                            HStack {
-                                if showAPIKey {
-                                    TextField("sk-...", text: $apiKey)
-                                        .textFieldStyle(PlainTextFieldStyle())
-                                        .foregroundColor(.gainsText)
-                                        .autocapitalization(.none)
-                                        .autocorrectionDisabled()
-                                        .onChange(of: apiKey) { newValue in
-                                            // If user is typing, unmask
-                                            if !newValue.isEmpty && isKeyMasked {
-                                                // User started typing, load full key
-                                                if let fullKey = APIConfiguration.shared.apiKey {
-                                                    apiKey = fullKey
-                                                    isKeyMasked = false
-                                                }
-                                            }
-                                        }
-                                } else {
-                                    SecureField("sk-...", text: $apiKey)
-                                        .textFieldStyle(PlainTextFieldStyle())
-                                        .foregroundColor(.gainsText)
-                                        .autocapitalization(.none)
-                                        .autocorrectionDisabled()
-                                        .onChange(of: apiKey) { newValue in
-                                            // If user is typing, unmask
-                                            if !newValue.isEmpty && isKeyMasked {
-                                                // User started typing, load full key
-                                                if let fullKey = APIConfiguration.shared.apiKey {
-                                                    apiKey = fullKey
-                                                    isKeyMasked = false
-                                                }
-                                            }
-                                        }
-                                }
-                                
-                                Button(action: {
-                                    showAPIKey.toggle()
-                                }) {
-                                    Image(systemName: showAPIKey ? "eye.slash.fill" : "eye.fill")
-                                        .foregroundColor(.gainsSecondaryText)
-                                }
-                            }
-                            .padding()
-                            .background(Color.gainsCardBackground)
-                            .cornerRadius(8)
-                            
-                            Button(action: saveAPIKey) {
-                                Text(isKeyMasked ? "Edit API Key" : "Save API Key")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background((isKeyMasked || apiKey.isEmpty) ? Color.gray : Color.gainsPrimary)
-                                    .cornerRadius(8)
-                            }
-                            .disabled(isKeyMasked)
-                            
-                            if APIConfiguration.shared.hasAPIKey {
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                    Text("API Key configured")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.gainsSecondaryText)
-                                }
-                            }
-                        }
-                        .padding(.vertical, 4)
+                        apiConfigCard
                     } header: {
                         Text("AI Coach Configuration")
+                            .foregroundColor(.gainsTextSecondary)
                     }
+                    .listRowBackground(Color.gainsCardSurface)
                     
                     // App Info Section
                     Section {
                         HStack {
                             Text("Version")
-                                .foregroundColor(.gainsText)
+                                .foregroundColor(.white)
                             Spacer()
                             Text("1.0.0")
-                                .foregroundColor(.gainsSecondaryText)
+                                .foregroundColor(.gainsTextSecondary)
                         }
                         
                         NavigationLink(destination: PrivacyPolicyView()) {
-                            HStack {
-                                Text("Privacy Policy")
-                                    .foregroundColor(.gainsText)
-                                Spacer()
-                            }
+                            Text("Privacy Policy")
+                                .foregroundColor(.white)
                         }
                         
                         NavigationLink(destination: TermsOfServiceView()) {
-                            HStack {
-                                Text("Terms of Service")
-                                    .foregroundColor(.gainsText)
-                                Spacer()
-                            }
+                            Text("Terms of Service")
+                                .foregroundColor(.white)
                         }
                     } header: {
                         Text("About")
+                            .foregroundColor(.gainsTextSecondary)
                     }
+                    .listRowBackground(Color.gainsCardSurface)
                     
                     // Sign Out Section
                     Section {
@@ -195,19 +84,29 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                 Spacer()
                             }
-                            .foregroundColor(.red)
+                            .foregroundColor(.gainsAccentRed)
                         }
                         
                         if let error = signOutError {
                             Text(error)
                                 .font(.system(size: 14))
-                                .foregroundColor(.red)
+                                .foregroundColor(.gainsAccentRed)
                         }
                     }
+                    .listRowBackground(Color.gainsCardSurface)
                 }
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.gainsPrimary)
+                }
+            }
             .confirmationDialog(
                 "Sign Out",
                 isPresented: $showSignOutConfirmation,
@@ -234,14 +133,158 @@ struct SettingsView: View {
         }
     }
     
+    private var accountCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 14) {
+                // User Avatar with gradient ring
+                ZStack {
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.gainsPrimary, Color.gainsAccentPurple],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2
+                        )
+                        .frame(width: 54, height: 54)
+                    
+                    Circle()
+                        .fill(Color.gainsBgTertiary)
+                        .frame(width: 48, height: 48)
+                        .overlay(
+                            Text(String(authService.displayName?.prefix(1) ?? "U"))
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+                        )
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(authService.displayName ?? "User")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                    
+                    if let email = authService.userEmail {
+                        Text(email)
+                            .font(.system(size: 14))
+                            .foregroundColor(.gainsTextSecondary)
+                    }
+                }
+                
+                Spacer()
+            }
+            
+            // Account Status Badge
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gainsAccentGreen)
+                Text("Verified Account")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.gainsAccentGreen)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.gainsAccentGreen.opacity(0.15))
+            .cornerRadius(8)
+        }
+        .padding(.vertical, 8)
+    }
+    
+    private var apiConfigCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("OpenAI API Key")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.white)
+            
+            Text("Required for AI Coach functionality. Get your API key from platform.openai.com")
+                .font(.system(size: 12))
+                .foregroundColor(.gainsTextSecondary)
+            
+            HStack {
+                if showAPIKey {
+                    TextField("sk-...", text: $apiKey)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .foregroundColor(.white)
+                        .autocapitalization(.none)
+                        .autocorrectionDisabled()
+                        .onChange(of: apiKey) { newValue in
+                            if !newValue.isEmpty && isKeyMasked {
+                                if let fullKey = APIConfiguration.shared.apiKey {
+                                    apiKey = fullKey
+                                    isKeyMasked = false
+                                }
+                            }
+                        }
+                } else {
+                    SecureField("sk-...", text: $apiKey)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .foregroundColor(.white)
+                        .autocapitalization(.none)
+                        .autocorrectionDisabled()
+                        .onChange(of: apiKey) { newValue in
+                            if !newValue.isEmpty && isKeyMasked {
+                                if let fullKey = APIConfiguration.shared.apiKey {
+                                    apiKey = fullKey
+                                    isKeyMasked = false
+                                }
+                            }
+                        }
+                }
+                
+                Button(action: {
+                    showAPIKey.toggle()
+                }) {
+                    Image(systemName: showAPIKey ? "eye.slash.fill" : "eye.fill")
+                        .foregroundColor(.gainsTextSecondary)
+                }
+            }
+            .padding(14)
+            .background(Color.gainsBgTertiary)
+            .cornerRadius(10)
+            
+            Button(action: saveAPIKey) {
+                Text(isKeyMasked ? "Edit API Key" : "Save API Key")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(
+                        Group {
+                            if isKeyMasked || apiKey.isEmpty {
+                                Color.gainsTextMuted.opacity(0.5)
+                            } else {
+                                LinearGradient(
+                                    colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            }
+                        }
+                    )
+                    .cornerRadius(10)
+            }
+            .disabled(isKeyMasked)
+            
+            if APIConfiguration.shared.hasAPIKey {
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.gainsAccentGreen)
+                    Text("API Key configured")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gainsTextSecondary)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
     private func saveAPIKey() {
-        // If the key is masked (contains "..."), don't save it again
         if apiKey.contains("...") {
             return
         }
         APIConfiguration.shared.apiKey = apiKey
         showAPIKey = false
-        // Mask the key in the UI after saving
         if !apiKey.isEmpty && apiKey.count > 7 {
             apiKey = String(apiKey.prefix(7)) + "..."
         }
@@ -262,17 +305,22 @@ struct SettingsView: View {
 struct PrivacyPolicyView: View {
     var body: some View {
         ZStack {
-            Color.gainsBackground.ignoresSafeArea()
+            LinearGradient(
+                colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Privacy Policy")
                         .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.gainsText)
+                        .foregroundColor(.white)
                     
                     Text("Last updated: December 2024")
                         .font(.system(size: 14))
-                        .foregroundColor(.gainsSecondaryText)
+                        .foregroundColor(.gainsTextSecondary)
                     
                     Text("""
                     Your privacy is important to us. Gains collects and stores your fitness and nutrition data securely in Firebase to provide you with personalized tracking and insights.
@@ -284,12 +332,12 @@ struct PrivacyPolicyView: View {
                     You can delete your account and all associated data at any time through the app settings.
                     """)
                     .font(.system(size: 16))
-                    .foregroundColor(.gainsText)
+                    .foregroundColor(.white)
                     .lineSpacing(6)
                     
                     Spacer()
                 }
-                .padding()
+                .padding(GainsDesign.paddingHorizontal)
             }
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -299,17 +347,22 @@ struct PrivacyPolicyView: View {
 struct TermsOfServiceView: View {
     var body: some View {
         ZStack {
-            Color.gainsBackground.ignoresSafeArea()
+            LinearGradient(
+                colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Terms of Service")
                         .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.gainsText)
+                        .foregroundColor(.white)
                     
                     Text("Last updated: December 2024")
                         .font(.system(size: 14))
-                        .foregroundColor(.gainsSecondaryText)
+                        .foregroundColor(.gainsTextSecondary)
                     
                     Text("""
                     By using Gains, you agree to these terms:
@@ -327,12 +380,12 @@ struct TermsOfServiceView: View {
                     6. Your use of the AI Coach feature is subject to OpenAI's usage policies.
                     """)
                     .font(.system(size: 16))
-                    .foregroundColor(.gainsText)
+                    .foregroundColor(.white)
                     .lineSpacing(6)
                     
                     Spacer()
                 }
-                .padding()
+                .padding(GainsDesign.paddingHorizontal)
             }
         }
         .navigationBarTitleDisplayMode(.inline)

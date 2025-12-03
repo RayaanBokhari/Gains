@@ -34,7 +34,7 @@ struct MealCard: View {
     }
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             // Photo thumbnail with caching
             Group {
                 if let photoUrl = food.photoUrl, let url = URL(string: photoUrl) {
@@ -44,76 +44,80 @@ struct MealCard: View {
                             .scaledToFill()
                     } placeholder: {
                         Rectangle()
-                            .fill(Color.gainsCardBackground)
+                            .fill(Color.gainsBgTertiary)
                             .overlay(
                                 ProgressView()
                                     .tint(.gainsPrimary)
                             )
                     }
                 } else {
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 24))
-                        .foregroundColor(.gainsSecondaryText)
+                    ZStack {
+                        Rectangle()
+                            .fill(Color.gainsBgTertiary)
+                        Image(systemName: "fork.knife")
+                            .font(.system(size: 24))
+                            .foregroundColor(.gainsTextMuted)
+                    }
                 }
             }
-            .frame(width: 100, height: 100)
-            .background(Color.gainsCardBackground)
+            .frame(width: 80, height: 80)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             
             // Content
-            VStack(alignment: .leading, spacing: 8) {
-                // Meal name and menu button
-                HStack {
-                    Text(food.name)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.gainsText)
-                        .lineLimit(2)
-                    
-                    Spacer()
-                    
-                    Menu {
-                        Button(role: .destructive, action: {
-                            showDeleteConfirmation = true
-                        }) {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        
-                        Button(action: onEdit) {
-                            Label("Edit", systemImage: "pencil")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.gainsSecondaryText)
-                            .padding(8)
-                    }
-                }
+            VStack(alignment: .leading, spacing: 6) {
+                // Meal name
+                Text(food.name)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineLimit(2)
                 
                 // Time logged
                 Text(timeAgo)
-                    .font(.system(size: 14))
-                    .foregroundColor(.gainsSecondaryText)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gainsTextMuted)
                 
-                // Calories
-                Text("\(food.calories) kcal")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.gainsPrimary)
-                
-                // Macros
-                HStack(spacing: 16) {
-                    MacroBadge(label: "P", value: Int(food.protein), unit: "g")
-                    MacroBadge(label: "C", value: Int(food.carbs), unit: "g")
-                    MacroBadge(label: "F", value: Int(food.fats), unit: "g")
+                // Macros row
+                HStack(spacing: 12) {
+                    Text("\(food.calories) kcal")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.gainsPrimary)
+                    
+                    HStack(spacing: 8) {
+                        MacroPill(label: "P", value: Int(food.protein))
+                        MacroPill(label: "C", value: Int(food.carbs))
+                        MacroPill(label: "F", value: Int(food.fats))
+                    }
                 }
             }
             
             Spacer()
+            
+            // Menu button
+            Menu {
+                Button(action: onEdit) {
+                    Label("Edit", systemImage: "pencil")
+                }
+                
+                Button(role: .destructive, action: {
+                    showDeleteConfirmation = true
+                }) {
+                    Label("Delete", systemImage: "trash")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.gainsTextSecondary)
+                    .frame(width: 32, height: 32)
+                    .background(Color.gainsBgTertiary)
+                    .cornerRadius(8)
+            }
         }
-        .padding(16)
-        .background(Color.gainsCardBackground)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 2)
-        .padding(.horizontal)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                .fill(Color.gainsCardSurface)
+        )
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
         .confirmationDialog(
             "Delete this meal?",
             isPresented: $showDeleteConfirmation,
@@ -129,23 +133,26 @@ struct MealCard: View {
     }
 }
 
-struct MacroBadge: View {
+struct MacroPill: View {
     let label: String
     let value: Int
-    let unit: String
     
     var body: some View {
-        Text("\(label): \(value)\(unit)")
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(.gainsText)
+        Text("\(label): \(value)g")
+            .font(.system(size: 11, weight: .medium))
+            .foregroundColor(.gainsTextSecondary)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Color.gainsBgTertiary)
+            .cornerRadius(4)
     }
 }
 
 #Preview {
     ZStack {
-        Color.gainsBackground.ignoresSafeArea()
+        Color.gainsBgPrimary.ignoresSafeArea()
         
-        VStack {
+        VStack(spacing: 12) {
             MealCard(
                 food: Food(
                     name: "Grilled Chicken Salad",
@@ -176,4 +183,3 @@ struct MacroBadge: View {
         }
     }
 }
-

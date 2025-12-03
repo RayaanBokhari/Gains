@@ -13,42 +13,71 @@ struct StreakCard: View {
     @StateObject private var viewModel = StreakViewModel()
     
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
+        HStack(spacing: 16) {
+            // Flame Icon with glow effect
+            ZStack {
+                Circle()
+                    .fill(Color.gainsAccentOrange.opacity(0.15))
+                    .frame(width: 50, height: 50)
+                
                 Image(systemName: "flame.fill")
-                    .font(.system(size: 20))
-                    .foregroundColor(.orange)
-                
+                    .font(.system(size: 24))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(hex: "FF6B35"), Color(hex: "FF9500")],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                    )
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
                 Text("Current Streak")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.gainsText)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gainsTextSecondary)
                 
-                Spacer()
-            }
-            
-            HStack(alignment: .lastTextBaseline, spacing: 4) {
-                Text("\(viewModel.streak.currentStreak)")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.orange)
-                
-                Text("days")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gainsSecondaryText)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            if viewModel.streak.longestStreak > viewModel.streak.currentStreak {
-                HStack {
-                    Text("Best: \(viewModel.streak.longestStreak) days")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gainsSecondaryText)
-                    Spacer()
+                HStack(alignment: .lastTextBaseline, spacing: 4) {
+                    Text("\(viewModel.streak.currentStreak)")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(hex: "FF6B35"), Color(hex: "FF9500")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .contentTransition(.numericText())
+                    
+                    Text("days")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.gainsTextSecondary)
                 }
             }
+            
+            Spacer()
+            
+            // Best streak badge
+            if viewModel.streak.longestStreak > viewModel.streak.currentStreak {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("Best")
+                        .font(.system(size: 11))
+                        .foregroundColor(.gainsTextMuted)
+                    
+                    Text("\(viewModel.streak.longestStreak)")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.gainsTextSecondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.gainsBgTertiary)
+                .cornerRadius(10)
+            }
         }
-        .padding()
-        .background(Color.gainsCardBackground)
-        .cornerRadius(16)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                .fill(Color.gainsCardSurface)
+        )
         .task {
             await viewModel.loadStreak()
         }
@@ -74,4 +103,3 @@ class StreakViewModel: ObservableObject {
         }
     }
 }
-

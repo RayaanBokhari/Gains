@@ -20,42 +20,21 @@ struct AICoachView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBackground.ignoresSafeArea()
+                // Gradient background
+                LinearGradient(
+                    colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Header
-                    HStack {
-                        Button {
-                            showConversations = true
-                        } label: {
-                            Image(systemName: "list.bullet")
-                                .foregroundColor(.gainsPrimary)
-                        }
-                        
-                        Text(viewModel.currentConversation.title)
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.gainsText)
-                            .lineLimit(1)
-                        
-                        Spacer()
-                        
-                        Button {
-                            viewModel.startNewConversation()
-                        } label: {
-                            Image(systemName: "square.and.pencil")
-                                .foregroundColor(.gainsPrimary)
-                        }
-                        
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
-                        }
-                    }
-                    .padding()
+                    headerSection
                     
                     // Messages
                     ScrollViewReader { proxy in
-                        ScrollView {
+                        ScrollView(showsIndicators: false) {
                             VStack(spacing: 16) {
                                 ForEach(viewModel.currentConversation.messages) { message in
                                     MessageBubble(message: message)
@@ -67,10 +46,10 @@ struct AICoachView: View {
                                         TypingIndicator()
                                         Spacer()
                                     }
-                                    .padding(.horizontal)
+                                    .padding(.horizontal, GainsDesign.paddingHorizontal)
                                 }
                             }
-                            .padding()
+                            .padding(.vertical, 16)
                         }
                         .onChange(of: viewModel.currentConversation.messages.count) { _ in
                             if let lastMessage = viewModel.currentConversation.messages.last {
@@ -89,32 +68,7 @@ struct AICoachView: View {
                     }
                     
                     // Input Area
-                    HStack(spacing: 12) {
-                        TextField("Message", text: $messageText)
-                            .textFieldStyle(PlainTextFieldStyle())
-                            .padding()
-                            .background(Color.gainsCardBackground)
-                            .cornerRadius(12)
-                            .foregroundColor(.gainsText)
-                            .disabled(viewModel.isLoading)
-                        
-                        Button(action: sendMessage) {
-                            if viewModel.isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
-                                    .frame(width: 44, height: 44)
-                            } else {
-                                Image(systemName: "paperplane.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.gainsPrimary)
-                                    .frame(width: 44, height: 44)
-                                    .background(Color.gainsCardBackground)
-                                    .cornerRadius(12)
-                            }
-                        }
-                        .disabled(viewModel.isLoading || messageText.isEmpty)
-                    }
-                    .padding()
+                    inputSection
                 }
             }
             .navigationBarHidden(true)
@@ -156,6 +110,114 @@ struct AICoachView: View {
         }
     }
     
+    private var headerSection: some View {
+        HStack(spacing: 16) {
+            Button {
+                showConversations = true
+            } label: {
+                Image(systemName: "list.bullet")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.gainsPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(Color.gainsCardSurface)
+                    .cornerRadius(10)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gainsPrimary)
+                    
+                    Text("AI Coach")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.gainsTextSecondary)
+                }
+                
+                Text(viewModel.currentConversation.title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+            
+            Button {
+                viewModel.startNewConversation()
+            } label: {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.gainsPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(Color.gainsCardSurface)
+                    .cornerRadius(10)
+            }
+            
+            if viewModel.isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
+            }
+        }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .padding(.vertical, 14)
+        .background(
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+        )
+    }
+    
+    private var inputSection: some View {
+        HStack(spacing: 12) {
+            TextField("Ask anything...", text: $messageText)
+                .textFieldStyle(PlainTextFieldStyle())
+                .font(.system(size: 16))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(Color.gainsCardSurface)
+                .cornerRadius(GainsDesign.cornerRadiusSmall)
+                .foregroundColor(.white)
+                .disabled(viewModel.isLoading)
+            
+            Button(action: sendMessage) {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .frame(width: 48, height: 48)
+                        .background(Color.gainsTextMuted)
+                        .cornerRadius(GainsDesign.cornerRadiusSmall)
+                } else {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                        .frame(width: 48, height: 48)
+                        .background(
+                            Group {
+                                if messageText.isEmpty {
+                                    Color.gainsTextMuted
+                                } else {
+                                    LinearGradient(
+                                        colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                }
+                            }
+                        )
+                        .cornerRadius(GainsDesign.cornerRadiusSmall)
+                }
+            }
+            .disabled(viewModel.isLoading || messageText.isEmpty)
+        }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .padding(.vertical, 12)
+        .background(
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+        )
+    }
+    
     private func sendMessage() {
         guard !messageText.isEmpty && !viewModel.isLoading else { return }
         let text = messageText
@@ -190,82 +252,51 @@ struct ConversationListView: View {
     
     var body: some View {
         NavigationView {
-            List {
-                // Current conversation always at top
-                if !viewModel.conversations.contains(where: { $0.id == viewModel.currentConversation.id }) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(viewModel.currentConversation.title)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                Text("Current")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.gainsPrimary)
-                            }
-                            
-                            if let lastMessage = viewModel.currentConversation.messages.last {
-                                Text(lastMessage.content)
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(2)
-                            }
-                        }
-                    }
-                }
+            ZStack {
+                Color.gainsBgPrimary.ignoresSafeArea()
                 
-                ForEach(viewModel.conversations) { conversation in
-                    Button {
-                        viewModel.selectConversation(conversation)
-                        dismiss()
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(conversation.title)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                if conversation.id == viewModel.currentConversation.id {
-                                    Text("Current")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gainsPrimary)
-                                }
-                            }
-                            
-                            if let lastMessage = conversation.messages.last {
-                                Text(lastMessage.content)
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(2)
-                            }
-                            
-                            Text(conversation.lastUpdated, style: .relative)
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            conversationToDelete = conversation
-                            showDeleteAlert = true
+                List {
+                    // Current conversation always at top
+                    if !viewModel.conversations.contains(where: { $0.id == viewModel.currentConversation.id }) {
+                        Button {
+                            dismiss()
                         } label: {
-                            Label("Delete", systemImage: "trash")
+                            conversationRow(viewModel.currentConversation, isCurrent: true)
+                        }
+                        .listRowBackground(Color.gainsCardSurface)
+                    }
+                    
+                    ForEach(viewModel.conversations) { conversation in
+                        Button {
+                            viewModel.selectConversation(conversation)
+                            dismiss()
+                        } label: {
+                            conversationRow(conversation, isCurrent: conversation.id == viewModel.currentConversation.id)
+                        }
+                        .listRowBackground(Color.gainsCardSurface)
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                conversationToDelete = conversation
+                                showDeleteAlert = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
                 }
-            }
-            .refreshable {
-                await viewModel.refreshConversationsList()
+                .scrollContentBackground(.hidden)
+                .refreshable {
+                    await viewModel.refreshConversationsList()
+                }
             }
             .navigationTitle("Conversations")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundColor(.gainsPrimary)
                 }
             }
             .alert("Delete Conversation", isPresented: $showDeleteAlert) {
@@ -282,6 +313,40 @@ struct ConversationListView: View {
             }
         }
     }
+    
+    private func conversationRow(_ conversation: ChatConversation, isCurrent: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(conversation.title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                if isCurrent {
+                    Text("Current")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.gainsPrimary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.gainsPrimary.opacity(0.15))
+                        .cornerRadius(6)
+                }
+            }
+            
+            if let lastMessage = conversation.messages.last {
+                Text(lastMessage.content)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gainsTextSecondary)
+                    .lineLimit(2)
+            }
+            
+            Text(conversation.lastUpdated, style: .relative)
+                .font(.system(size: 12))
+                .foregroundColor(.gainsTextMuted)
+        }
+        .padding(.vertical, 4)
+    }
 }
 
 struct TypingIndicator: View {
@@ -289,23 +354,23 @@ struct TypingIndicator: View {
     @State private var timer: Timer?
     
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             ForEach(0..<3, id: \.self) { index in
                 Circle()
-                    .fill(Color.gainsSecondaryText)
+                    .fill(Color.gainsTextSecondary)
                     .frame(width: 8, height: 8)
                     .opacity(animationPhase == index ? 1.0 : 0.3)
+                    .animation(.easeInOut(duration: 0.3), value: animationPhase)
             }
         }
-        .padding()
-        .background(Color.gainsCardBackground)
-        .cornerRadius(16)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color.gainsCardSurface)
+        .cornerRadius(18)
         .id("typing")
         .onAppear {
             timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { _ in
-                withAnimation {
-                    animationPhase = (animationPhase + 1) % 3
-                }
+                animationPhase = (animationPhase + 1) % 3
             }
         }
         .onDisappear {
@@ -324,17 +389,30 @@ struct MessageBubble: View {
                 Spacer()
             }
             
-            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
+            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 6) {
                 Text(message.content)
                     .font(.system(size: 16))
-                    .foregroundColor(message.isUser ? .white : .gainsText)
-                    .padding()
-                    .background(message.isUser ? Color.gainsPrimary : Color.gainsCardBackground)
-                    .cornerRadius(16)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        message.isUser
+                            ? LinearGradient(
+                                colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                            : LinearGradient(
+                                colors: [Color.gainsCardSurface, Color.gainsCardSurface],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                    )
+                    .cornerRadius(18)
                 
                 Text(message.timestamp, style: .time)
-                    .font(.system(size: 12))
-                    .foregroundColor(.gainsSecondaryText)
+                    .font(.system(size: 11))
+                    .foregroundColor(.gainsTextMuted)
             }
             .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: message.isUser ? .trailing : .leading)
             
@@ -342,10 +420,10 @@ struct MessageBubble: View {
                 Spacer()
             }
         }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
     }
 }
 
 #Preview {
     AICoachView()
 }
-

@@ -18,232 +18,32 @@ struct HomeView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBackground.ignoresSafeArea()
+                // Gradient background
+                LinearGradient(
+                    colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(spacing: 24) {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: GainsDesign.sectionSpacing) {
                         // Header with Date Navigation
-                        VStack(spacing: 12) {
-                            HStack {
-                                Text("Home")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.gainsText)
-                                Spacer()
-                            }
-                            
-                            // Date Navigation Bar
-                            HStack(spacing: 16) {
-                                // Previous Day Button
-                                Button {
-                                    Task {
-                                        await viewModel.goToPreviousDay()
-                                    }
-                                } label: {
-                                    Image(systemName: "chevron.left")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.gainsPrimary)
-                                        .frame(width: 40, height: 40)
-                                        .background(Color.gainsPrimary.opacity(0.1))
-                                        .cornerRadius(10)
-                                }
-                                
-                                // Date Display Button
-                                Button {
-                                    showDatePicker = true
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "calendar")
-                                            .font(.system(size: 14))
-                                        
-                                        Text(formatDate(viewModel.selectedDate))
-                                            .font(.system(size: 16, weight: .semibold))
-                                        
-                                        if Calendar.current.isDateInToday(viewModel.selectedDate) {
-                                            Text("Today")
-                                                .font(.system(size: 12, weight: .medium))
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 2)
-                                                .background(Color.gainsPrimary.opacity(0.2))
-                                                .cornerRadius(6)
-                                        }
-                                    }
-                                    .foregroundColor(.gainsText)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                    .background(Color.gainsCardBackground)
-                                    .cornerRadius(12)
-                                }
-                                
-                                // Next Day Button
-                                Button {
-                                    Task {
-                                        await viewModel.goToNextDay()
-                                    }
-                                } label: {
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.gainsPrimary)
-                                        .frame(width: 40, height: 40)
-                                        .background(Color.gainsPrimary.opacity(0.1))
-                                        .cornerRadius(10)
-                                }
-                                .disabled(Calendar.current.isDateInToday(viewModel.selectedDate))
-                                .opacity(Calendar.current.isDateInToday(viewModel.selectedDate) ? 0.5 : 1.0)
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top)
+                        headerSection
                         
-                        // Calories Remaining Card
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "Calories remaining today" : "Calories remaining")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gainsSecondaryText)
-                            
-                            Text("\(viewModel.dailyNutrition.caloriesRemaining)")
-                                .font(.system(size: 48, weight: .bold))
-                                .foregroundColor(.gainsText)
-                            
-                            if viewModel.isLoading {
-                                ProgressView()
-                                    .padding(.top, 4)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .background(Color.gainsCardBackground)
-                        .cornerRadius(16)
-                        .padding(.horizontal)
+                        // Calories Remaining Card - Hero element
+                        caloriesCard
                         
-                        // Macro Circle Progress
-                        HStack(spacing: 20) {
-                            // Circular Progress for Fats
-                            ZStack {
-                                Circle()
-                                    .stroke(Color.gainsCardBackground, lineWidth: 12)
-                                    .frame(width: 120, height: 120)
-                                
-                                let fatsGoal = max(1.0, viewModel.dailyNutrition.fatsGoal) // Prevent division by zero
-                                let fatsConsumed = max(0.0, viewModel.dailyNutrition.fatsConsumed) // Prevent negative values
-                                let progress = min(1.0, max(0.0, fatsConsumed / fatsGoal)) // Clamp between 0 and 1
-                                
-                                Circle()
-                                    .trim(from: 0, to: progress.isFinite ? progress : 0)
-                                    .stroke(Color.gainsPrimary, style: StrokeStyle(lineWidth: 12, lineCap: .round))
-                                    .frame(width: 120, height: 120)
-                                    .rotationEffect(.degrees(-90))
-                                
-                                VStack {
-                                    Text("\(Int(fatsConsumed))g")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .foregroundColor(.gainsText)
-                                    Text("\(Int(fatsGoal))g")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.gainsSecondaryText)
-                                }
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 12) {
-                                MacroRow(label: "Protein", consumed: Int(viewModel.dailyNutrition.proteinConsumed), goal: Int(viewModel.dailyNutrition.proteinGoal))
-                                MacroRow(label: "Carbs", consumed: Int(viewModel.dailyNutrition.carbsConsumed), goal: Int(viewModel.dailyNutrition.carbsGoal))
-                                MacroRow(label: "Fats", consumed: Int(viewModel.dailyNutrition.fatsConsumed), goal: Int(viewModel.dailyNutrition.fatsGoal))
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .padding()
-                        .background(Color.gainsCardBackground)
-                        .cornerRadius(16)
-                        .padding(.horizontal)
+                        // Macros Overview Card
+                        macrosOverviewCard
                         
-                        // Streak Card
-                        StreakCard()
-                            .padding(.horizontal)
+                        // Quick Actions Row
+                        quickActionsSection
                         
-                        // Action Buttons
-                        HStack(spacing: 16) {
-                            ActionButton(title: "Log Food", icon: "fork.knife") {
-                                showFoodLogging = true
-                            }
-                            
-                            ActionButton(title: "Log Water", icon: "drop.fill") {
-                                Task {
-                                    await viewModel.addWater(8)
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        // Meals Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "Today's Meals" : "Meals")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.gainsText)
-                                
-                                if !viewModel.recentFoods.isEmpty {
-                                    Text("\(viewModel.recentFoods.count)")
-                                        .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(.gainsPrimary)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
-                                        .background(Color.gainsPrimary.opacity(0.2))
-                                        .cornerRadius(12)
-                                }
-                            }
-                            .padding(.horizontal)
-                            
-                            if viewModel.recentFoods.isEmpty {
-                                // Empty state
-                                VStack(spacing: 16) {
-                                    Image(systemName: "fork.knife")
-                                        .font(.system(size: 48))
-                                        .foregroundColor(.gainsSecondaryText)
-                                    
-                                    Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "No meals logged today" : "No meals logged")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.gainsText)
-                                    
-                                    Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "Start tracking your nutrition by logging your first meal" : "No meals were logged on this day")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.gainsSecondaryText)
-                                        .multilineTextAlignment(.center)
-                                    
-                                    if Calendar.current.isDateInToday(viewModel.selectedDate) {
-                                        Button {
-                                            showFoodLogging = true
-                                        } label: {
-                                            Text("Log Food")
-                                                .font(.system(size: 16, weight: .semibold))
-                                                .foregroundColor(.white)
-                                                .padding(.horizontal, 24)
-                                                .padding(.vertical, 12)
-                                                .background(Color.gainsPrimary)
-                                                .cornerRadius(12)
-                                        }
-                                    }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 40)
-                                .padding(.horizontal)
-                            } else {
-                                ForEach(viewModel.recentFoods) { food in
-                                    MealCard(
-                                        food: food,
-                                        onEdit: {
-                                            selectedMeal = food
-                                            showEditMeal = true
-                                        },
-                                        onDelete: {
-                                            Task {
-                                                await viewModel.deleteMeal(food)
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        .padding(.top)
+                        // Today's Meals Section
+                        mealsSection
                     }
+                    .padding(.bottom, 100) // Extra padding for tab bar
                 }
             }
             .navigationBarHidden(true)
@@ -289,19 +89,390 @@ struct HomeView: View {
         }
     }
     
+    // MARK: - Header Section
+    private var headerSection: some View {
+        VStack(spacing: 20) {
+            // Large Title
+            HStack {
+                Text("Home")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+            }
+            .padding(.horizontal, GainsDesign.paddingHorizontal)
+            .padding(.top, GainsDesign.titlePaddingTop)
+            
+            // Date Navigation Pill
+            HStack(spacing: 0) {
+                // Previous Day Button
+                Button {
+                    Task {
+                        await viewModel.goToPreviousDay()
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.gainsPrimary)
+                        .frame(width: 44, height: 44)
+                }
+                
+                Spacer()
+                
+                // Date Display
+                Button {
+                    showDatePicker = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(formatDate(viewModel.selectedDate))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        if Calendar.current.isDateInToday(viewModel.selectedDate) {
+                            Text("Today")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.gainsPrimary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.gainsPrimary.opacity(0.15))
+                                .cornerRadius(6)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                // Next Day Button
+                Button {
+                    Task {
+                        await viewModel.goToNextDay()
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Calendar.current.isDateInToday(viewModel.selectedDate) ? .gainsTextMuted : .gainsPrimary)
+                        .frame(width: 44, height: 44)
+                }
+                .disabled(Calendar.current.isDateInToday(viewModel.selectedDate))
+            }
+            .padding(.horizontal, 8)
+            .background(
+                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusPill)
+                    .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+            )
+            .padding(.horizontal, GainsDesign.paddingHorizontal)
+        }
+    }
+    
+    // MARK: - Calories Card (Hero Element)
+    private var caloriesCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "calories remaining today" : "calories remaining")
+                .font(.system(size: 14))
+                .foregroundColor(.gainsTextSecondary)
+            
+            HStack(alignment: .center) {
+                Text("\(viewModel.dailyNutrition.caloriesRemaining)")
+                    .font(.system(size: 52, weight: .bold))
+                    .foregroundColor(.white)
+                    .contentTransition(.numericText())
+                
+                Spacer()
+                
+                // Flame Icon
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(hex: "0A84FF"), Color(hex: "5AC8FA")],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                    )
+            }
+            
+            if viewModel.isLoading {
+                ProgressView()
+                    .tint(.gainsPrimary)
+                    .padding(.top, 4)
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
+                .fill(Color.gainsCardGradient)
+                .shadow(color: .black.opacity(0.25), radius: 20, x: 0, y: 4)
+        )
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+    }
+    
+    // MARK: - Macros Overview Card
+    private var macrosOverviewCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Macros Overview")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+            
+            VStack(spacing: 14) {
+                MacroProgressRow(
+                    label: "Protein",
+                    consumed: Int(viewModel.dailyNutrition.proteinConsumed),
+                    goal: Int(viewModel.dailyNutrition.proteinGoal),
+                    color: Color(hex: "FF6B6B")
+                )
+                
+                MacroProgressRow(
+                    label: "Carbs",
+                    consumed: Int(viewModel.dailyNutrition.carbsConsumed),
+                    goal: Int(viewModel.dailyNutrition.carbsGoal),
+                    color: .gainsPrimary
+                )
+                
+                MacroProgressRow(
+                    label: "Fats",
+                    consumed: Int(viewModel.dailyNutrition.fatsConsumed),
+                    goal: Int(viewModel.dailyNutrition.fatsGoal),
+                    color: Color(hex: "FFD93D")
+                )
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
+                .fill(Color.gainsCardSurface)
+        )
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+    }
+    
+    // MARK: - Quick Actions Section
+    private var quickActionsSection: some View {
+        HStack(spacing: 12) {
+            // Log Food Button (Green)
+            Button {
+                showFoodLogging = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "fork.knife")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Log Food")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: GainsDesign.buttonHeightMedium)
+                .background(Color.gainsAccentGreen)
+                .cornerRadius(GainsDesign.cornerRadiusSmall)
+            }
+            
+            // Add Water Button (Blue)
+            Button {
+                Task {
+                    await viewModel.addWater(8)
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "drop.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Add Water")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: GainsDesign.buttonHeightMedium)
+                .background(Color.gainsPrimary)
+                .cornerRadius(GainsDesign.cornerRadiusSmall)
+            }
+        }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+    }
+    
+    // MARK: - Meals Section
+    private var mealsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Section Header
+            HStack {
+                Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "Today's Meals" : "Meals")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                if !viewModel.recentFoods.isEmpty {
+                    Text("\(viewModel.recentFoods.count)")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.gainsPrimary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.gainsPrimary.opacity(0.15))
+                        .cornerRadius(10)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal, GainsDesign.paddingHorizontal)
+            
+            if viewModel.recentFoods.isEmpty {
+                // Empty State
+                emptyMealsState
+            } else {
+                // Meals List
+                ForEach(viewModel.recentFoods) { food in
+                    MealCard(
+                        food: food,
+                        onEdit: {
+                            selectedMeal = food
+                            showEditMeal = true
+                        },
+                        onDelete: {
+                            Task {
+                                await viewModel.deleteMeal(food)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+    
+    // MARK: - Empty Meals State
+    private var emptyMealsState: some View {
+        HStack(spacing: 20) {
+            // Left side - Quick Actions Card
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Quick Actions")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Button {
+                    showFoodLogging = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "fork.knife")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Log Food")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(Color.gainsAccentGreen)
+                    .cornerRadius(10)
+                }
+                
+                Button {
+                    Task {
+                        await viewModel.addWater(8)
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "drop.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Add Water")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(Color.gainsPrimary)
+                    .cornerRadius(10)
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                    .fill(Color.gainsCardSurface)
+            )
+            
+            // Right side - Empty State Message
+            VStack(spacing: 12) {
+                Image(systemName: "fork.knife")
+                    .font(.system(size: 36))
+                    .foregroundColor(.gainsTextMuted)
+                
+                Text("No meals added yet")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Text("Add your first meal to start your day.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.gainsTextSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                    .fill(Color.gainsCardSurface)
+            )
+        }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+    }
+    
+    // MARK: - Helpers
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
         if Calendar.current.isDateInToday(date) {
             return "Today"
         } else if Calendar.current.isDateInYesterday(date) {
             return "Yesterday"
         } else {
+            let formatter = DateFormatter()
             formatter.dateFormat = "MMM d, yyyy"
             return formatter.string(from: date)
         }
     }
 }
 
+// MARK: - Macro Progress Row Component
+struct MacroProgressRow: View {
+    let label: String
+    let consumed: Int
+    let goal: Int
+    let color: Color
+    
+    private var progress: Double {
+        guard goal > 0 else { return 0 }
+        return min(1.0, Double(consumed) / Double(goal))
+    }
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gainsTextSecondary)
+                
+                Spacer()
+                
+                Text("\(consumed)g")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                
+                Text("\(consumed) / \(goal)g")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gainsTextSecondary)
+            }
+            
+            // Progress Bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gainsProgressBackground)
+                        .frame(height: 6)
+                    
+                    // Progress
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(color)
+                        .frame(width: geometry.size.width * progress, height: 6)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: progress)
+                }
+            }
+            .frame(height: 6)
+        }
+    }
+}
+
+// MARK: - Date Picker Sheet
 struct DatePickerSheet: View {
     @Binding var selectedDate: Date
     @Binding var isPresented: Bool
@@ -319,7 +490,7 @@ struct DatePickerSheet: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBackground.ignoresSafeArea()
+                Color.gainsBgPrimary.ignoresSafeArea()
                 
                 VStack(spacing: 24) {
                     DatePicker(
@@ -330,8 +501,8 @@ struct DatePickerSheet: View {
                     .datePickerStyle(.graphical)
                     .accentColor(.gainsPrimary)
                     .padding()
-                    .background(Color.gainsCardBackground)
-                    .cornerRadius(16)
+                    .background(Color.gainsCardSurface)
+                    .cornerRadius(GainsDesign.cornerRadiusMedium)
                     .padding()
                 }
             }
@@ -359,47 +530,6 @@ struct DatePickerSheet: View {
     }
 }
 
-struct MacroRow: View {
-    let label: String
-    let consumed: Int
-    let goal: Int
-    
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 14))
-                .foregroundColor(.gainsSecondaryText)
-            Spacer()
-            Text("\(consumed)g / \(goal)g")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.gainsText)
-        }
-    }
-}
-
-struct ActionButton: View {
-    let title: String
-    let icon: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                Text(title)
-                    .font(.system(size: 16, weight: .semibold))
-            }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.gainsPrimary)
-            .cornerRadius(12)
-        }
-    }
-}
-
 #Preview {
     HomeView()
 }
-

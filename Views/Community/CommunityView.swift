@@ -15,79 +15,30 @@ struct CommunityView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBackground.ignoresSafeArea()
+                // Gradient background
+                LinearGradient(
+                    colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 if viewModel.isLoading && viewModel.posts.isEmpty {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
                 } else {
-                    ScrollView {
-                        VStack(spacing: 20) {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: GainsDesign.sectionSpacing) {
                             // Header
-                            HStack {
-                                Text("Community")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.gainsText)
-                                
-                                Spacer()
-                                
-                                Button {
-                                    showCreatePost = true
-                                } label: {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.gainsPrimary)
-                                }
-                            }
-                            .padding()
+                            headerSection
                             
                             // Stories
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(viewModel.stories, id: \.self) { story in
-                                        StoryCircle(name: story)
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
+                            storiesSection
                             
                             // Feed Posts
-                            if viewModel.posts.isEmpty {
-                                VStack(spacing: 16) {
-                                    Image(systemName: "person.3.fill")
-                                        .font(.system(size: 48))
-                                        .foregroundColor(.gainsSecondaryText)
-                                    
-                                    Text("No Posts Yet")
-                                        .font(.system(size: 20, weight: .semibold))
-                                        .foregroundColor(.gainsText)
-                                    
-                                    Text("Be the first to share your progress!")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.gainsSecondaryText)
-                                }
-                                .padding()
-                            } else {
-                                VStack(spacing: 16) {
-                                    ForEach(viewModel.posts) { post in
-                                        CommunityPostCard(
-                                            post: post,
-                                            onLike: {
-                                                Task {
-                                                    await viewModel.likePost(post)
-                                                }
-                                            },
-                                            onDelete: {
-                                                Task {
-                                                    await viewModel.deletePost(post)
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
+                            postsSection
                         }
+                        .padding(.bottom, 100)
                     }
                     .refreshable {
                         await viewModel.refreshPosts()
@@ -103,6 +54,119 @@ struct CommunityView: View {
             }
         }
     }
+    
+    private var headerSection: some View {
+        HStack {
+            Text("Community")
+                .font(.system(size: 34, weight: .bold))
+                .foregroundColor(.white)
+            
+            Spacer()
+            
+            Button {
+                showCreatePost = true
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.gainsPrimary, Color.gainsAccentTeal],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+        }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .padding(.top, GainsDesign.titlePaddingTop)
+    }
+    
+    private var storiesSection: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                ForEach(viewModel.stories, id: \.self) { story in
+                    StoryCircle(name: story)
+                }
+            }
+            .padding(.horizontal, GainsDesign.paddingHorizontal)
+        }
+    }
+    
+    private var postsSection: some View {
+        Group {
+            if viewModel.posts.isEmpty {
+                emptyState
+            } else {
+                LazyVStack(spacing: 16) {
+                    ForEach(viewModel.posts) { post in
+                        CommunityPostCard(
+                            post: post,
+                            onLike: {
+                                Task {
+                                    await viewModel.likePost(post)
+                                }
+                            },
+                            onDelete: {
+                                Task {
+                                    await viewModel.deletePost(post)
+                                }
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, GainsDesign.paddingHorizontal)
+            }
+        }
+    }
+    
+    private var emptyState: some View {
+        VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(Color.gainsBgTertiary)
+                    .frame(width: 80, height: 80)
+                
+                Image(systemName: "person.3.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(.gainsTextMuted)
+            }
+            
+            VStack(spacing: 8) {
+                Text("No Posts Yet")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Text("Be the first to share your progress!")
+                    .font(.system(size: 15))
+                    .foregroundColor(.gainsTextSecondary)
+            }
+            
+            Button {
+                showCreatePost = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Share Progress")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(14)
+                .shadow(color: Color.gainsPrimary.opacity(0.3), radius: 12, x: 0, y: 6)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
+    }
 }
 
 struct StoryCircle: View {
@@ -110,18 +174,34 @@ struct StoryCircle: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            Circle()
-                .fill(Color.gainsCardBackground)
-                .frame(width: 60, height: 60)
-                .overlay(
-                    Text(String(name.prefix(1)))
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.gainsText)
-                )
+            ZStack {
+                // Gradient ring
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.gainsPrimary, Color.gainsAccentPurple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2
+                    )
+                    .frame(width: 68, height: 68)
+                
+                Circle()
+                    .fill(Color.gainsCardSurface)
+                    .frame(width: 60, height: 60)
+                    .overlay(
+                        Text(String(name.prefix(1)))
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.white)
+                    )
+            }
             
             Text(name)
                 .font(.system(size: 12))
-                .foregroundColor(.gainsSecondaryText)
+                .foregroundColor(.gainsTextSecondary)
+                .lineLimit(1)
+                .frame(width: 68)
         }
     }
 }
@@ -149,26 +229,34 @@ struct CommunityPostCard: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             // User Header
-            HStack {
-                Circle()
-                    .fill(Color.gainsCardBackground)
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Text(String(post.userName.prefix(1)))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.gainsText)
-                    )
+            HStack(spacing: 12) {
+                // Avatar with gradient ring
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.gainsPrimary.opacity(0.3), Color.gainsAccentPurple.opacity(0.3)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                    
+                    Text(String(post.userName.prefix(1)))
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                }
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(post.userName)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.gainsText)
+                        .foregroundColor(.white)
                     
                     Text(post.timeAgo)
                         .font(.system(size: 12))
-                        .foregroundColor(.gainsSecondaryText)
+                        .foregroundColor(.gainsTextMuted)
                 }
                 
                 Spacer()
@@ -182,7 +270,11 @@ struct CommunityPostCard: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis")
-                            .foregroundColor(.gainsSecondaryText)
+                            .font(.system(size: 16))
+                            .foregroundColor(.gainsTextSecondary)
+                            .frame(width: 32, height: 32)
+                            .background(Color.gainsBgTertiary)
+                            .cornerRadius(8)
                     }
                 }
             }
@@ -190,28 +282,29 @@ struct CommunityPostCard: View {
             // Post Text
             Text(post.text)
                 .font(.system(size: 16))
-                .foregroundColor(.gainsText)
+                .foregroundColor(.white)
+                .lineSpacing(4)
             
-            // Post Image (placeholder)
+            // Post Image/Metrics (placeholder)
             if post.imageUrl != nil || post.calories != nil {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gainsCardBackground)
-                    .frame(height: 200)
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color.gainsBgTertiary)
+                    .frame(height: 180)
                     .overlay(
                         VStack {
                             if post.calories != nil {
                                 HStack(spacing: 16) {
                                     if let calories = post.calories {
-                                        MetricBadge(value: "\(calories)", unit: "cal")
+                                        MetricBadge(value: "\(calories)", unit: "cal", color: .gainsAccentOrange)
                                     }
                                     if let protein = post.protein {
-                                        MetricBadge(value: "\(Int(protein))", unit: "g")
+                                        MetricBadge(value: "\(Int(protein))", unit: "g P", color: Color(hex: "FF6B6B"))
                                     }
                                     if let carbs = post.carbs {
-                                        MetricBadge(value: "\(Int(carbs))", unit: "g")
+                                        MetricBadge(value: "\(Int(carbs))", unit: "g C", color: .gainsPrimary)
                                     }
                                     if let fats = post.fats {
-                                        MetricBadge(value: "\(Int(fats))", unit: "")
+                                        MetricBadge(value: "\(Int(fats))", unit: "g F", color: Color(hex: "FFD93D"))
                                     }
                                 }
                             }
@@ -219,50 +312,32 @@ struct CommunityPostCard: View {
                     )
             }
             
-            // Metrics
-            if post.calories != nil {
-                HStack(spacing: 16) {
-                    if let calories = post.calories {
-                        Text("\(calories) cal")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gainsSecondaryText)
-                    }
-                    if let protein = post.protein {
-                        Text("\(Int(protein)) g")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gainsSecondaryText)
-                    }
-                    if let carbs = post.carbs {
-                        Text("\(Int(carbs))g")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gainsSecondaryText)
-                    }
-                    if let fats = post.fats {
-                        Text("\(Int(fats))")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gainsSecondaryText)
-                    }
-                }
-            }
-            
             // Like Button
             HStack(spacing: 16) {
                 Button(action: onLike) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Image(systemName: isLiked ? "heart.fill" : "heart")
-                            .foregroundColor(isLiked ? .red : .gainsSecondaryText)
+                            .font(.system(size: 18))
+                            .foregroundColor(isLiked ? .gainsAccentRed : .gainsTextSecondary)
+                        
                         Text("\(post.likeCount)")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gainsSecondaryText)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.gainsTextSecondary)
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color.gainsBgTertiary)
+                    .cornerRadius(20)
                 }
                 
                 Spacer()
             }
         }
-        .padding()
-        .background(Color.gainsCardBackground)
-        .cornerRadius(16)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
+                .fill(Color.gainsCardSurface)
+        )
         .confirmationDialog("Delete Post", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
                 onDelete?()
@@ -277,19 +352,25 @@ struct CommunityPostCard: View {
 struct MetricBadge: View {
     let value: String
     let unit: String
+    var color: Color = .gainsPrimary
     
     var body: some View {
-        Text("\(value) \(unit)")
-            .font(.system(size: 12))
-            .foregroundColor(.gainsText)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.gainsBackground.opacity(0.5))
-            .cornerRadius(8)
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(color)
+            
+            Text(unit)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.gainsTextSecondary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color.gainsCardSurface.opacity(0.8))
+        .cornerRadius(10)
     }
 }
 
 #Preview {
     CommunityView()
 }
-
