@@ -20,6 +20,10 @@ struct WorkoutPlan: Identifiable, Codable {
     var createdAt: Date
     var createdBy: PlanCreator
     var isActive: Bool
+    var isRetired: Bool // For archived/completed plans
+    var retiredAt: Date? // When the plan was retired
+    var startDate: Date? // When the plan was started
+    var endDate: Date? // Calculated end date based on duration
     
     init(
         id: UUID = UUID(),
@@ -30,7 +34,8 @@ struct WorkoutPlan: Identifiable, Codable {
         durationWeeks: Int = 4,
         daysPerWeek: Int = 4,
         workoutTemplates: [WorkoutTemplate] = [],
-        createdBy: PlanCreator = .user
+        createdBy: PlanCreator = .user,
+        isRetired: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -43,6 +48,27 @@ struct WorkoutPlan: Identifiable, Codable {
         self.createdAt = Date()
         self.createdBy = createdBy
         self.isActive = false
+        self.isRetired = isRetired
+        self.retiredAt = nil
+        self.startDate = nil
+        self.endDate = nil
+    }
+    
+    var isExpired: Bool {
+        guard let endDate = endDate else { return false }
+        return Date() > endDate
+    }
+    
+    var statusDescription: String {
+        if isActive {
+            return "Active"
+        } else if isRetired {
+            return "Retired"
+        } else if isExpired {
+            return "Expired"
+        } else {
+            return "Available"
+        }
     }
 }
 
