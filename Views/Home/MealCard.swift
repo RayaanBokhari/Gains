@@ -53,10 +53,10 @@ struct MealCard: View {
                 } else {
                     ZStack {
                         Rectangle()
-                            .fill(Color.gainsBgTertiary)
+                            .fill(Color(hex: "2A2C30"))
                         Image(systemName: "fork.knife")
                             .font(.system(size: 24))
-                            .foregroundColor(.gainsTextMuted)
+                            .foregroundColor(Color(hex: "6E6E73"))
                     }
                 }
             }
@@ -114,10 +114,10 @@ struct MealCard: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                .fill(Color.gainsCardSurface)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(hex: "1A1C20"))
         )
-        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .padding(.horizontal, 24)
         .confirmationDialog(
             "Delete this meal?",
             isPresented: $showDeleteConfirmation,
@@ -140,10 +140,10 @@ struct MacroPill: View {
     var body: some View {
         Text("\(label): \(value)g")
             .font(.system(size: 11, weight: .medium))
-            .foregroundColor(.gainsTextSecondary)
+            .foregroundColor(Color(hex: "A0A0A5"))
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
-            .background(Color.gainsBgTertiary)
+            .background(Color(hex: "2A2C30"))
             .cornerRadius(4)
     }
 }

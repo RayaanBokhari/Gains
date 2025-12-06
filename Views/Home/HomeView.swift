@@ -18,16 +18,20 @@ struct HomeView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Gradient background
+                // Gradient background with blue tint (matching mockup)
                 LinearGradient(
-                    colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
+                    colors: [
+                        Color(hex: "0F1318"),  // Dark navy blue at top
+                        Color(hex: "0D0F12"),  // Slightly lighter
+                        Color(hex: "0A0B0E")   // Near black at bottom
+                    ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
                 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: GainsDesign.sectionSpacing) {
+                    VStack(spacing: 20) {
                         // Header with Date Navigation
                         headerSection
                         
@@ -37,8 +41,10 @@ struct HomeView: View {
                         // Macros Overview Card
                         macrosOverviewCard
                         
-                        // Quick Actions Row
-                        quickActionsSection
+                        // Quick Actions Row (only shown when there ARE meals)
+                        if !viewModel.recentFoods.isEmpty {
+                            quickActionsSection
+                        }
                         
                         // Today's Meals Section
                         mealsSection
@@ -91,7 +97,7 @@ struct HomeView: View {
     
     // MARK: - Header Section
     private var headerSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             // Large Title
             HStack {
                 Text("Home")
@@ -99,10 +105,10 @@ struct HomeView: View {
                     .foregroundColor(.white)
                 Spacer()
             }
-            .padding(.horizontal, GainsDesign.paddingHorizontal)
-            .padding(.top, GainsDesign.titlePaddingTop)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
             
-            // Date Navigation Pill
+            // Date Navigation Pill - Clean and sleek like mockup
             HStack(spacing: 0) {
                 // Previous Day Button
                 Button {
@@ -118,25 +124,13 @@ struct HomeView: View {
                 
                 Spacer()
                 
-                // Date Display
+                // Date Display - Just the text, clean like mockup
                 Button {
                     showDatePicker = true
                 } label: {
-                    HStack(spacing: 8) {
-                        Text(formatDate(viewModel.selectedDate))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                        
-                        if Calendar.current.isDateInToday(viewModel.selectedDate) {
-                            Text("Today")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(.gainsPrimary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.gainsPrimary.opacity(0.15))
-                                .cornerRadius(6)
-                        }
-                    }
+                    Text(formatDateDisplay(viewModel.selectedDate))
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white)
                 }
                 
                 Spacer()
@@ -149,18 +143,18 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Calendar.current.isDateInToday(viewModel.selectedDate) ? .gainsTextMuted : .gainsPrimary)
+                        .foregroundColor(Calendar.current.isDateInToday(viewModel.selectedDate) ? .gainsTextMuted.opacity(0.5) : .gainsPrimary)
                         .frame(width: 44, height: 44)
                 }
                 .disabled(Calendar.current.isDateInToday(viewModel.selectedDate))
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 4)
+            .frame(height: 44)
             .background(
-                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusPill)
-                    .fill(.ultraThinMaterial)
-                    .environment(\.colorScheme, .dark)
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(Color(hex: "1C1E22").opacity(0.9))
             )
-            .padding(.horizontal, GainsDesign.paddingHorizontal)
+            .padding(.horizontal, 24)
         }
     }
     
@@ -168,20 +162,20 @@ struct HomeView: View {
     private var caloriesCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(Calendar.current.isDateInToday(viewModel.selectedDate) ? "calories remaining today" : "calories remaining")
-                .font(.system(size: 14))
+                .font(.system(size: 15))
                 .foregroundColor(.gainsTextSecondary)
             
             HStack(alignment: .center) {
                 Text("\(viewModel.dailyNutrition.caloriesRemaining)")
-                    .font(.system(size: 52, weight: .bold))
+                    .font(.system(size: 56, weight: .bold))
                     .foregroundColor(.white)
                     .contentTransition(.numericText())
                 
                 Spacer()
                 
-                // Flame Icon
+                // Flame Icon with blue gradient
                 Image(systemName: "flame.fill")
-                    .font(.system(size: 32))
+                    .font(.system(size: 36))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [Color(hex: "0A84FF"), Color(hex: "5AC8FA")],
@@ -200,21 +194,20 @@ struct HomeView: View {
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
-                .fill(Color.gainsCardGradient)
-                .shadow(color: .black.opacity(0.25), radius: 20, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(hex: "1A1C20"))
         )
-        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .padding(.horizontal, 24)
     }
     
     // MARK: - Macros Overview Card
     private var macrosOverviewCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Macros Overview")
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.white)
             
-            VStack(spacing: 14) {
+            VStack(spacing: 16) {
                 MacroProgressRow(
                     label: "Protein",
                     consumed: Int(viewModel.dailyNutrition.proteinConsumed),
@@ -239,13 +232,13 @@ struct HomeView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
-                .fill(Color.gainsCardSurface)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(hex: "1A1C20"))
         )
-        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .padding(.horizontal, 24)
     }
     
-    // MARK: - Quick Actions Section
+    // MARK: - Quick Actions Section (only when meals exist)
     private var quickActionsSection: some View {
         HStack(spacing: 12) {
             // Log Food Button (Green)
@@ -254,15 +247,15 @@ struct HomeView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "fork.knife")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                     Text("Log Food")
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: GainsDesign.buttonHeightMedium)
+                .frame(height: 48)
                 .background(Color.gainsAccentGreen)
-                .cornerRadius(GainsDesign.cornerRadiusSmall)
+                .cornerRadius(12)
             }
             
             // Add Water Button (Blue)
@@ -273,18 +266,18 @@ struct HomeView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "drop.fill")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                     Text("Add Water")
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: GainsDesign.buttonHeightMedium)
+                .frame(height: 48)
                 .background(Color.gainsPrimary)
-                .cornerRadius(GainsDesign.cornerRadiusSmall)
+                .cornerRadius(12)
             }
         }
-        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .padding(.horizontal, 24)
     }
     
     // MARK: - Meals Section
@@ -308,10 +301,10 @@ struct HomeView: View {
                 
                 Spacer()
             }
-            .padding(.horizontal, GainsDesign.paddingHorizontal)
+            .padding(.horizontal, 24)
             
             if viewModel.recentFoods.isEmpty {
-                // Empty State
+                // Empty State - Two cards side by side like mockup
                 emptyMealsState
             } else {
                 // Meals List
@@ -333,11 +326,11 @@ struct HomeView: View {
         }
     }
     
-    // MARK: - Empty Meals State
+    // MARK: - Empty Meals State (matches mockup exactly)
     private var emptyMealsState: some View {
-        HStack(spacing: 20) {
+        HStack(alignment: .top, spacing: 12) {
             // Left side - Quick Actions Card
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
                 Text("Quick Actions")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
@@ -353,7 +346,7 @@ struct HomeView: View {
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 40)
+                    .frame(height: 42)
                     .background(Color.gainsAccentGreen)
                     .cornerRadius(10)
                 }
@@ -371,45 +364,51 @@ struct HomeView: View {
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 40)
+                    .frame(height: 42)
                     .background(Color.gainsPrimary)
                     .cornerRadius(10)
                 }
             }
             .padding(16)
-            .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                    .fill(Color.gainsCardSurface)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "1A1C20"))
             )
             
             // Right side - Empty State Message
             VStack(spacing: 12) {
+                Spacer()
+                
                 Image(systemName: "fork.knife")
-                    .font(.system(size: 36))
+                    .font(.system(size: 32))
                     .foregroundColor(.gainsTextMuted)
                 
                 Text("No meals added yet")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
                 
                 Text("Add your first meal to start your day.")
                     .font(.system(size: 13))
                     .foregroundColor(.gainsTextSecondary)
                     .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                
+                Spacer()
             }
             .padding(16)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                    .fill(Color.gainsCardSurface)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "1A1C20"))
             )
         }
-        .padding(.horizontal, GainsDesign.paddingHorizontal)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.horizontal, 24)
     }
     
     // MARK: - Helpers
-    private func formatDate(_ date: Date) -> String {
+    private func formatDateDisplay(_ date: Date) -> String {
         if Calendar.current.isDateInToday(date) {
             return "Today"
         } else if Calendar.current.isDateInYesterday(date) {
@@ -438,17 +437,17 @@ struct MacroProgressRow: View {
         VStack(spacing: 8) {
             HStack {
                 Text(label)
-                    .font(.system(size: 14))
+                    .font(.system(size: 15))
                     .foregroundColor(.gainsTextSecondary)
                 
                 Spacer()
                 
                 Text("\(consumed)g")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white)
                 
                 Text("\(consumed) / \(goal)g")
-                    .font(.system(size: 14))
+                    .font(.system(size: 15))
                     .foregroundColor(.gainsTextSecondary)
             }
             
@@ -456,18 +455,18 @@ struct MacroProgressRow: View {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     // Background
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gainsProgressBackground)
-                        .frame(height: 6)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(hex: "2A2C30"))
+                        .frame(height: 5)
                     
                     // Progress
-                    RoundedRectangle(cornerRadius: 4)
+                    RoundedRectangle(cornerRadius: 3)
                         .fill(color)
-                        .frame(width: geometry.size.width * progress, height: 6)
+                        .frame(width: max(0, geometry.size.width * progress), height: 5)
                         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: progress)
                 }
             }
-            .frame(height: 6)
+            .frame(height: 5)
         }
     }
 }
@@ -490,7 +489,7 @@ struct DatePickerSheet: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBgPrimary.ignoresSafeArea()
+                Color(hex: "0A0B0E").ignoresSafeArea()
                 
                 VStack(spacing: 24) {
                     DatePicker(
@@ -501,8 +500,8 @@ struct DatePickerSheet: View {
                     .datePickerStyle(.graphical)
                     .accentColor(.gainsPrimary)
                     .padding()
-                    .background(Color.gainsCardSurface)
-                    .cornerRadius(GainsDesign.cornerRadiusMedium)
+                    .background(Color(hex: "1A1C20"))
+                    .cornerRadius(16)
                     .padding()
                 }
             }

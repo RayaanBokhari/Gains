@@ -56,27 +56,27 @@ struct TabBarView: View {
     }
     
     private func configureTabBarAppearance() {
-        // Create frosted glass effect
+        // Create appearance matching the mockup
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()
         
-        // Background with blur effect
-        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
-        appearance.backgroundColor = UIColor(Color.gainsCardSurface.opacity(0.7))
+        // Dark background with slight transparency matching mockup
+        appearance.backgroundColor = UIColor(Color(hex: "1A1C20").opacity(0.95))
+        appearance.backgroundEffect = UIBlurEffect(style: .systemThinMaterialDark)
         
         // Remove the default separator line
         appearance.shadowColor = .clear
         appearance.shadowImage = UIImage()
         
-        // Normal state
+        // Normal state - muted gray
         let normalAttributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: UIColor(Color.gainsTextMuted),
+            .foregroundColor: UIColor(Color(hex: "6E6E73")),
             .font: UIFont.systemFont(ofSize: 10, weight: .medium)
         ]
-        appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color.gainsTextMuted)
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color(hex: "6E6E73"))
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = normalAttributes
         
-        // Selected state
+        // Selected state - bright blue
         let selectedAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor(Color.gainsPrimary),
             .font: UIFont.systemFont(ofSize: 10, weight: .semibold)

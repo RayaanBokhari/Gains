@@ -61,7 +61,7 @@ extension Achievement {
         id: "centurion",
         name: "Centurion",
         description: "Log 100 meals",
-        iconName: "100.circle.fill",
+        iconName: "medal.fill",
         target: 100
     )
     

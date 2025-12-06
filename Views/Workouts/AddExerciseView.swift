@@ -9,13 +9,28 @@ import SwiftUI
 
 struct AddExerciseView: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var viewModel: WorkoutViewModel
     @StateObject private var templateService = ExerciseTemplateService()
+    
+    // Either viewModel or closure will be used
+    private var viewModel: WorkoutViewModel?
+    private var onExerciseAdded: ((Exercise) -> Void)?
     
     @State private var searchText = ""
     @State private var selectedCategory: ExerciseCategory? = nil
     @State private var showCustomExercise = false
     @State private var customExerciseName = ""
+    
+    // Initializer for WorkoutViewModel usage (active workout)
+    init(viewModel: WorkoutViewModel) {
+        self.viewModel = viewModel
+        self.onExerciseAdded = nil
+    }
+    
+    // Initializer for closure-based usage (edit mode)
+    init(onExerciseAdded: @escaping (Exercise) -> Void) {
+        self.viewModel = nil
+        self.onExerciseAdded = onExerciseAdded
+    }
     
     var filteredTemplates: [ExerciseTemplate] {
         var templates = templateService.templates
@@ -158,7 +173,14 @@ struct AddExerciseView: View {
             name: template.name,
             sets: [ExerciseSet()] // Start with one empty set
         )
-        viewModel.addExercise(exercise)
+        
+        if let onExerciseAdded = onExerciseAdded {
+            // Closure-based callback (edit mode)
+            onExerciseAdded(exercise)
+        } else {
+            // ViewModel-based (active workout mode)
+            viewModel?.addExercise(exercise)
+        }
         dismiss()
     }
     
@@ -167,7 +189,14 @@ struct AddExerciseView: View {
             name: name,
             sets: [ExerciseSet()]
         )
-        viewModel.addExercise(exercise)
+        
+        if let onExerciseAdded = onExerciseAdded {
+            // Closure-based callback (edit mode)
+            onExerciseAdded(exercise)
+        } else {
+            // ViewModel-based (active workout mode)
+            viewModel?.addExercise(exercise)
+        }
         dismiss()
     }
 }
@@ -255,6 +284,7 @@ struct ExerciseTemplateRow: View {
 }
 
 #Preview {
-    AddExerciseView(viewModel: WorkoutViewModel())
+    AddExerciseView(onExerciseAdded: { exercise in
+        print("Added exercise: \(exercise.name)")
+    })
 }
-

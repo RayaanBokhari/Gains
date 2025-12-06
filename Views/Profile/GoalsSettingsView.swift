@@ -11,6 +11,7 @@ struct GoalsSettingsView: View {
     @ObservedObject var profileViewModel: ProfileViewModel
     @Environment(\.dismiss) var dismiss
     @State private var isSaving = false
+    @State private var showMacroInfo = false
     
     var body: some View {
         NavigationView {
@@ -23,13 +24,128 @@ struct GoalsSettingsView: View {
                         SectionView(title: "Primary Goal") {
                             Picker("Goal", selection: Binding(
                                 get: { profileViewModel.profile.primaryGoal ?? .maintenance },
-                                set: { profileViewModel.profile.primaryGoal = $0 }
+                                set: { newGoal in
+                                    profileViewModel.profile.primaryGoal = newGoal
+                                    // Auto-update macros when goal changes
+                                    updateMacrosForGoal(newGoal)
+                                }
                             )) {
                                 ForEach(FitnessGoal.allCases, id: \.self) { goal in
                                     Text(goal.rawValue).tag(goal as FitnessGoal?)
                                 }
                             }
                             .pickerStyle(.menu)
+                        }
+                        
+                        // Daily Calories
+                        SectionView(title: "Daily Calories") {
+                            HStack {
+                                Text("Calorie Goal")
+                                Spacer()
+                                TextField("Calories", value: Binding(
+                                    get: { profileViewModel.profile.dailyCaloriesGoal },
+                                    set: { newValue in
+                                        profileViewModel.profile.dailyCaloriesGoal = newValue
+                                        // Recalculate macros when calories change
+                                        if let goal = profileViewModel.profile.primaryGoal {
+                                            updateMacrosForGoal(goal)
+                                        }
+                                    }
+                                ), format: .number)
+                                .keyboardType(.numberPad)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 100)
+                                Text("kcal")
+                                    .foregroundColor(.gainsSecondaryText)
+                            }
+                        }
+                        
+                        // Macro Goals
+                        SectionView(title: "Macro Goals") {
+                            VStack(spacing: 16) {
+                                // Info button
+                                HStack {
+                                    Text("Customize your daily macro targets")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.gainsSecondaryText)
+                                    Spacer()
+                                    Button {
+                                        showMacroInfo = true
+                                    } label: {
+                                        Image(systemName: "info.circle")
+                                            .foregroundColor(.gainsPrimary)
+                                    }
+                                }
+                                
+                                // Protein
+                                MacroInputRow(
+                                    label: "Protein",
+                                    value: Binding(
+                                        get: { profileViewModel.profile.macros.protein },
+                                        set: { profileViewModel.profile.macros.protein = $0 }
+                                    ),
+                                    color: Color(hex: "FF6B6B"),
+                                    caloriesPerGram: 4,
+                                    totalCalories: profileViewModel.profile.dailyCaloriesGoal
+                                )
+                                
+                                // Carbs
+                                MacroInputRow(
+                                    label: "Carbs",
+                                    value: Binding(
+                                        get: { profileViewModel.profile.macros.carbs },
+                                        set: { profileViewModel.profile.macros.carbs = $0 }
+                                    ),
+                                    color: .gainsPrimary,
+                                    caloriesPerGram: 4,
+                                    totalCalories: profileViewModel.profile.dailyCaloriesGoal
+                                )
+                                
+                                // Fats
+                                MacroInputRow(
+                                    label: "Fats",
+                                    value: Binding(
+                                        get: { profileViewModel.profile.macros.fats },
+                                        set: { profileViewModel.profile.macros.fats = $0 }
+                                    ),
+                                    color: Color(hex: "FFD93D"),
+                                    caloriesPerGram: 9,
+                                    totalCalories: profileViewModel.profile.dailyCaloriesGoal
+                                )
+                                
+                                // Total calories from macros
+                                Divider()
+                                
+                                HStack {
+                                    Text("Total from Macros")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.gainsText)
+                                    Spacer()
+                                    let totalMacroCals = Int(profileViewModel.profile.macros.protein * 4 +
+                                                            profileViewModel.profile.macros.carbs * 4 +
+                                                            profileViewModel.profile.macros.fats * 9)
+                                    Text("\(totalMacroCals) kcal")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(abs(totalMacroCals - profileViewModel.profile.dailyCaloriesGoal) <= 50 ? .gainsAccentGreen : .gainsAccentOrange)
+                                }
+                                
+                                // Reset to defaults button
+                                Button {
+                                    if let goal = profileViewModel.profile.primaryGoal {
+                                        updateMacrosForGoal(goal)
+                                    } else {
+                                        updateMacrosForGoal(.maintenance)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "arrow.counterclockwise")
+                                        Text("Reset to Recommended")
+                                    }
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.gainsPrimary)
+                                }
+                                .padding(.top, 8)
+                            }
                         }
                         
                         // Target Weight & Date
@@ -228,6 +344,91 @@ struct GoalsSettingsView: View {
                     .foregroundColor(.gainsPrimary)
                 }
             }
+            .alert("Macro Information", isPresented: $showMacroInfo) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Protein & Carbs = 4 calories per gram\nFats = 9 calories per gram\n\nRecommended macros are calculated based on your goal:\n\n• Bulk: Higher carbs for energy\n• Cut: Higher protein to preserve muscle\n• Maintenance: Balanced approach\n• Strength: Higher protein & carbs")
+            }
+        }
+    }
+    
+    // MARK: - Calculate Default Macros Based on Goal
+    private func updateMacrosForGoal(_ goal: FitnessGoal) {
+        let calories = Double(profileViewModel.profile.dailyCaloriesGoal)
+        
+        // Macro percentages based on goal
+        let (proteinPct, carbsPct, fatsPct): (Double, Double, Double) = {
+            switch goal {
+            case .bulk:
+                return (0.25, 0.50, 0.25) // 25% protein, 50% carbs, 25% fats
+            case .cut:
+                return (0.40, 0.35, 0.25) // 40% protein, 35% carbs, 25% fats
+            case .recomp:
+                return (0.35, 0.40, 0.25) // 35% protein, 40% carbs, 25% fats
+            case .maintenance:
+                return (0.30, 0.40, 0.30) // 30% protein, 40% carbs, 30% fats
+            case .strength:
+                return (0.30, 0.45, 0.25) // 30% protein, 45% carbs, 25% fats
+            case .endurance:
+                return (0.20, 0.55, 0.25) // 20% protein, 55% carbs, 25% fats
+            }
+        }()
+        
+        // Calculate grams (protein/carbs = 4 cal/g, fats = 9 cal/g)
+        let proteinGrams = (calories * proteinPct) / 4
+        let carbsGrams = (calories * carbsPct) / 4
+        let fatsGrams = (calories * fatsPct) / 9
+        
+        // Update profile macros
+        profileViewModel.profile.macros.protein = round(proteinGrams)
+        profileViewModel.profile.macros.carbs = round(carbsGrams)
+        profileViewModel.profile.macros.fats = round(fatsGrams)
+    }
+}
+
+// MARK: - Macro Input Row
+struct MacroInputRow: View {
+    let label: String
+    @Binding var value: Double
+    let color: Color
+    let caloriesPerGram: Int
+    let totalCalories: Int
+    
+    private var percentage: Int {
+        guard totalCalories > 0 else { return 0 }
+        let calories = value * Double(caloriesPerGram)
+        return Int((calories / Double(totalCalories)) * 100)
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Color indicator
+            Circle()
+                .fill(color)
+                .frame(width: 12, height: 12)
+            
+            Text(label)
+                .font(.system(size: 15))
+                .foregroundColor(.gainsText)
+                .frame(width: 60, alignment: .leading)
+            
+            Spacer()
+            
+            // Percentage badge
+            Text("\(percentage)%")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gainsSecondaryText)
+                .frame(width: 40)
+            
+            // Input field
+            TextField("0", value: $value, format: .number)
+                .keyboardType(.numberPad)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 70)
+            
+            Text("g")
+                .font(.system(size: 14))
+                .foregroundColor(.gainsSecondaryText)
         }
     }
 }
@@ -258,4 +459,3 @@ struct SectionView<Content: View>: View {
 #Preview {
     GoalsSettingsView(profileViewModel: ProfileViewModel())
 }
-
