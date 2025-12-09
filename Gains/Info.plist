@@ -15,6 +15,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Gains uses your camera to take photos of your meals for food logging and AI-powered nutrition estimation.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Gains accesses your photo library to let you select meal photos for food logging and nutrition tracking.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Gains uses your health data to track your fitness progress, sync weight measurements, and provide personalized recommendations.</string>
 	<key>NSHealthUpdateUsageDescription</key>

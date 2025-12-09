@@ -22,7 +22,11 @@ struct FoodLoggingView: View {
     
     @State private var foodDescription: String = ""
     @State private var selectedImage: UIImage?
-    @State private var showImagePicker = false
+    @State private var pendingImage: UIImage? // Image awaiting confirmation
+    @State private var showImageSourceSheet = false
+    @State private var showCameraPicker = false
+    @State private var showPhotoLibraryPicker = false
+    @State private var showImageConfirmation = false
     @State private var isEstimating = false
     @State private var isSaving = false
     @State private var errorMessage: String?
@@ -88,20 +92,36 @@ struct FoodLoggingView: View {
                             }
                         } else {
                             Button {
-                                showImagePicker = true
+                                showImageSourceSheet = true
                             } label: {
                                 VStack(spacing: 12) {
-                                    Image(systemName: "camera.fill")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.gainsPrimary)
+                                    HStack(spacing: 20) {
+                                        VStack(spacing: 8) {
+                                            Image(systemName: "camera.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(.gainsPrimary)
+                                            Text("Take Photo")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.gainsSecondaryText)
+                                        }
+                                        
+                                        Rectangle()
+                                            .fill(Color.gainsSecondaryText.opacity(0.3))
+                                            .frame(width: 1, height: 50)
+                                        
+                                        VStack(spacing: 8) {
+                                            Image(systemName: "photo.on.rectangle")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(.gainsPrimary)
+                                            Text("Choose Photo")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.gainsSecondaryText)
+                                        }
+                                    }
                                     
                                     Text("Add Photo (Optional)")
                                         .font(.system(size: 16, weight: .medium))
                                         .foregroundColor(.gainsText)
-                                    
-                                    Text("Upload an image of your food")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.gainsSecondaryText)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 150)
@@ -308,8 +328,46 @@ struct FoodLoggingView: View {
             }
             .scrollDismissesKeyboard(.interactively)
         }
-        .sheet(isPresented: $showImagePicker) {
-            ImagePicker(image: $selectedImage)
+        .confirmationDialog("Add Photo", isPresented: $showImageSourceSheet, titleVisibility: .visible) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("Take Photo") {
+                    showCameraPicker = true
+                }
+            }
+            Button("Choose from Library") {
+                showPhotoLibraryPicker = true
+            }
+            Button("Cancel", role: .cancel) { }
+        }
+        .sheet(isPresented: $showCameraPicker) {
+            ImagePickerWithSource(image: $pendingImage, sourceType: .camera) {
+                // Photo taken, show confirmation
+                if pendingImage != nil {
+                    showImageConfirmation = true
+                }
+            }
+        }
+        .sheet(isPresented: $showPhotoLibraryPicker) {
+            ImagePickerWithSource(image: $pendingImage, sourceType: .photoLibrary) {
+                // Photo selected, show confirmation
+                if pendingImage != nil {
+                    showImageConfirmation = true
+                }
+            }
+        }
+        .sheet(isPresented: $showImageConfirmation) {
+            ImageConfirmationView(
+                image: $pendingImage,
+                onConfirm: {
+                    selectedImage = pendingImage
+                    pendingImage = nil
+                    showImageConfirmation = false
+                },
+                onCancel: {
+                    pendingImage = nil
+                    showImageConfirmation = false
+                }
+            )
         }
         .sheet(isPresented: $showTemplates) {
             MealTemplatesView { template in
@@ -503,7 +561,7 @@ struct NutritionInputRow<Field: Hashable>: View {
     }
 }
 
-// Simple Image Picker
+// Simple Image Picker (for backward compatibility)
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     @Environment(\.dismiss) var dismiss
@@ -537,6 +595,134 @@ struct ImagePicker: UIViewControllerRepresentable {
         
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.dismiss()
+        }
+    }
+}
+
+// Image Picker with Source Type
+struct ImagePickerWithSource: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    let sourceType: UIImagePickerController.SourceType
+    let onImagePicked: () -> Void
+    @Environment(\.dismiss) var dismiss
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = sourceType
+        if sourceType == .camera {
+            picker.cameraCaptureMode = .photo
+        }
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePickerWithSource
+        
+        init(_ parent: ImagePickerWithSource) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.image = image
+            }
+            parent.dismiss()
+            // Delay slightly to ensure dismiss completes before showing confirmation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.parent.onImagePicked()
+            }
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+    }
+}
+
+// Image Confirmation View
+struct ImageConfirmationView: View {
+    @Binding var image: UIImage?
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.gainsBackground.ignoresSafeArea()
+                
+                VStack(spacing: 24) {
+                    Text("Use this photo?")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.gainsText)
+                    
+                    if let displayImage = image {
+                        Image(uiImage: displayImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 400)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .padding(.horizontal)
+                    } else {
+                        // Placeholder if image not yet loaded
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Loading photo...")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gainsSecondaryText)
+                        }
+                        .frame(height: 300)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(spacing: 12) {
+                        Button {
+                            onConfirm()
+                        } label: {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 16))
+                                Text("Use Photo")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(image != nil ? Color.gainsAccentGreen : Color.gray.opacity(0.3))
+                            .cornerRadius(12)
+                        }
+                        .disabled(image == nil)
+                        
+                        Button {
+                            onCancel()
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                    .font(.system(size: 14))
+                                Text("Choose Different Photo")
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+                            .foregroundColor(.gainsPrimary)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.gainsPrimary.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
+                }
+                .padding(.top, 20)
+            }
+            .navigationBarHidden(true)
         }
     }
 }
