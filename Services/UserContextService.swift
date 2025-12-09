@@ -20,6 +20,8 @@ class UserContextService: ObservableObject {
     @Published var weeklyNutritionSummary: WeeklyNutritionSummary?
     @Published var weeklyTrainingSummary: WeeklyTrainingSummary?
     @Published var weightTrend: WeightTrend?
+    @Published var activeDietaryPlan: DietaryPlan?
+    @Published var activeWorkoutPlan: WorkoutPlan?
     
     func buildSystemPrompt() -> String {
         var context = """

@@ -406,11 +406,11 @@ struct GenerateDietaryPlanView: View {
     private func updateMacrosForGoal(_ goal: FitnessGoal) {
         // Smart macro defaults based on goal
         switch goal {
-        case .muscleGain:
+        case .bulk:
             proteinGrams = Double(dailyCalories) * 0.30 / 4  // 30% protein
             carbGrams = Double(dailyCalories) * 0.45 / 4     // 45% carbs
             fatGrams = Double(dailyCalories) * 0.25 / 9       // 25% fat
-        case .fatLoss:
+        case .cut:
             proteinGrams = Double(dailyCalories) * 0.35 / 4  // 35% protein
             carbGrams = Double(dailyCalories) * 0.30 / 4     // 30% carbs
             fatGrams = Double(dailyCalories) * 0.35 / 9       // 35% fat
@@ -426,9 +426,9 @@ struct GenerateDietaryPlanView: View {
             proteinGrams = Double(dailyCalories) * 0.30 / 4  // 30% protein
             carbGrams = Double(dailyCalories) * 0.40 / 4     // 40% carbs
             fatGrams = Double(dailyCalories) * 0.30 / 9       // 30% fat
-        case .generalHealth:
-            proteinGrams = Double(dailyCalories) * 0.25 / 4  // 25% protein
-            carbGrams = Double(dailyCalories) * 0.45 / 4     // 45% carbs
+        case .recomp:
+            proteinGrams = Double(dailyCalories) * 0.30 / 4  // 30% protein
+            carbGrams = Double(dailyCalories) * 0.40 / 4     // 40% carbs
             fatGrams = Double(dailyCalories) * 0.30 / 9       // 30% fat
         }
     }

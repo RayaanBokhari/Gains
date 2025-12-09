@@ -83,6 +83,12 @@
 		B9FCF75C2EDFD40200C112ED /* CreateWorkoutPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF75D2EDFD40200C112ED /* CreateWorkoutPlanView.swift */; };
 		B9FCF75E2EDFD40300C112ED /* GeneratePlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF75F2EDFD40300C112ED /* GeneratePlanView.swift */; };
 		B9FCF7602EDFD40400C112ED /* GoalsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7612EDFD40400C112ED /* GoalsSettingsView.swift */; };
+		B9FCF7B52EE7DE6700C112ED /* DietaryPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7B42EE7DE6700C112ED /* DietaryPlan.swift */; };
+		B9FCF7C42EE7DED400C112ED /* CreateDietaryPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7BF2EE7DED400C112ED /* CreateDietaryPlanView.swift */; };
+		B9FCF7C52EE7DED400C112ED /* DietaryPlansView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7C12EE7DED400C112ED /* DietaryPlansView.swift */; };
+		B9FCF7C62EE7DED400C112ED /* DietaryPlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7C02EE7DED400C112ED /* DietaryPlanDetailView.swift */; };
+		B9FCF7C72EE7DED400C112ED /* GenerateDietaryPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7C22EE7DED400C112ED /* GenerateDietaryPlanView.swift */; };
+		B9FCF7C92EE7DEF700C112ED /* DietaryPlanService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7C82EE7DEF700C112ED /* DietaryPlanService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -176,6 +182,12 @@
 		B9FCF75D2EDFD40200C112ED /* CreateWorkoutPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateWorkoutPlanView.swift; sourceTree = "<group>"; };
 		B9FCF75F2EDFD40300C112ED /* GeneratePlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratePlanView.swift; sourceTree = "<group>"; };
 		B9FCF7612EDFD40400C112ED /* GoalsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsSettingsView.swift; sourceTree = "<group>"; };
+		B9FCF7B42EE7DE6700C112ED /* DietaryPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryPlan.swift; sourceTree = "<group>"; };
+		B9FCF7BF2EE7DED400C112ED /* CreateDietaryPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateDietaryPlanView.swift; sourceTree = "<group>"; };
+		B9FCF7C02EE7DED400C112ED /* DietaryPlanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryPlanDetailView.swift; sourceTree = "<group>"; };
+		B9FCF7C12EE7DED400C112ED /* DietaryPlansView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryPlansView.swift; sourceTree = "<group>"; };
+		B9FCF7C22EE7DED400C112ED /* GenerateDietaryPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateDietaryPlanView.swift; sourceTree = "<group>"; };
+		B9FCF7C82EE7DEF700C112ED /* DietaryPlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryPlanService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -272,6 +284,7 @@
 		B94DAAFA2ECFC32100DB65EB /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF7B42EE7DE6700C112ED /* DietaryPlan.swift */,
 				B9FCF74A2EDFD3D000C112ED /* ChatConversation.swift */,
 				B9FCF74B2EDFD3D000C112ED /* NutritionSummary.swift */,
 				B9FCF74C2EDFD3D000C112ED /* TrainingSummary.swift */,
@@ -307,6 +320,7 @@
 		B94DAAFC2ECFC32F00DB65EB /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF7C32EE7DED400C112ED /* Nutrition */,
 				B9DDCCAF2ED1F00200E97E3 /* Auth */,
 				B94DAB392ECFC60000DB65EB /* Home */,
 				B94DAB3A2ECFC60000DB65EB /* AICoach */,
@@ -324,6 +338,7 @@
 		B94DAAFD2ECFC33700DB65EB /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF7C82EE7DEF700C112ED /* DietaryPlanService.swift */,
 				B9FCF7542EDFD3DE00C112ED /* ChatStorageService.swift */,
 				B9FCF7552EDFD3DE00C112ED /* WorkoutPlanService.swift */,
 				B933B8762ECFE43700DC9770 /* AuthService.swift */,
@@ -473,6 +488,17 @@
 				B9DDCCAE2ED1F00100E97E3 /* SignUpView.swift */,
 			);
 			path = Auth;
+			sourceTree = "<group>";
+		};
+		B9FCF7C32EE7DED400C112ED /* Nutrition */ = {
+			isa = PBXGroup;
+			children = (
+				B9FCF7BF2EE7DED400C112ED /* CreateDietaryPlanView.swift */,
+				B9FCF7C02EE7DED400C112ED /* DietaryPlanDetailView.swift */,
+				B9FCF7C12EE7DED400C112ED /* DietaryPlansView.swift */,
+				B9FCF7C22EE7DED400C112ED /* GenerateDietaryPlanView.swift */,
+			);
+			path = Nutrition;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -634,6 +660,10 @@
 				B94DAAD52ECFC2EE00DB65EB /* ContentView.swift in Sources */,
 				B933B87B2ECFE68400DC9770 /* DailyLog.swift in Sources */,
 				B9FCF74F2EDFD3D000C112ED /* WorkoutPlan.swift in Sources */,
+				B9FCF7C42EE7DED400C112ED /* CreateDietaryPlanView.swift in Sources */,
+				B9FCF7C52EE7DED400C112ED /* DietaryPlansView.swift in Sources */,
+				B9FCF7C62EE7DED400C112ED /* DietaryPlanDetailView.swift in Sources */,
+				B9FCF7C72EE7DED400C112ED /* GenerateDietaryPlanView.swift in Sources */,
 				B9FCF7502EDFD3D000C112ED /* TrainingSummary.swift in Sources */,
 				B9FCF7512EDFD3D000C112ED /* ChatConversation.swift in Sources */,
 				B9FCF7522EDFD3D000C112ED /* NutritionSummary.swift in Sources */,
@@ -676,6 +706,7 @@
 				B94DAB352ECFC60000DB65EB /* CommunityViewModel.swift in Sources */,
 				B94DAB372ECFC60000DB65EB /* ProfileViewModel.swift in Sources */,
 				B94DAB432ECFC80000DB65EB /* HomeViewModel.swift in Sources */,
+				B9FCF7B52EE7DE6700C112ED /* DietaryPlan.swift in Sources */,
 				B94DAB3D2ECFC70000DB65EB /* ChatGPTService.swift in Sources */,
 				B94DAB3F2ECFC70000DB65EB /* UserContextService.swift in Sources */,
 				B94DAB412ECFC70000DB65EB /* APIConfiguration.swift in Sources */,
@@ -692,6 +723,7 @@
 				B9DDCCA32ED14AED000E97E3 /* MacrosChartView.swift in Sources */,
 				B9DDCCA52ED14AEE000E97E3 /* WeightChartView.swift in Sources */,
 				B9DDCCA72ED14AEF000E97E3 /* CreatePostView.swift in Sources */,
+				B9FCF7C92EE7DEF700C112ED /* DietaryPlanService.swift in Sources */,
 				B9DDCCAB2ED1F00000E97E3 /* AuthenticationView.swift in Sources */,
 				B9DDCCAD2ED1F00100E97E3 /* SignUpView.swift in Sources */,
 				B9FCF7582EDFD40000C112ED /* WorkoutPlansView.swift in Sources */,
