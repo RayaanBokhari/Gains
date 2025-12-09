@@ -8,7 +8,7 @@ This document provides a comprehensive overview of the database schema and syste
 
 ### Overview
 
-Gains uses **Firebase Firestore** as its primary database, with **Firebase Storage** for media files and **Firebase Authentication** for user management.
+Gains uses **Firebase Firestore** as its primary database, with **Firebase Storage** for media files, **Firebase Authentication** for user management, and **Firebase Functions** for serverless AI operations.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -32,11 +32,20 @@ Gains uses **Firebase Firestore** as its primary database, with **Firebase Stora
 │  │         ├── workouts/                                                │    │
 │  │         │     └── {workoutId}                                        │    │
 │  │         │                                                            │    │
+│  │         ├── workoutPlans/                                            │    │
+│  │         │     └── {planId}                                           │    │
+│  │         │                                                            │    │
+│  │         ├── dietaryPlans/                                            │    │
+│  │         │     └── {planId}                                           │    │
+│  │         │                                                            │    │
 │  │         ├── mealTemplates/                                           │    │
 │  │         │     └── {templateId}                                       │    │
 │  │         │                                                            │    │
 │  │         ├── exerciseTemplates/                                       │    │
 │  │         │     └── {templateId}                                       │    │
+│  │         │                                                            │    │
+│  │         ├── conversations/                                           │    │
+│  │         │     └── {conversationId}                                   │    │
 │  │         │                                                            │    │
 │  │         ├── streaks/                                                 │    │
 │  │         │     └── current                                            │    │
@@ -73,17 +82,21 @@ Root collection for all user-specific data. Each user has a document identified 
 
 #### 2. Profile (`/users/{userId}/profile/data`)
 
-Stores user profile information and goals.
+Stores user profile information, goals, and preferences.
 
 ```
 ┌─────────────────────────────────────────┐
 │              UserProfile                 │
 ├─────────────────────────────────────────┤
+│  BASIC INFO                              │
 │  name: String                            │
 │  dateJoined: Timestamp                   │
 │  weight: Double                          │
 │  height: String                          │
 │  gender: String                          │
+│  useMetricUnits: Bool                    │
+│                                          │
+│  NUTRITION GOALS                         │
 │  dailyCaloriesGoal: Int                  │
 │  macros: {                               │
 │    protein: Double                       │
@@ -91,9 +104,37 @@ Stores user profile information and goals.
 │    fats: Double                          │
 │  }                                       │
 │  waterGoal: Double                       │
-│  useMetricUnits: Bool                    │
+│                                          │
+│  FITNESS GOALS                           │
+│  primaryGoal: FitnessGoal?               │
+│  targetWeight: Double?                   │
+│  targetDate: Timestamp?                  │
+│  trainingExperience: TrainingExperience? │
+│  trainingSplit: TrainingSplit?           │
+│  activityLevel: ActivityLevel?           │
+│  preferredTrainingDays: [Weekday]?       │
+│                                          │
+│  DIET & LIFESTYLE                        │
+│  dietType: DietType?                     │
+│  allergies: [String]?                    │
+│  dislikedFoods: [String]?                │
+│  mealPattern: MealPattern?               │
+│                                          │
+│  COACHING PREFERENCES                    │
+│  coachingStyle: CoachingStyle?           │
+│  detailPreference: DetailPreference?     │
 └─────────────────────────────────────────┘
 ```
+
+**Enums:**
+- `FitnessGoal`: muscleGain, fatLoss, maintenance, endurance, strength, generalHealth
+- `TrainingExperience`: beginner, intermediate, advanced
+- `TrainingSplit`: fullBody, upperLower, pushPullLegs, bodyPart
+- `ActivityLevel`: sedentary, lightlyActive, moderatelyActive, veryActive, extremelyActive
+- `DietType`: balanced, keto, lowCarb, highProtein, vegan, vegetarian, paleo, mediterranean
+- `MealPattern`: threeSquareMeals, intermittentFasting, frequentSmallMeals
+- `CoachingStyle`: motivational, analytical, casual
+- `DetailPreference`: brief, moderate, detailed
 
 ---
 
@@ -148,10 +189,11 @@ Workout sessions with embedded exercises and sets.
 ┌─────────────────────────────────────────┐
 │               Workout                    │
 ├─────────────────────────────────────────┤
-│  id: String                              │
+│  id: UUID                                │
 │  workoutId: String                       │
 │  name: String                            │
 │  date: Timestamp                         │
+│  duration: TimeInterval?                 │
 │  notes: String? (optional)               │
 │  exercises: [                            │
 │    {                                     │
@@ -176,7 +218,145 @@ Workout sessions with embedded exercises and sets.
 
 ---
 
-#### 6. Meal Templates (`/users/{userId}/mealTemplates/{templateId}`)
+#### 6. Workout Plans (`/users/{userId}/workoutPlans/{planId}`)
+
+AI-generated or user-created workout programs.
+
+```
+┌─────────────────────────────────────────┐
+│             WorkoutPlan                  │
+├─────────────────────────────────────────┤
+│  id: UUID                                │
+│  planId: String                          │
+│  name: String                            │
+│  description: String?                    │
+│  goal: FitnessGoal                       │
+│  difficulty: Difficulty                  │
+│  durationWeeks: Int                      │
+│  daysPerWeek: Int                        │
+│  createdAt: Timestamp                    │
+│  createdBy: PlanCreator (ai/user)        │
+│  isActive: Bool                          │
+│  isRetired: Bool                         │
+│  retiredAt: Timestamp?                   │
+│  startDate: Timestamp?                   │
+│  endDate: Timestamp?                     │
+│  workoutTemplates: [                     │
+│    {                                     │
+│      id: UUID                            │
+│      name: String                        │
+│      dayNumber: Int                      │
+│      exercises: [                        │
+│        {                                 │
+│          id: UUID                        │
+│          name: String                    │
+│          targetSets: Int                 │
+│          targetReps: String              │
+│          restSeconds: Int?               │
+│          notes: String?                  │
+│          alternatives: [String]?         │
+│        }                                 │
+│      ]                                   │
+│      notes: String?                      │
+│    }                                     │
+│  ]                                       │
+└─────────────────────────────────────────┘
+```
+
+---
+
+#### 7. Dietary Plans (`/users/{userId}/dietaryPlans/{planId}`)
+
+AI-generated or user-created meal plans.
+
+```
+┌─────────────────────────────────────────┐
+│            DietaryPlan                   │
+├─────────────────────────────────────────┤
+│  id: UUID                                │
+│  planId: String                          │
+│  name: String                            │
+│  description: String?                    │
+│  goal: FitnessGoal?                      │
+│  dailyCalories: Int                      │
+│  macros: {                               │
+│    protein: Double                       │
+│    carbs: Double                         │
+│    fats: Double                          │
+│  }                                       │
+│  mealCount: Int                          │
+│  createdAt: Timestamp                    │
+│  createdBy: PlanCreator (ai/user)        │
+│  isActive: Bool                          │
+│  isRetired: Bool                         │
+│  retiredAt: Timestamp?                   │
+│  dietType: DietType?                     │
+│  restrictions: [String]?                 │
+│  durationWeeks: Int                      │
+│  meals: [                                │
+│    {                                     │
+│      id: UUID                            │
+│      dayName: String                     │
+│      dayNumber: Int                      │
+│      meals: [                            │
+│        {                                 │
+│          id: UUID                        │
+│          name: String                    │
+│          mealType: MealType              │
+│          foods: [                        │
+│            {                             │
+│              name: String                │
+│              quantity: String            │
+│              calories: Int               │
+│              protein: Double             │
+│              carbs: Double               │
+│              fats: Double                │
+│            }                             │
+│          ]                               │
+│          calories: Int                   │
+│          protein: Double                 │
+│          carbs: Double                   │
+│          fats: Double                    │
+│          prepTime: Int?                  │
+│          notes: String?                  │
+│        }                                 │
+│      ]                                   │
+│      notes: String?                      │
+│    }                                     │
+│  ]                                       │
+└─────────────────────────────────────────┘
+```
+
+**MealType Enum:** breakfast, morningSnack, lunch, afternoonSnack, dinner, eveningSnack
+
+---
+
+#### 8. Conversations (`/users/{userId}/conversations/{conversationId}`)
+
+AI Coach chat history persistence.
+
+```
+┌─────────────────────────────────────────┐
+│           ChatConversation               │
+├─────────────────────────────────────────┤
+│  id: UUID                                │
+│  title: String                           │
+│  createdAt: Timestamp                    │
+│  lastUpdated: Timestamp                  │
+│  messages: [                             │
+│    {                                     │
+│      id: UUID                            │
+│      content: String                     │
+│      isUser: Bool                        │
+│      timestamp: Timestamp                │
+│    }                                     │
+│  ]                                       │
+└─────────────────────────────────────────┘
+```
+
+---
+
+#### 9. Meal Templates (`/users/{userId}/mealTemplates/{templateId}`)
 
 Saved meal templates for quick logging.
 
@@ -198,7 +378,7 @@ Saved meal templates for quick logging.
 
 ---
 
-#### 7. Exercise Templates (`/users/{userId}/exerciseTemplates/{templateId}`)
+#### 10. Exercise Templates (`/users/{userId}/exerciseTemplates/{templateId}`)
 
 Custom exercise definitions (defaults stored in app).
 
@@ -219,7 +399,7 @@ Custom exercise definitions (defaults stored in app).
 
 ---
 
-#### 8. Streaks (`/users/{userId}/streaks/current`)
+#### 11. Streaks (`/users/{userId}/streaks/current`)
 
 Single document tracking user's logging streak.
 
@@ -235,7 +415,7 @@ Single document tracking user's logging streak.
 
 ---
 
-#### 9. Achievements (`/users/{userId}/achievements/{achievementId}`)
+#### 12. Achievements (`/users/{userId}/achievements/{achievementId}`)
 
 User's achievement progress and unlocks.
 
@@ -255,7 +435,7 @@ User's achievement progress and unlocks.
 
 ---
 
-#### 10. Community Posts (`/posts/{postId}`)
+#### 13. Community Posts (`/posts/{postId}`)
 
 Public community posts (top-level collection for cross-user access).
 
@@ -292,15 +472,15 @@ Public community posts (top-level collection for cross-user access).
 │              │       │              │       │              │
 └──────────────┘       └──────────────┘       └──────────────┘
        │                                              │
-       │                                              │
-       │ 1:1                                          │ uses
-       │                                              ▼
-       ▼                                       ┌──────────────┐
-┌──────────────┐                               │MealTemplate  │
-│   Profile    │                               │              │
-│              │                               │  (reusable)  │
-│  (settings)  │                               │              │
-└──────────────┘                               └──────────────┘
+       │                                              │ uses
+       │ 1:1                                          ▼
+       │                                       ┌──────────────┐
+       ▼                                       │MealTemplate  │
+┌──────────────┐                               │              │
+│   Profile    │                               │  (reusable)  │
+│              │                               │              │
+│  (settings)  │                               └──────────────┘
+└──────────────┘
        │
        │ 1:N
        ▼
@@ -310,22 +490,29 @@ Public community posts (top-level collection for cross-user access).
 │  (session)   │       │  (embedded)  │       │  (embedded)  │
 │              │       │              │       │              │
 └──────────────┘       └──────────────┘       └──────────────┘
-                              │
-                              │ uses
-                              ▼
-                       ┌──────────────┐
-                       │  Exercise    │
-                       │  Template    │
-                       │              │
-                       │ (definition) │
-                       └──────────────┘
-
+       │                      │
+       │ follows              │ uses
+       ▼                      ▼
 ┌──────────────┐       ┌──────────────┐
-│    Streak    │       │ Achievement  │
-│              │       │              │
-│  (1 per user)│       │  (N per user)│
-│              │       │              │
+│ WorkoutPlan  │       │  Exercise    │
+│              │       │  Template    │
+│  (program)   │       │              │
+│              │       │ (definition) │
 └──────────────┘       └──────────────┘
+
+┌──────────────┐       ┌──────────────┐       ┌──────────────┐
+│DietaryPlan   │──1:N──│ MealPlanDay  │──1:N──│ PlannedMeal  │
+│              │       │              │       │              │
+│  (program)   │       │  (per day)   │       │ (with foods) │
+│              │       │              │       │              │
+└──────────────┘       └──────────────┘       └──────────────┘
+
+┌──────────────┐       ┌──────────────┐       ┌──────────────┐
+│    Streak    │       │ Achievement  │       │ Conversation │
+│              │       │              │       │              │
+│  (1 per user)│       │  (N per user)│       │ (AI Chat)    │
+│              │       │              │       │              │
+└──────────────┘       └──────────────┘       └──────────────┘
 
 ┌──────────────┐
 │Community Post│
@@ -379,30 +566,40 @@ Public community posts (top-level collection for cross-user access).
 │  │   │ViewModel│  │ViewModel│  │ViewModel│  │ViewModel│  │ViewModel│  │    │
 │  │   └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘  │    │
 │  │        │            │            │            │            │        │    │
-│  └────────┼────────────┼────────────┼────────────┼────────────┼────────┘    │
-│           │            │            │            │            │             │
-│           └────────────┴────────────┴─────┬──────┴────────────┘             │
-│                                           │                                  │
-│  ┌────────────────────────────────────────┼────────────────────────────┐    │
-│  │                                        ▼                            │    │
-│  │                         SERVICE LAYER (Singletons)                  │    │
-│  ├─────────────────────────────────────────────────────────────────────┤    │
-│  │                                                                      │    │
-│  │   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │    │
-│  │   │  Firestore   │  │    Auth      │  │   Storage    │              │    │
-│  │   │   Service    │  │   Service    │  │   Service    │              │    │
-│  │   └──────┬───────┘  └──────┬───────┘  └──────┬───────┘              │    │
-│  │          │                 │                 │                       │    │
-│  │   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │    │
-│  │   │   ChatGPT    │  │   Workout    │  │  Exercise    │              │    │
-│  │   │   Service    │  │   Service    │  │Template Svc  │              │    │
-│  │   └──────┬───────┘  └──────┬───────┘  └──────┬───────┘              │    │
-│  │          │                 │                 │                       │    │
-│  └──────────┼─────────────────┼─────────────────┼───────────────────────┘    │
-│             │                 │                 │                            │
-└─────────────┼─────────────────┼─────────────────┼────────────────────────────┘
-              │                 │                 │
-              ▼                 ▼                 ▼
+│  │   ┌────┴────┐  ┌────┴────┐                                          │    │
+│  │   │AICoach  │  │Nutrition│                                          │    │
+│  │   │ViewModel│  │ViewModel│                                          │    │
+│  │   └────┬────┘  └────┬────┘                                          │    │
+│  │        │            │                                                │    │
+│  └────────┼────────────┼────────────────────────────────────────────────┘    │
+│           │            │                                                     │
+│           └────────────┴─────────────────┬───────────────────────────────    │
+│                                          │                                   │
+│  ┌───────────────────────────────────────┼───────────────────────────────┐   │
+│  │                                       ▼                               │   │
+│  │                         SERVICE LAYER (Singletons)                    │   │
+│  ├───────────────────────────────────────────────────────────────────────┤   │
+│  │                                                                       │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │   │
+│  │  │ Firestore   │  │    Auth     │  │  Storage    │  │  ChatGPT    │  │   │
+│  │  │  Service    │  │  Service    │  │  Service    │  │  Service    │  │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  │   │
+│  │                                                                       │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │   │
+│  │  │ Workout     │  │WorkoutPlan  │  │DietaryPlan  │  │ ChatStorage │  │   │
+│  │  │  Service    │  │  Service    │  │  Service    │  │  Service    │  │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  │   │
+│  │                                                                       │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                   │   │
+│  │  │ Exercise    │  │ ImageCache  │  │UserContext  │                   │   │
+│  │  │Template Svc │  │  Service    │  │  Service    │                   │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘                   │   │
+│  │                                                                       │   │
+│  └───────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+└──────────────────────────────────────┬───────────────────────────────────────┘
+                                       │
+                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           EXTERNAL SERVICES                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -414,12 +611,13 @@ Public community posts (top-level collection for cross-user access).
 │   │                 │   │                 │   │                 │          │
 │   └─────────────────┘   └─────────────────┘   └─────────────────┘          │
 │                                                                              │
-│   ┌─────────────────┐                                                       │
-│   │                 │                                                       │
-│   │   OpenAI API    │                                                       │
-│   │   (ChatGPT)     │                                                       │
-│   │                 │                                                       │
-│   └─────────────────┘                                                       │
+│   ┌─────────────────┐   ┌─────────────────┐                                 │
+│   │                 │   │                 │                                 │
+│   │    Firebase     │   │   OpenAI API    │                                 │
+│   │   Functions     │   │   (via Cloud    │                                 │
+│   │   (us-east4)    │   │    Function)    │                                 │
+│   │                 │   │                 │                                 │
+│   └─────────────────┘   └─────────────────┘                                 │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -488,83 +686,6 @@ Public community posts (top-level collection for cross-user access).
 
 ---
 
-### Data Flow Diagram
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           USER INTERACTION                                   │
-└─────────────────────────────────┬───────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              VIEW                                            │
-│                                                                              │
-│   User taps "Log Food" ──────────────────────────────────────────────────▶  │
-│                                                                              │
-└─────────────────────────────────┬───────────────────────────────────────────┘
-                                  │
-                                  │ Call viewModel.logFood(food)
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           VIEWMODEL                                          │
-│                                                                              │
-│   1. Validate input                                                          │
-│   2. Set isLoading = true                                                    │
-│   3. Call FirestoreService.saveMeal()                                        │
-│   4. Update streak                                                           │
-│   5. Check achievements                                                      │
-│   6. Refresh data                                                            │
-│   7. Set isLoading = false                                                   │
-│                                                                              │
-└─────────────────────────────────┬───────────────────────────────────────────┘
-                                  │
-                                  │ async/await
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       FIRESTORE SERVICE                                      │
-│                                                                              │
-│   1. Encode Food to dictionary                                               │
-│   2. Create document reference                                               │
-│   3. Write to Firestore                                                      │
-│   4. Update daily log totals                                                 │
-│                                                                              │
-└─────────────────────────────────┬───────────────────────────────────────────┘
-                                  │
-                                  │ Firebase SDK
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         FIREBASE                                             │
-│                                                                              │
-│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                     │
-│   │  Firestore  │    │   Storage   │    │    Auth     │                     │
-│   │             │    │             │    │             │                     │
-│   │  Save meal  │    │ Store photo │    │ Verify user │                     │
-│   │  document   │    │   if any    │    │   token     │                     │
-│   └─────────────┘    └─────────────┘    └─────────────┘                     │
-│                                                                              │
-└─────────────────────────────────┬───────────────────────────────────────────┘
-                                  │
-                                  │ Success/Error
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           VIEWMODEL                                          │
-│                                                                              │
-│   Update @Published properties ─────────────────────────────────────────▶   │
-│                                                                              │
-└─────────────────────────────────┬───────────────────────────────────────────┘
-                                  │
-                                  │ SwiftUI observes changes
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              VIEW                                            │
-│                                                                              │
-│   UI automatically updates to show new meal ◀───────────────────────────    │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
 ### Service Layer Details
 
 ```
@@ -577,19 +698,13 @@ Public community posts (top-level collection for cross-user access).
 │  ├─────────────────────────────────────────────────────────────────────┤    │
 │  │                                                                      │    │
 │  │  Daily Logs:                                                         │    │
-│  │    • saveDailyLog()                                                  │    │
-│  │    • fetchDailyLog()                                                 │    │
-│  │    • fetchDailyLogsRange()                                           │    │
+│  │    • saveDailyLog() / fetchDailyLog() / fetchDailyLogsRange()       │    │
 │  │                                                                      │    │
 │  │  Meals:                                                              │    │
-│  │    • saveMeal()                                                      │    │
-│  │    • fetchMeals()                                                    │    │
-│  │    • updateMeal()                                                    │    │
-│  │    • deleteMeal()                                                    │    │
+│  │    • saveMeal() / fetchMeals() / updateMeal() / deleteMeal()        │    │
 │  │                                                                      │    │
 │  │  Profile:                                                            │    │
-│  │    • saveUserProfile()                                               │    │
-│  │    • fetchUserProfile()                                              │    │
+│  │    • saveUserProfile() / fetchUserProfile()                          │    │
 │  │                                                                      │    │
 │  │  Templates:                                                          │    │
 │  │    • saveMealTemplate() / fetchMealTemplates() / deleteMealTemplate()│    │
@@ -597,6 +712,14 @@ Public community posts (top-level collection for cross-user access).
 │  │                                                                      │    │
 │  │  Workouts:                                                           │    │
 │  │    • saveWorkout() / fetchWorkouts() / updateWorkout() / delete...   │    │
+│  │                                                                      │    │
+│  │  Workout Plans:                                                      │    │
+│  │    • saveWorkoutPlan() / fetchWorkoutPlans() / updateWorkoutPlan()   │    │
+│  │    • deleteWorkoutPlan()                                             │    │
+│  │                                                                      │    │
+│  │  Dietary Plans:                                                      │    │
+│  │    • saveDietaryPlan() / fetchDietaryPlans() / updateDietaryPlan()   │    │
+│  │    • deleteDietaryPlan()                                             │    │
 │  │                                                                      │    │
 │  │  Gamification:                                                       │    │
 │  │    • updateStreak() / fetchStreak()                                  │    │
@@ -611,9 +734,8 @@ Public community posts (top-level collection for cross-user access).
 │  │                      AuthService.shared                              │    │
 │  ├─────────────────────────────────────────────────────────────────────┤    │
 │  │  • user: User? (current Firebase user)                               │    │
-│  │  • signIn()                                                          │    │
-│  │  • signOut()                                                         │    │
-│  │  • createAccount()                                                   │    │
+│  │  • isAuthenticated: Bool                                             │    │
+│  │  • signIn() / signOut() / createAccount()                            │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                              │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
@@ -626,8 +748,64 @@ Public community posts (top-level collection for cross-user access).
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │                     ChatGPTService                                   │    │
 │  ├─────────────────────────────────────────────────────────────────────┤    │
+│  │  • sendMessage(messages) -> Response                                 │    │
 │  │  • estimateFood(description, imageBase64) -> FoodEstimation          │    │
-│  │  • chat(messages) -> Response                                        │    │
+│  │  • generateWorkoutPlan(...) -> WorkoutPlan                           │    │
+│  │  • generateDietaryPlan(...) -> DietaryPlan                           │    │
+│  │                                                                      │    │
+│  │  Uses Firebase Functions (aiChat) to call OpenAI API securely        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                   WorkoutPlanService                                 │    │
+│  ├─────────────────────────────────────────────────────────────────────┤    │
+│  │  • loadPlans() / savePlan() / deletePlan()                           │    │
+│  │  • setActivePlan() / deactivatePlan()                                │    │
+│  │  • retirePlan() / restorePlan()                                      │    │
+│  │  • activePlan, plans, retiredPlans (Published)                       │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                   DietaryPlanService                                 │    │
+│  ├─────────────────────────────────────────────────────────────────────┤    │
+│  │  • loadPlans() / savePlan() / deletePlan()                           │    │
+│  │  • setActivePlan() / deactivatePlan()                                │    │
+│  │  • retirePlan() / restorePlan()                                      │    │
+│  │  • activePlan, plans, retiredPlans (Published)                       │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                   ChatStorageService.shared                          │    │
+│  ├─────────────────────────────────────────────────────────────────────┤    │
+│  │  • saveConversation() / loadAllConversations()                       │    │
+│  │  • deleteConversation()                                              │    │
+│  │  Persists AI Coach conversations to Firestore                        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                   UserContextService                                 │    │
+│  ├─────────────────────────────────────────────────────────────────────┤    │
+│  │  • buildSystemPrompt() -> String                                     │    │
+│  │  Aggregates user data for AI context:                                │    │
+│  │    - Profile, goals, nutrition progress                              │    │
+│  │    - Weekly nutrition/training summaries                             │    │
+│  │    - Active workout/dietary plans                                    │    │
+│  │    - Streak, achievements, meal templates                            │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                  ExerciseTemplateService.shared                      │    │
+│  ├─────────────────────────────────────────────────────────────────────┤    │
+│  │  • defaultExercises: [ExerciseTemplate]                              │    │
+│  │  • getExercises(for category) -> [ExerciseTemplate]                  │    │
+│  │  Provides 80+ pre-defined exercises with categories                  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                   ImageCacheService.shared                           │    │
+│  ├─────────────────────────────────────────────────────────────────────┤    │
+│  │  • loadImage(url) -> UIImage?                                        │    │
+│  │  NSCache-based image caching for meal photos                         │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -648,8 +826,14 @@ Gains/
 │   ├── ExerciseSet.swift       # Set within exercise
 │   ├── ExerciseTemplate.swift  # Exercise definition
 │   ├── MealTemplate.swift      # Saved meal template
+│   ├── WorkoutPlan.swift       # Workout program with templates
+│   ├── DietaryPlan.swift       # Meal plan with daily meals
+│   ├── ChatConversation.swift  # AI chat history
 │   ├── Streak.swift            # Streak tracking
-│   └── Achievement.swift       # Achievement definitions
+│   ├── Achievement.swift       # Achievement definitions
+│   ├── NutritionSummary.swift  # Weekly nutrition stats
+│   ├── TrainingSummary.swift   # Weekly training stats
+│   └── WeightTrend.swift       # Weight trend analysis
 │
 ├── 📁 ViewModels/
 │   ├── HomeViewModel.swift     # Nutrition tracking, streaks
@@ -658,60 +842,84 @@ Gains/
 │   ├── CommunityViewModel.swift# Social features
 │   ├── ProfileViewModel.swift  # User profile
 │   ├── AICoachViewModel.swift  # AI chat
-│   └── NutritionViewModel.swift# (legacy)
+│   └── NutritionViewModel.swift# Daily nutrition state
 │
 ├── 📁 Services/
 │   ├── FirestoreService.swift  # All Firestore operations
 │   ├── AuthService.swift       # Firebase Auth
 │   ├── StorageService.swift    # Firebase Storage
-│   ├── ChatGPTService.swift    # OpenAI integration
+│   ├── ChatGPTService.swift    # OpenAI integration via Firebase Functions
 │   ├── WorkoutService.swift    # Workout business logic
-│   ├── ExerciseTemplateService.swift # Default templates
+│   ├── WorkoutPlanService.swift# Workout plan management
+│   ├── DietaryPlanService.swift# Dietary plan management
+│   ├── ChatStorageService.swift# AI conversation persistence
+│   ├── ExerciseTemplateService.swift # Default exercise library
 │   ├── ImageCacheService.swift # Image caching
-│   ├── UserContextService.swift# AI context
-│   └── APIConfiguration.swift  # API keys
+│   ├── UserContextService.swift# AI context builder
+│   └── APIConfiguration.swift  # API configuration
 │
 ├── 📁 Views/
 │   ├── 📁 Shared/
-│   │   ├── ContentView.swift
-│   │   └── TabBarView.swift
+│   │   ├── ContentView.swift   # Root view
+│   │   └── TabBarView.swift    # Main tab navigation
+│   │
+│   ├── 📁 Auth/
+│   │   ├── AuthenticationView.swift  # Login screen
+│   │   └── SignUpView.swift          # Registration screen
 │   │
 │   ├── 📁 Home/
-│   │   ├── HomeView.swift
-│   │   ├── FoodLoggingView.swift
-│   │   ├── EditMealView.swift
-│   │   ├── MealCard.swift
-│   │   ├── MealTemplatesView.swift
-│   │   └── StreakCard.swift
+│   │   ├── HomeView.swift      # Main dashboard
+│   │   ├── FoodLoggingView.swift     # Log food with AI
+│   │   ├── EditMealView.swift        # Edit logged meal
+│   │   ├── MealCard.swift            # Meal display component
+│   │   ├── MealTemplatesView.swift   # Saved meal templates
+│   │   ├── StreakCard.swift          # Streak display
+│   │   └── UIImage+Base64.swift      # Image utilities
 │   │
 │   ├── 📁 Workouts/
-│   │   ├── WorkoutListView.swift
-│   │   └── WorkoutDetailView.swift
+│   │   ├── WorkoutListView.swift     # Workout history + plans tabs
+│   │   ├── WorkoutDetailView.swift   # Single workout detail
+│   │   ├── ActiveWorkoutView.swift   # Live workout tracking
+│   │   ├── AddExerciseView.swift     # Add exercise to workout
+│   │   ├── WorkoutPlansView.swift    # Workout plans list
+│   │   ├── WorkoutPlanDetailView.swift # Single plan detail
+│   │   ├── CreateWorkoutPlanView.swift # Manual plan creation
+│   │   └── GeneratePlanView.swift    # AI plan generation
+│   │
+│   ├── 📁 Nutrition/
+│   │   ├── DietaryPlansView.swift    # Dietary plans list
+│   │   ├── DietaryPlanDetailView.swift # Single plan detail
+│   │   ├── CreateDietaryPlanView.swift # Manual plan creation
+│   │   └── GenerateDietaryPlanView.swift # AI plan generation
+│   │
+│   ├── 📁 Exercises/
+│   │   └── ExerciseListView.swift    # Exercise library browser
 │   │
 │   ├── 📁 Progress/
-│   │   ├── ProgressView.swift
+│   │   ├── ProgressView.swift        # Progress dashboard
 │   │   └── 📁 Charts/
 │   │       ├── CaloriesChartView.swift
 │   │       ├── MacrosChartView.swift
 │   │       └── WeightChartView.swift
 │   │
 │   ├── 📁 Community/
-│   │   ├── CommunityView.swift
-│   │   └── CreatePostView.swift
+│   │   ├── CommunityView.swift       # Social feed
+│   │   └── CreatePostView.swift      # New post composer
 │   │
 │   ├── 📁 Profile/
-│   │   ├── ProfileView.swift
-│   │   ├── EditProfileView.swift
-│   │   └── AchievementsView.swift
+│   │   ├── ProfileView.swift         # User profile
+│   │   ├── EditProfileView.swift     # Edit profile details
+│   │   ├── GoalsSettingsView.swift   # Goals & macro settings
+│   │   └── AchievementsView.swift    # Achievements display
 │   │
 │   ├── 📁 AICoach/
-│   │   └── AICoachView.swift
+│   │   └── AICoachView.swift         # AI chat interface
 │   │
 │   └── 📁 Settings/
-│       └── SettingsView.swift
+│       └── SettingsView.swift        # App settings
 │
 ├── 📁 Theme/
-│   ├── colors.swift            # Color definitions
+│   ├── colors.swift            # Color system (GainsDesign)
 │   └── GainsAIApp.swift        # App entry point
 │
 ├── 📁 Utilities/
@@ -719,9 +927,13 @@ Gains/
 │   ├── WeightFormatter.swift
 │   └── ImageUtilities.swift
 │
+├── 📁 functions/               # Firebase Functions (Node.js)
+│   └── index.js                # aiChat function for OpenAI
+│
 └── 📄 Configuration Files
     ├── GoogleService-Info.plist
     ├── firestore.rules
+    ├── firestore.indexes.json
     └── storage.rules
 ```
 
@@ -753,9 +965,14 @@ Gains/
 │  └─────────────────┘               └─────────────────┘                      │
 │                                                                              │
 │  ┌─────────────────┐               ┌─────────────────┐                      │
-│  │  Swift Async/   │               │   OpenAI API    │                      │
-│  │     Await       │               │   (ChatGPT)     │                      │
+│  │  Swift Async/   │               │    Firebase     │                      │
+│  │     Await       │               │   Functions     │                      │
 │  └─────────────────┘               └─────────────────┘                      │
+│                                                                              │
+│                                    ┌─────────────────┐                      │
+│                                    │   OpenAI API    │                      │
+│                                    │ (GPT-4 Vision)  │                      │
+│                                    └─────────────────┘                      │
 │                                                                              │
 │  TOOLS                             DEPLOYMENT                                │
 │  ─────                             ──────────                                │
@@ -774,5 +991,90 @@ Gains/
 
 ---
 
-*Last updated: December 2024*
+### AI Integration Architecture
 
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        AI INTEGRATION FLOW                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────┐                                                        │
+│  │   iOS App       │                                                        │
+│  │                 │                                                        │
+│  │  AICoachView    │────────────────────────────────────────────┐          │
+│  │  FoodLogging    │                                            │          │
+│  │  GeneratePlan   │                                            │          │
+│  └────────┬────────┘                                            │          │
+│           │                                                      │          │
+│           │ 1. Build context                                     │          │
+│           ▼                                                      │          │
+│  ┌─────────────────┐                                            │          │
+│  │UserContextService│                                            │          │
+│  │                 │                                            │          │
+│  │ Aggregates:     │                                            │          │
+│  │ • User profile  │                                            │          │
+│  │ • Daily nutrition│                                           │          │
+│  │ • Weekly summary │                                           │          │
+│  │ • Active plans  │                                            │          │
+│  │ • Streak/goals  │                                            │          │
+│  └────────┬────────┘                                            │          │
+│           │                                                      │          │
+│           │ 2. System prompt + user message                      │          │
+│           ▼                                                      │          │
+│  ┌─────────────────┐         ┌─────────────────┐                │          │
+│  │ ChatGPTService  │────────▶│ Firebase        │                │          │
+│  │                 │  HTTPS  │ Functions       │                │          │
+│  │ sendMessage()   │         │ (us-east4)      │                │          │
+│  │ estimateFood()  │         │                 │                │          │
+│  │ generatePlan()  │         │ aiChat()        │                │          │
+│  └─────────────────┘         └────────┬────────┘                │          │
+│                                       │                          │          │
+│                                       │ 3. Forward to OpenAI     │          │
+│                                       ▼                          │          │
+│                              ┌─────────────────┐                │          │
+│                              │   OpenAI API    │                │          │
+│                              │                 │                │          │
+│                              │ GPT-4 / GPT-4V  │                │          │
+│                              │                 │                │          │
+│                              └────────┬────────┘                │          │
+│                                       │                          │          │
+│                                       │ 4. Response              │          │
+│                                       ▼                          │          │
+│                              ┌─────────────────┐                │          │
+│                              │ Parse Response  │                │          │
+│                              │                 │                │          │
+│                              │ • Chat: text    │                │          │
+│                              │ • Food: JSON    │                │          │
+│                              │ • Plan: JSON    │                │          │
+│                              └────────┬────────┘                │          │
+│                                       │                          │          │
+│                                       │ 5. Update UI             │          │
+│                                       ▼                          │          │
+│                              ┌─────────────────┐                │          │
+│                              │   App State     │◀───────────────┘          │
+│                              │                 │                            │
+│                              │ @Published vars │                            │
+│                              │ SwiftUI updates │                            │
+│                              └─────────────────┘                            │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Key Features Summary
+
+| Feature | Description | Key Files |
+|---------|-------------|-----------|
+| **Nutrition Tracking** | Log meals with AI estimation, track macros & calories | `HomeView`, `FoodLoggingView`, `ChatGPTService` |
+| **Workout Logging** | Track exercises, sets, reps, and workout history | `WorkoutListView`, `ActiveWorkoutView`, `WorkoutViewModel` |
+| **AI Workout Plans** | Generate personalized workout programs | `GeneratePlanView`, `WorkoutPlanService` |
+| **AI Meal Plans** | Generate weekly meal plans based on goals | `GenerateDietaryPlanView`, `DietaryPlanService` |
+| **AI Coach** | Context-aware chat for fitness/nutrition advice | `AICoachView`, `UserContextService` |
+| **Progress Tracking** | Charts for calories, macros, and weight over time | `ProgressView`, `Charts/` |
+| **Community** | Share progress and engage with other users | `CommunityView`, `CommunityViewModel` |
+| **Achievements** | Gamification with streak tracking and badges | `AchievementsView`, `Achievement.swift` |
+
+---
+
+*Last updated: December 2024*
