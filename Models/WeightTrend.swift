@@ -7,15 +7,23 @@
 
 import Foundation
 
-struct WeightEntry: Identifiable, Codable {
+struct WeightEntry: Identifiable, Codable, Equatable {
     let id: UUID
-    let weight: Double
-    let date: Date
+    var weight: Double
+    var date: Date
+    var notes: String?
+    var entryId: String? // Firestore document ID
     
-    init(id: UUID = UUID(), weight: Double, date: Date = Date()) {
+    init(id: UUID = UUID(), weight: Double, date: Date = Date(), notes: String? = nil, entryId: String? = nil) {
         self.id = id
         self.weight = weight
         self.date = date
+        self.notes = notes
+        self.entryId = entryId
+    }
+    
+    static func == (lhs: WeightEntry, rhs: WeightEntry) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 

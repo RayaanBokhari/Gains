@@ -15,5 +15,13 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Gains uses your health data to track your fitness progress, sync weight measurements, and provide personalized recommendations.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Gains writes workout data, weight entries, and nutrition data to Apple Health to keep all your health information in one place.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

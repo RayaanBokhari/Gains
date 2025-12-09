@@ -41,12 +41,7 @@ struct HomeView: View {
                         // Macros Overview Card
                         macrosOverviewCard
                         
-                        // Quick Actions Row (only shown when there ARE meals)
-                        if !viewModel.recentFoods.isEmpty {
-                            quickActionsSection
-                        }
-                        
-                        // Today's Meals Section
+                        // Today's Meals Section (always includes quick actions)
                         mealsSection
                     }
                     .padding(.bottom, 100) // Extra padding for tab bar
@@ -238,48 +233,6 @@ struct HomeView: View {
         .padding(.horizontal, 24)
     }
     
-    // MARK: - Quick Actions Section (only when meals exist)
-    private var quickActionsSection: some View {
-        HStack(spacing: 12) {
-            // Log Food Button (Green)
-            Button {
-                showFoodLogging = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 15, weight: .semibold))
-                    Text("Log Food")
-                        .font(.system(size: 15, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(Color.gainsAccentGreen)
-                .cornerRadius(12)
-            }
-            
-            // Add Water Button (Blue)
-            Button {
-                Task {
-                    await viewModel.addWater(8)
-                }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "drop.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                    Text("Add Water")
-                        .font(.system(size: 15, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(Color.gainsPrimary)
-                .cornerRadius(12)
-            }
-        }
-        .padding(.horizontal, 24)
-    }
-    
     // MARK: - Meals Section
     private var mealsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -307,6 +260,9 @@ struct HomeView: View {
                 // Empty State - Two cards side by side like mockup
                 emptyMealsState
             } else {
+                // Full-width Quick Actions Card
+                quickActionsCard
+                
                 // Meals List
                 ForEach(viewModel.recentFoods) { food in
                     MealCard(
@@ -324,6 +280,74 @@ struct HomeView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Quick Actions Card (full width, shown when meals exist)
+    private var quickActionsCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Quick Actions")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+            
+            HStack(spacing: 12) {
+                // Log Food Button (Green)
+                Button {
+                    showFoodLogging = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "fork.knife")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Log Food")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 42)
+                    .background(Color.gainsAccentGreen)
+                    .cornerRadius(10)
+                }
+                
+                // Add Water Button (Blue)
+                Button {
+                    Task {
+                        await viewModel.addWater(8)
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "drop.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Add Water")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 42)
+                    .background(Color.gainsPrimary)
+                    .cornerRadius(10)
+                }
+                
+                // Meal Plans Button (Teal)
+                NavigationLink(destination: DietaryPlansContentView()) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "list.bullet.clipboard")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Plans")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 42)
+                    .background(Color.gainsSuccess)
+                    .cornerRadius(10)
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(hex: "1A1C20"))
+        )
+        .padding(.horizontal, 24)
     }
     
     // MARK: - Empty Meals State (matches mockup exactly)

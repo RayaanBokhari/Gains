@@ -715,6 +715,64 @@ final class FirestoreService {
             .delete()
     }
     
+    // MARK: - Weight Entries
+    
+    func saveWeightEntry(userId: String, entry: WeightEntry) async throws {
+        let entryRef: DocumentReference
+        if let entryId = entry.entryId {
+            entryRef = db.collection("users").document(userId)
+                .collection("weightEntries").document(entryId)
+        } else {
+            entryRef = db.collection("users").document(userId)
+                .collection("weightEntries").document()
+        }
+        
+        var data = try Firestore.Encoder().encode(entry)
+        data["entryId"] = entryRef.documentID
+        data["date"] = Timestamp(date: entry.date)
+        
+        try await entryRef.setData(data)
+    }
+    
+    func fetchWeightEntries(userId: String, limit: Int = 90) async throws -> [WeightEntry] {
+        let snapshot = try await db.collection("users").document(userId)
+            .collection("weightEntries")
+            .order(by: "date", descending: true)
+            .limit(to: limit)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> WeightEntry? in
+            var entry = try? doc.data(as: WeightEntry.self)
+            entry?.entryId = doc.documentID
+            return entry
+        }
+    }
+    
+    func findWeightEntryForDate(userId: String, date: Date) async throws -> WeightEntry? {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? date
+        
+        let snapshot = try await db.collection("users").document(userId)
+            .collection("weightEntries")
+            .whereField("date", isGreaterThanOrEqualTo: Timestamp(date: startOfDay))
+            .whereField("date", isLessThan: Timestamp(date: endOfDay))
+            .limit(to: 1)
+            .getDocuments()
+        
+        return snapshot.documents.first.flatMap { doc -> WeightEntry? in
+            var entry = try? doc.data(as: WeightEntry.self)
+            entry?.entryId = doc.documentID
+            return entry
+        }
+    }
+    
+    func deleteWeightEntry(userId: String, entryId: String) async throws {
+        try await db.collection("users").document(userId)
+            .collection("weightEntries").document(entryId)
+            .delete()
+    }
+    
     // MARK: - Helpers
     
     static func todayId() -> String {

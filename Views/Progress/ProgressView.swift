@@ -180,8 +180,21 @@ struct ProgressTrackingView: View {
             MacrosChartView(dailyLogs: viewModel.dailyLogs)
                 .padding(.horizontal, GainsDesign.paddingHorizontal)
             
-            WeightChartView(dailyLogs: viewModel.dailyLogs)
-                .padding(.horizontal, GainsDesign.paddingHorizontal)
+            WeightChartView(
+                weightEntries: viewModel.weightEntries,
+                useMetricUnits: viewModel.profile?.useMetricUnits ?? false,
+                onLogWeight: { weight, notes in
+                    Task {
+                        await viewModel.logWeight(weight, notes: notes)
+                    }
+                },
+                onDeleteWeight: { entry in
+                    Task {
+                        await viewModel.deleteWeightEntry(entry)
+                    }
+                }
+            )
+            .padding(.horizontal, GainsDesign.paddingHorizontal)
         }
     }
 }

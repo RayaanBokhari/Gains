@@ -86,11 +86,12 @@ struct MacrosChartView: View {
                 }
                 .frame(height: 180)
                 .chartXAxis {
-                    AxisMarks(values: .stride(by: .day, count: max(1, dailyLogs.count / 5))) { _ in
+                    AxisMarks(values: .stride(by: .day, count: max(1, dailyLogs.count / 5))) { value in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                             .foregroundStyle(Color.gainsBgTertiary)
                         AxisValueLabel(format: .dateTime.month().day())
                             .foregroundStyle(Color.gainsTextMuted)
+                            .font(.system(size: 10))
                     }
                 }
                 .chartYAxis {

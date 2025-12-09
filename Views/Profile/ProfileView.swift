@@ -54,6 +54,7 @@ struct ProfileView: View {
             .navigationBarHidden(true)
             .task {
                 await viewModel.loadProfile()
+                healthKitConnected = HealthKitService.shared.checkAuthorizationStatus()
             }
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
@@ -309,11 +310,42 @@ struct ProfileView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
             
+            NavigationLink(destination: HealthKitSettingsView()) {
             HStack(spacing: 16) {
-                ConnectedAppIcon(icon: "heart.fill", color: .gainsAccentRed)
-                ConnectedAppIcon(icon: "figure.run", color: .gainsAccentGreen)
-                ConnectedAppIcon(icon: "applewatch", color: .gainsAccentTeal)
-                ConnectedAppIcon(icon: "plus", color: .gainsTextMuted)
+                    // Apple Health Icon
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(LinearGradient(
+                                colors: [Color(hex: "FF6B6B"), Color(hex: "FF8E53")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 52, height: 52)
+                        
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.white)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Apple Health")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                        
+                        Text(healthKitConnected ? "Connected" : "Tap to connect")
+                            .font(.system(size: 13))
+                            .foregroundColor(healthKitConnected ? .gainsSuccess : .gainsTextSecondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.gainsTextMuted)
+                }
+                .padding(14)
+                .background(Color.gainsBgTertiary)
+                .cornerRadius(12)
             }
         }
         .padding(16)
@@ -323,6 +355,8 @@ struct ProfileView: View {
         )
         .padding(.horizontal, GainsDesign.paddingHorizontal)
     }
+    
+    @State private var healthKitConnected = false
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()

@@ -89,6 +89,9 @@
 		B9FCF7C62EE7DED400C112ED /* DietaryPlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7C02EE7DED400C112ED /* DietaryPlanDetailView.swift */; };
 		B9FCF7C72EE7DED400C112ED /* GenerateDietaryPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7C22EE7DED400C112ED /* GenerateDietaryPlanView.swift */; };
 		B9FCF7C92EE7DEF700C112ED /* DietaryPlanService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7C82EE7DEF700C112ED /* DietaryPlanService.swift */; };
+		B9FCF7CB2EE7EB3E00C112ED /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7CA2EE7EB3E00C112ED /* HealthKitService.swift */; };
+		B9FCF7CD2EE7EB8800C112ED /* HealthKitSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7CC2EE7EB8800C112ED /* HealthKitSettingsView.swift */; };
+		B9FCF7CE2EE7EB8900C112ED /* LogWeightSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7CF2EE7EB8900C112ED /* LogWeightSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -188,6 +191,9 @@
 		B9FCF7C12EE7DED400C112ED /* DietaryPlansView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryPlansView.swift; sourceTree = "<group>"; };
 		B9FCF7C22EE7DED400C112ED /* GenerateDietaryPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateDietaryPlanView.swift; sourceTree = "<group>"; };
 		B9FCF7C82EE7DEF700C112ED /* DietaryPlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryPlanService.swift; sourceTree = "<group>"; };
+		B9FCF7CA2EE7EB3E00C112ED /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		B9FCF7CC2EE7EB8800C112ED /* HealthKitSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSettingsView.swift; sourceTree = "<group>"; };
+		B9FCF7CF2EE7EB8900C112ED /* LogWeightSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWeightSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -338,6 +344,7 @@
 		B94DAAFD2ECFC33700DB65EB /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF7CA2EE7EB3E00C112ED /* HealthKitService.swift */,
 				B9FCF7C82EE7DEF700C112ED /* DietaryPlanService.swift */,
 				B9FCF7542EDFD3DE00C112ED /* ChatStorageService.swift */,
 				B9FCF7552EDFD3DE00C112ED /* WorkoutPlanService.swift */,
@@ -400,6 +407,7 @@
 		B94DAB222ECFC50000DB65EB /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF7CC2EE7EB8800C112ED /* HealthKitSettingsView.swift */,
 				B94DAB112ECFC50000DB65EB /* SettingsView.swift */,
 			);
 			path = Settings;
@@ -409,6 +417,7 @@
 			isa = PBXGroup;
 			children = (
 				B94DAB0F2ECFC50000DB65EB /* ProgressView.swift */,
+				B9FCF7CF2EE7EB8900C112ED /* LogWeightSheet.swift */,
 				B9DDCCA92ED14AF0000E97E3 /* Charts */,
 			);
 			path = Progress;
@@ -678,6 +687,7 @@
 				B9FCF7492EDF96FA00C112ED /* AddExerciseView.swift in Sources */,
 				B94DAB0C2ECFC50000DB65EB /* ExerciseListView.swift in Sources */,
 				B94DAB0E2ECFC50000DB65EB /* ProgressView.swift in Sources */,
+				B9FCF7CE2EE7EB8900C112ED /* LogWeightSheet.swift in Sources */,
 				B94DAB102ECFC50000DB65EB /* SettingsView.swift in Sources */,
 				B94DAB122ECFC50000DB65EB /* TabBarView.swift in Sources */,
 				B94DAB142ECFC50000DB65EB /* WorkoutDetailView.swift in Sources */,
@@ -705,6 +715,8 @@
 				B94DAB332ECFC60000DB65EB /* AICoachViewModel.swift in Sources */,
 				B94DAB352ECFC60000DB65EB /* CommunityViewModel.swift in Sources */,
 				B94DAB372ECFC60000DB65EB /* ProfileViewModel.swift in Sources */,
+				B9FCF7CB2EE7EB3E00C112ED /* HealthKitService.swift in Sources */,
+				B9FCF7CD2EE7EB8800C112ED /* HealthKitSettingsView.swift in Sources */,
 				B94DAB432ECFC80000DB65EB /* HomeViewModel.swift in Sources */,
 				B9FCF7B52EE7DE6700C112ED /* DietaryPlan.swift in Sources */,
 				B94DAB3D2ECFC70000DB65EB /* ChatGPTService.swift in Sources */,
