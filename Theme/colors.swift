@@ -23,6 +23,7 @@ extension Color {
     
     // MARK: - Accent Colors (Apple-style)
     static let gainsPrimary = Color(hex: "0A84FF")        // Apple Blue
+    static let gainsSecondary = Color(hex: "64D2FF")      // Apple Teal / Cyan
     static let gainsAccent = gainsPrimary
     static let gainsAccentBlue = Color(hex: "157AFF")     // Slightly deeper blue
     static let gainsAccentGreen = Color(hex: "30D158")    // Apple Green
@@ -30,6 +31,11 @@ extension Color {
     static let gainsAccentRed = Color(hex: "FF453A")      // Apple Red
     static let gainsAccentPurple = Color(hex: "BF5AF2")   // Apple Purple
     static let gainsAccentTeal = Color(hex: "64D2FF")     // Apple Teal
+    
+    // MARK: - Semantic Colors
+    static let gainsSuccess = gainsAccentGreen            // Success/positive actions
+    static let gainsWarning = gainsAccentOrange           // Warning/attention
+    static let gainsError = gainsAccentRed                // Error/destructive actions
     
     // MARK: - Text Colors (Semantic)
     static let gainsText = Color.white

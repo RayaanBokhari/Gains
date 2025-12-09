@@ -241,6 +241,30 @@ struct AICoachView: View {
         } catch {
             print("Error loading streak/achievements: \(error)")
         }
+        
+        // Load dietary and workout plans
+        await loadPlans()
+    }
+    
+    private func loadPlans() async {
+        guard let userId = AuthService.shared.user?.uid else { return }
+        
+        do {
+            // Load dietary plans
+            let dietaryPlans = try await FirestoreService.shared.fetchDietaryPlans(userId: userId)
+            let activeDietaryPlan = dietaryPlans.first { $0.isActive }
+            
+            // Load workout plans
+            let workoutPlans = try await FirestoreService.shared.fetchWorkoutPlans(userId: userId)
+            let activeWorkoutPlan = workoutPlans.first { $0.isActive }
+            
+            await MainActor.run {
+                viewModel.userContextService.activeDietaryPlan = activeDietaryPlan
+                viewModel.userContextService.activeWorkoutPlan = activeWorkoutPlan
+            }
+        } catch {
+            print("Error loading plans: \(error)")
+        }
     }
 }
 

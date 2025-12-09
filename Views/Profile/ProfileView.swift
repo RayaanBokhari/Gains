@@ -270,6 +270,15 @@ struct ProfileView: View {
     // MARK: - Quick Actions
     private var quickActionsSection: some View {
         VStack(spacing: 12) {
+            // Meal Plans
+            NavigationLink(destination: DietaryPlansContentView()) {
+                QuickActionRow(
+                    icon: "fork.knife.circle.fill",
+                    iconColor: Color.gainsSuccess,
+                    title: "Meal Plans"
+                )
+            }
+            
             // Achievements
             NavigationLink(destination: AchievementsView()) {
                 QuickActionRow(

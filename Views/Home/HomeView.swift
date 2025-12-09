@@ -368,6 +368,20 @@ struct HomeView: View {
                     .background(Color.gainsPrimary)
                     .cornerRadius(10)
                 }
+                
+                NavigationLink(destination: DietaryPlansContentView()) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "list.bullet.clipboard")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Meal Plans")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 42)
+                    .background(Color.gainsSuccess)
+                    .cornerRadius(10)
+                }
             }
             .padding(16)
             .background(
@@ -388,7 +402,7 @@ struct HomeView: View {
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                 
-                Text("Add your first meal to start your day.")
+                Text("Log food or follow a meal plan")
                     .font(.system(size: 13))
                     .foregroundColor(.gainsTextSecondary)
                     .multilineTextAlignment(.center)

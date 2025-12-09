@@ -389,5 +389,197 @@ class ChatGPTService: ObservableObject {
             )
         }
     }
+    
+    /// Generates a personalized dietary plan based on user preferences
+    func generateDietaryPlan(
+        goal: FitnessGoal,
+        dailyCalories: Int,
+        proteinGrams: Double,
+        carbGrams: Double,
+        fatGrams: Double,
+        mealsPerDay: Int,
+        dietType: DietType?,
+        restrictions: [String]?,
+        additionalNotes: String?
+    ) async throws -> DietaryPlan {
+        // Ensure user is authenticated
+        guard Auth.auth().currentUser != nil else {
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "You must be signed in to generate dietary plans."]
+            )
+        }
+        
+        let restrictionsStr = restrictions?.joined(separator: ", ") ?? "None"
+        let dietTypeStr = dietType?.rawValue ?? "Balanced"
+        
+        let prompt = """
+        Generate a 7-day dietary plan:
+        Goal: \(goal.rawValue)
+        Daily Calories: \(dailyCalories)
+        Macros: \(Int(proteinGrams))g protein, \(Int(carbGrams))g carbs, \(Int(fatGrams))g fat
+        Meals per day: \(mealsPerDay)
+        Diet type: \(dietTypeStr)
+        Restrictions/Allergies: \(restrictionsStr)
+        \(additionalNotes != nil ? "Notes: \(additionalNotes!)" : "")
+        
+        Return ONLY valid JSON (no markdown, no extra text):
+        {"name":"Plan name","description":"Brief desc","meals":[{"dayName":"Monday","dayNumber":1,"meals":[{"name":"Breakfast","mealType":"breakfast","foods":[{"name":"Food name","quantity":"1 cup","calories":200,"protein":15,"carbs":20,"fats":5}],"calories":400,"protein":30,"carbs":40,"fats":15,"prepTime":10,"notes":"Tip"}],"notes":"Day note"}]}
+        
+        Include realistic foods with accurate macros. Total daily macros should approximately match targets. Keep prep times realistic (5-30 min). Vary meals across the week.
+        """
+        
+        let systemMessage = ChatGPTRequest.Message(
+            role: "system",
+            content: "You are a certified nutritionist. Return ONLY compact valid JSON for dietary plans. No markdown. Be specific with food quantities and accurate with nutritional values. Create practical, easy-to-follow meal plans."
+        )
+        
+        let userMessage = ChatGPTRequest.Message(
+            role: "user",
+            content: prompt
+        )
+        
+        let messages = [systemMessage, userMessage]
+        let reply = try await sendMessageWithVision(messages: messages)
+        
+        // Parse JSON response
+        var jsonString = reply.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Remove markdown code blocks if present
+        if jsonString.hasPrefix("```json") {
+            jsonString = jsonString.replacingOccurrences(of: "```json", with: "")
+                .replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if jsonString.hasPrefix("```") {
+            jsonString = jsonString.replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        // Find JSON object bounds
+        if let start = jsonString.firstIndex(of: "{"),
+           let end = jsonString.lastIndex(of: "}") {
+            jsonString = String(jsonString[start...end])
+        }
+        
+        guard let jsonData = jsonString.data(using: .utf8) else {
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -3,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to parse dietary plan response"]
+            )
+        }
+        
+        do {
+            // Decode the plan structure
+            struct DietaryPlanResponse: Codable {
+                let name: String
+                let description: String?
+                let meals: [MealPlanDayResponse]
+            }
+            
+            struct MealPlanDayResponse: Codable {
+                let dayName: String
+                let dayNumber: Int
+                let meals: [PlannedMealResponse]
+                let notes: String?
+            }
+            
+            struct PlannedMealResponse: Codable {
+                let name: String
+                let mealType: String
+                let foods: [PlannedFoodResponse]
+                let calories: Int
+                let protein: Double
+                let carbs: Double
+                let fats: Double
+                let prepTime: Int?
+                let notes: String?
+            }
+            
+            struct PlannedFoodResponse: Codable {
+                let name: String
+                let quantity: String
+                let calories: Int
+                let protein: Double
+                let carbs: Double
+                let fats: Double
+            }
+            
+            let planResponse = try JSONDecoder().decode(DietaryPlanResponse.self, from: jsonData)
+            
+            // Convert to DietaryPlan model
+            let mealPlanDays: [MealPlanDay] = planResponse.meals.map { dayResponse -> MealPlanDay in
+                let plannedMeals: [PlannedMeal] = dayResponse.meals.map { mealResponse -> PlannedMeal in
+                    let mealType: MealType
+                    switch mealResponse.mealType.lowercased() {
+                    case "breakfast": mealType = .breakfast
+                    case "morning snack", "morningsnack": mealType = .morningSnack
+                    case "lunch": mealType = .lunch
+                    case "afternoon snack", "afternoonsnack": mealType = .afternoonSnack
+                    case "dinner": mealType = .dinner
+                    case "evening snack", "eveningsnack": mealType = .eveningSnack
+                    default: mealType = .lunch
+                    }
+                    
+                    let foods: [PlannedFood] = mealResponse.foods.map { food -> PlannedFood in
+                        PlannedFood(
+                            name: food.name,
+                            quantity: food.quantity,
+                            calories: food.calories,
+                            protein: food.protein,
+                            carbs: food.carbs,
+                            fats: food.fats
+                        )
+                    }
+                    
+                    return PlannedMeal(
+                        name: mealResponse.name,
+                        mealType: mealType,
+                        foods: foods,
+                        calories: mealResponse.calories,
+                        protein: mealResponse.protein,
+                        carbs: mealResponse.carbs,
+                        fats: mealResponse.fats,
+                        prepTime: mealResponse.prepTime,
+                        notes: mealResponse.notes
+                    )
+                }
+                
+                return MealPlanDay(
+                    dayName: dayResponse.dayName,
+                    dayNumber: dayResponse.dayNumber,
+                    meals: plannedMeals,
+                    notes: dayResponse.notes
+                )
+            }
+            
+            return DietaryPlan(
+                name: planResponse.name,
+                description: planResponse.description,
+                goal: goal,
+                dailyCalories: dailyCalories,
+                macros: DietaryPlan.MacroTargets(
+                    protein: proteinGrams,
+                    carbs: carbGrams,
+                    fats: fatGrams
+                ),
+                mealCount: mealsPerDay,
+                meals: mealPlanDays,
+                createdBy: .ai,
+                dietType: dietType,
+                restrictions: restrictions,
+                durationWeeks: 1
+            )
+        } catch {
+            print("Failed to decode dietary plan JSON. Raw response: \(reply)")
+            print("Cleaned JSON string: \(jsonString)")
+            throw NSError(
+                domain: "ChatGPTService",
+                code: -4,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to decode dietary plan. Please try again."]
+            )
+        }
+    }
 }
 

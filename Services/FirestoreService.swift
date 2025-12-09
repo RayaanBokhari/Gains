@@ -671,6 +671,50 @@ final class FirestoreService {
             .delete()
     }
     
+    // MARK: - Dietary Plans
+    
+    func fetchDietaryPlans(userId: String) async throws -> [DietaryPlan] {
+        let snapshot = try await db.collection("users").document(userId)
+            .collection("dietaryPlans")
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> DietaryPlan? in
+            var plan = try? doc.data(as: DietaryPlan.self)
+            plan?.planId = doc.documentID
+            return plan
+        }
+    }
+    
+    func saveDietaryPlan(userId: String, plan: DietaryPlan) async throws {
+        let planRef = db.collection("users").document(userId)
+            .collection("dietaryPlans").document(plan.id.uuidString)
+        
+        var data = try Firestore.Encoder().encode(plan)
+        data["planId"] = plan.id.uuidString
+        data["createdAt"] = Timestamp(date: plan.createdAt)
+        
+        try await planRef.setData(data)
+    }
+    
+    func updateDietaryPlan(userId: String, plan: DietaryPlan) async throws {
+        guard let planId = plan.planId else { return }
+        let planRef = db.collection("users").document(userId)
+            .collection("dietaryPlans").document(planId)
+        
+        var data = try Firestore.Encoder().encode(plan)
+        data["planId"] = planId
+        data["createdAt"] = Timestamp(date: plan.createdAt)
+        
+        try await planRef.setData(data, merge: true)
+    }
+    
+    func deleteDietaryPlan(userId: String, planId: String) async throws {
+        try await db.collection("users").document(userId)
+            .collection("dietaryPlans").document(planId)
+            .delete()
+    }
+    
     // MARK: - Helpers
     
     static func todayId() -> String {
