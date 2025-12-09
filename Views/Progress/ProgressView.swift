@@ -33,17 +33,13 @@ struct ProgressTrackingView: View {
                             // Time Range Picker
                             timeRangePicker
                             
-                            // Statistics Cards
-                            if !viewModel.dailyLogs.isEmpty {
+                            // Statistics Cards (only show if there's meaningful data)
+                            if viewModel.totalCalories > 0 {
                                 statisticsSection
                             }
                             
-                            // Charts
-                            if viewModel.dailyLogs.isEmpty {
-                                emptyState
-                            } else {
-                                chartsSection
-                            }
+                            // Charts - always show so each can display its own empty state
+                            chartsSection
                         }
                         .padding(.bottom, 100)
                     }
@@ -143,33 +139,6 @@ struct ProgressTrackingView: View {
             }
         }
         .padding(.horizontal, GainsDesign.paddingHorizontal)
-    }
-    
-    private var emptyState: some View {
-        VStack(spacing: 20) {
-            ZStack {
-                Circle()
-                    .fill(Color.gainsBgTertiary)
-                    .frame(width: 80, height: 80)
-                
-                Image(systemName: "chart.bar.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(.gainsTextMuted)
-            }
-            
-            VStack(spacing: 8) {
-                Text("No Data Yet")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.white)
-                
-                Text("Start logging meals to see your progress")
-                    .font(.system(size: 15))
-                    .foregroundColor(.gainsTextSecondary)
-                    .multilineTextAlignment(.center)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 60)
     }
     
     private var chartsSection: some View {

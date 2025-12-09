@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var showSettings = false
     @State private var showUpgradeAccount = false
     @State private var showGoalsSettings = false
+    @State private var showSignOutConfirmation = false
     
     var body: some View {
         NavigationView {
@@ -47,6 +48,9 @@ struct ProfileView: View {
                         
                         // Connected Apps
                         connectedAppsSection
+                        
+                        // Sign Out Section
+                        signOutSection
                     }
                     .padding(.bottom, 100)
                 }
@@ -69,6 +73,14 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showGoalsSettings) {
                 GoalsSettingsView(profileViewModel: viewModel)
+            }
+            .alert("Sign Out", isPresented: $showSignOutConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Sign Out", role: .destructive) {
+                    signOut()
+                }
+            } message: {
+                Text("Are you sure you want to sign out? You'll need to sign in again to access your data.")
             }
         }
     }
@@ -357,6 +369,46 @@ struct ProfileView: View {
     }
     
     @State private var healthKitConnected = false
+    
+    // MARK: - Sign Out Section
+    private var signOutSection: some View {
+        Button {
+            showSignOutConfirmation = true
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.gainsAccentRed.opacity(0.15))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 18))
+                        .foregroundColor(.gainsAccentRed)
+                }
+                
+                Text("Sign Out")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.gainsAccentRed)
+                
+                Spacer()
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                    .fill(Color.gainsCardSurface)
+            )
+        }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
+    }
+    
+    private func signOut() {
+        do {
+            try authService.signOut()
+            print("✅ ProfileView: User signed out successfully")
+        } catch {
+            print("❌ ProfileView: Sign out error: \(error.localizedDescription)")
+        }
+    }
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()

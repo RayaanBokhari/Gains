@@ -11,6 +11,13 @@ import Charts
 struct CaloriesChartView: View {
     let dailyLogs: [DailyLog]
     
+    // Only show logs that have actual calorie data, limited to last 10 entries
+    private var logsWithData: [DailyLog] {
+        let filtered = dailyLogs.filter { $0.calories > 0 }
+        // Take the most recent 10 entries (logs are sorted descending, so take first 10 then reverse for chart)
+        return Array(filtered.prefix(10).reversed())
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -25,11 +32,11 @@ struct CaloriesChartView: View {
                     .foregroundColor(.gainsAccentOrange)
             }
             
-            if dailyLogs.isEmpty {
+            if logsWithData.isEmpty {
                 emptyState
             } else {
                 Chart {
-                    ForEach(dailyLogs, id: \.id) { log in
+                    ForEach(logsWithData, id: \.id) { log in
                         BarMark(
                             x: .value("Date", log.date, unit: .day),
                             y: .value("Calories", log.calories)
@@ -46,7 +53,7 @@ struct CaloriesChartView: View {
                 }
                 .frame(height: 180)
                 .chartXAxis {
-                    AxisMarks(values: .stride(by: .day, count: max(1, dailyLogs.count / 5))) { value in
+                    AxisMarks(values: .stride(by: .day, count: max(1, logsWithData.count / 5))) { value in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                             .foregroundStyle(Color.gainsBgTertiary)
                         AxisValueLabel(format: .dateTime.month().day())
@@ -77,14 +84,20 @@ struct CaloriesChartView: View {
     }
     
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "chart.bar")
-                .font(.system(size: 24))
-                .foregroundColor(.gainsTextMuted)
+        VStack(spacing: 12) {
+            Image(systemName: "flame.fill")
+                .font(.system(size: 32))
+                .foregroundColor(.gainsAccentOrange.opacity(0.5))
             
-            Text("No data available")
-                .font(.system(size: 14))
+            Text("No entries yet")
+                .font(.system(size: 15))
                 .foregroundColor(.gainsTextSecondary)
+            
+            Text("Start logging meals to see your calorie progress")
+                .font(.system(size: 13))
+                .foregroundColor(.gainsTextMuted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
         }
         .frame(height: 180)
         .frame(maxWidth: .infinity)

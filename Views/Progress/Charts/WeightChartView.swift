@@ -22,8 +22,8 @@ struct WeightChartView: View {
     @State private var tooltipPosition: CGPoint = .zero
     
     var displayEntries: [WeightEntry] {
-        // Show last 30 entries, sorted by date ascending for chart
-        Array(weightEntries.prefix(30).reversed())
+        // Show last 10 entries, sorted by date ascending for chart
+        Array(weightEntries.prefix(10).reversed())
     }
     
     // Convert kg to user's preferred unit for display
