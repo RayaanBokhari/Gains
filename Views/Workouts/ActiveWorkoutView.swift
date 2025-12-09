@@ -13,6 +13,7 @@ struct ActiveWorkoutView: View {
     @State private var showAddExercise = false
     @State private var showDiscardAlert = false
     @State private var workoutNotes = ""
+    @State private var isReorderingExercises = false
     
     var body: some View {
         NavigationView {
@@ -49,9 +50,13 @@ struct ActiveWorkoutView: View {
                                     ExerciseCard(
                                         exercise: exercise,
                                         exerciseIndex: index,
-                                        viewModel: viewModel
+                                        viewModel: viewModel,
+                                        isReordering: isReorderingExercises
                                     )
                                 }
+                                .onMove(perform: isReorderingExercises ? { indices, newOffset in
+                                    viewModel.moveExercise(from: indices, to: newOffset)
+                                } : nil)
                                 
                                 // Add Exercise Button
                                 Button {
@@ -156,6 +161,7 @@ struct ActiveWorkoutView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .environment(\.editMode, .constant(isReorderingExercises ? EditMode.active : EditMode.inactive))
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
@@ -163,6 +169,16 @@ struct ActiveWorkoutView: View {
                     } label: {
                         Text("Cancel")
                             .foregroundColor(.red)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if let workout = viewModel.currentWorkout, workout.exercises.count > 1 {
+                        Button(isReorderingExercises ? "Done" : "Reorder") {
+                            withAnimation {
+                                isReorderingExercises.toggle()
+                            }
+                        }
                     }
                 }
             }
@@ -186,12 +202,20 @@ struct ExerciseCard: View {
     let exercise: Exercise
     let exerciseIndex: Int
     @ObservedObject var viewModel: WorkoutViewModel
-    @State private var showAddSet = false
+    let isReordering: Bool
+    @State private var showDeleteAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
             // Exercise Header
             HStack {
+                if isReordering {
+                    Image(systemName: "line.horizontal.3")
+                        .foregroundColor(.gainsSecondaryText.opacity(0.5))
+                        .font(.system(size: 16))
+                        .padding(.trailing, 8)
+                }
+                
                 VStack(alignment: .leading, spacing: 4) {
                     Text(exercise.name)
                         .font(.system(size: 16, weight: .bold))
@@ -204,12 +228,19 @@ struct ExerciseCard: View {
                 
                 Spacer()
                 
-                Button {
-                    viewModel.removeExercise(at: exerciseIndex)
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.system(size: 14))
-                        .foregroundColor(.red.opacity(0.7))
+                if !isReordering {
+                    Menu {
+                        Button(role: .destructive) {
+                            showDeleteAlert = true
+                        } label: {
+                            Label("Remove Exercise", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 16))
+                            .foregroundColor(.gainsSecondaryText)
+                            .frame(width: 32, height: 32)
+                    }
                 }
             }
             .padding()
@@ -217,15 +248,20 @@ struct ExerciseCard: View {
             
             // Sets Table Header
             if !exercise.sets.isEmpty {
-                HStack {
+                HStack(spacing: 8) {
                     Text("SET")
-                        .frame(width: 40, alignment: .leading)
+                        .frame(width: 35, alignment: .leading)
                     Text("WEIGHT")
                         .frame(maxWidth: .infinity)
                     Text("REPS")
                         .frame(maxWidth: .infinity)
-                    Text("✓")
-                        .frame(width: 40)
+                    if exercise.sets.count > 1 {
+                        Text("−")
+                            .frame(width: 35)
+                    } else {
+                        Color.clear
+                            .frame(width: 35)
+                    }
                 }
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(.gainsSecondaryText)
@@ -241,25 +277,33 @@ struct ExerciseCard: View {
                     setNumber: setIndex + 1,
                     exerciseIndex: exerciseIndex,
                     setIndex: setIndex,
-                    viewModel: viewModel
+                    viewModel: viewModel,
+                    canDelete: exercise.sets.count > 1
                 )
             }
+            
+            // Separator before Add Set
+            Divider()
+                .background(Color.gainsSecondaryText.opacity(0.2))
+                .padding(.horizontal)
             
             // Add Set Button
             Button {
                 viewModel.addSet(to: exerciseIndex)
             } label: {
-                HStack {
-                    Image(systemName: "plus")
-                        .font(.system(size: 12, weight: .semibold))
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 16))
                     Text("Add Set")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 15, weight: .semibold))
                 }
                 .foregroundColor(.gainsPrimary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
+                .padding(.vertical, 14)
             }
-            .background(Color.gainsCardBackground.opacity(0.5))
+            .background(Color.gainsCardBackground)
+            .padding(.horizontal, 4)
+            .padding(.bottom, 4)
         }
         .background(Color.gainsCardBackground)
         .cornerRadius(12)
@@ -267,6 +311,14 @@ struct ExerciseCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color.gainsSecondaryText.opacity(0.1), lineWidth: 1)
         )
+        .alert("Remove \(exercise.name)?", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Remove", role: .destructive) {
+                viewModel.removeExercise(at: exerciseIndex)
+            }
+        } message: {
+            Text("This will delete all \(exercise.sets.count) set\(exercise.sets.count == 1 ? "" : "s") and cannot be undone.")
+        }
     }
 }
 
@@ -276,16 +328,17 @@ struct SetRow: View {
     let exerciseIndex: Int
     let setIndex: Int
     @ObservedObject var viewModel: WorkoutViewModel
+    let canDelete: Bool
     
     @State private var weightText: String = ""
     @State private var repsText: String = ""
     
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
             Text("\(setNumber)")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.gainsSecondaryText)
-                .frame(width: 40, alignment: .leading)
+                .frame(width: 35, alignment: .leading)
             
             // Weight Input
             TextField("0", text: $weightText)
@@ -321,19 +374,24 @@ struct SetRow: View {
                     }
                 }
             
-            // Complete Toggle
-            Button {
-                viewModel.toggleSetComplete(exerciseIndex: exerciseIndex, setIndex: setIndex)
-            } label: {
-                Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
-                    .foregroundColor(set.completed ? .green : .gainsSecondaryText)
+            // Delete Set Button
+            if canDelete {
+                Button {
+                    viewModel.removeSet(exerciseIndex: exerciseIndex, setIndex: setIndex)
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.red.opacity(0.7))
+                }
+                .frame(width: 35)
+            } else {
+                // Spacer to maintain alignment when delete button is hidden
+                Color.clear
+                    .frame(width: 35)
             }
-            .frame(width: 40)
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(set.completed ? Color.green.opacity(0.1) : Color.clear)
         .onAppear {
             if let weight = set.weight {
                 weightText = weight.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", weight) : String(format: "%.1f", weight)

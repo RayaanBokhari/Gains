@@ -81,6 +81,12 @@ class WorkoutViewModel: ObservableObject {
         currentWorkout = workout
     }
     
+    func moveExercise(from source: IndexSet, to destination: Int) {
+        guard var workout = currentWorkout else { return }
+        workout.exercises.move(fromOffsets: source, toOffset: destination)
+        currentWorkout = workout
+    }
+    
     // MARK: - Set Management
     
     func addSet(to exerciseIndex: Int) {
