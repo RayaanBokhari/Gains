@@ -25,13 +25,13 @@ struct WorkoutPlansContentView: View {
     
     var body: some View {
         ZStack {
-            Color.gainsBackground.ignoresSafeArea()
+            Color.gainsBgPrimary.ignoresSafeArea()
             
             if planService.plans.isEmpty && planService.retiredPlans.isEmpty {
                 emptyState
             } else {
-                ScrollView {
-                    VStack(spacing: 20) {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: GainsDesign.sectionSpacing) {
                         // Active Plan
                         if let activePlan = planService.activePlan {
                             ActivePlanCard(plan: activePlan, planService: planService)
@@ -40,10 +40,10 @@ struct WorkoutPlansContentView: View {
                         // Available Plans (not active, not retired)
                         let availablePlans = planService.plans.filter { $0.id != planService.activePlan?.id }
                         if !availablePlans.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: GainsDesign.spacingL) {
                                 Text("Available Plans")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.gainsText)
+                                    .font(.system(size: GainsDesign.headline, weight: .semibold))
+                                    .foregroundColor(.white)
                                 
                                 ForEach(availablePlans) { plan in
                                     WorkoutPlanCard(plan: plan, planService: planService)
@@ -59,7 +59,9 @@ struct WorkoutPlansContentView: View {
                         // Quick Actions
                         quickActionsSection
                     }
-                    .padding()
+                    .padding(.horizontal, GainsDesign.paddingHorizontal)
+                    .padding(.vertical, GainsDesign.spacingL)
+                    .padding(.bottom, 60)
                 }
             }
         }
@@ -96,88 +98,134 @@ struct WorkoutPlansContentView: View {
         }
     }
     
-    // MARK: - Empty State
+    // MARK: - Empty State (Apple Fitness Style)
     private var emptyState: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "list.bullet.rectangle")
-                .font(.system(size: 56))
-                .foregroundColor(.gainsSecondaryText)
+        VStack(spacing: 0) {
+            Spacer()
             
-            VStack(spacing: 8) {
-                Text("No Workout Plans")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.gainsText)
-                
-                Text("Create or generate a plan to get started")
-                    .font(.system(size: 15))
-                    .foregroundColor(.gainsSecondaryText)
-            }
-            
-            VStack(spacing: 12) {
-                Button {
-                    showGeneratePlan = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "sparkles")
-                        Text("Generate with AI")
+            VStack(spacing: GainsDesign.spacingXXL) {
+                // Minimalist icon illustration
+                ZStack {
+                    // Outer ring
+                    Circle()
+                        .stroke(Color.gainsTextMuted.opacity(0.3), lineWidth: 2)
+                        .frame(width: 100, height: 100)
+                    
+                    // Inner content
+                    VStack(spacing: 4) {
+                        Image(systemName: "list.bullet.rectangle.portrait")
+                            .font(.system(size: 36, weight: .light))
+                            .foregroundColor(.gainsTextTertiary)
                     }
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.gainsPrimary)
-                    .cornerRadius(12)
+                }
+                .padding(.bottom, GainsDesign.spacingS)
+                
+                // Message hierarchy
+                VStack(spacing: GainsDesign.spacingM) {
+                    Text("No Workout Plans Yet")
+                        .font(.system(size: GainsDesign.titleSmall, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+                    
+                    Text("Create a custom plan or let AI generate\none based on your goals")
+                        .font(.system(size: GainsDesign.callout))
+                        .foregroundColor(.gainsTextSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
                 }
                 
-                Button {
-                    showCreatePlan = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "plus")
-                        Text("Create Manually")
+                // Action Buttons
+                VStack(spacing: GainsDesign.spacingM) {
+                    // Primary Button - Generate with AI
+                    Button {
+                        showGeneratePlan = true
+                    } label: {
+                        HStack(spacing: GainsDesign.spacingS) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 16, weight: .medium))
+                            Text("Generate with AI")
+                                .font(.system(size: GainsDesign.body, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: GainsDesign.buttonHeightLarge)
+                        .background(
+                            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                                .fill(Color.gainsPrimary)
+                        )
+                        .shadow(color: Color.gainsPrimary.opacity(0.35), radius: 16, x: 0, y: 8)
                     }
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.gainsPrimary)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.gainsCardBackground)
-                    .cornerRadius(12)
+                    
+                    // Secondary Button - Create Manually
+                    Button {
+                        showCreatePlan = true
+                    } label: {
+                        HStack(spacing: GainsDesign.spacingS) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 14, weight: .medium))
+                            Text("Create Manually")
+                                .font(.system(size: GainsDesign.body, weight: .medium))
+                        }
+                        .foregroundColor(.gainsTextSecondary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: GainsDesign.buttonHeightLarge)
+                    }
                 }
+                .padding(.horizontal, 32)
             }
-            .padding(.horizontal, 40)
+            
+            Spacer()
+            Spacer()
         }
+        .padding(.horizontal, GainsDesign.paddingHorizontal)
     }
     
     // MARK: - Retired Plans Section
     private var retiredPlansSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: GainsDesign.spacingM) {
             Button {
-                withAnimation {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                     showRetiredPlans.toggle()
                 }
             } label: {
-                HStack {
-                    Image(systemName: "archivebox")
-                        .foregroundColor(.gainsSecondaryText)
+                HStack(spacing: GainsDesign.spacingM) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusXS)
+                            .fill(Color.gainsTextMuted.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        
+                        Image(systemName: "archivebox")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.gainsTextTertiary)
+                    }
                     
-                    Text("Retired Plans (\(planService.retiredPlans.count))")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.gainsText)
+                    Text("Retired Plans")
+                        .font(.system(size: GainsDesign.body, weight: .semibold))
+                        .foregroundColor(.white)
+                    
+                    Text("(\(planService.retiredPlans.count))")
+                        .font(.system(size: GainsDesign.subheadline))
+                        .foregroundColor(.gainsTextSecondary)
                     
                     Spacer()
                     
                     Image(systemName: showRetiredPlans ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 14))
-                        .foregroundColor(.gainsSecondaryText)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.gainsTextTertiary)
                 }
-                .padding()
-                .background(Color.gainsCardBackground)
-                .cornerRadius(12)
+                .padding(GainsDesign.cardPadding)
+                .background(
+                    RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
+                        .fill(Color.gainsCardSurface)
+                )
             }
             
             if showRetiredPlans {
                 ForEach(planService.retiredPlans) { plan in
                     RetiredPlanCard(plan: plan, planService: planService)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .top)),
+                            removal: .opacity
+                        ))
                 }
             }
         }
@@ -185,64 +233,80 @@ struct WorkoutPlansContentView: View {
     
     // MARK: - Quick Actions
     private var quickActionsSection: some View {
-        VStack(spacing: 12) {
-            Divider()
-                .background(Color.gainsCardBackground)
-                .padding(.vertical, 8)
+        VStack(spacing: GainsDesign.spacingL) {
+            Rectangle()
+                .fill(Color.gainsSeparator)
+                .frame(height: 0.5)
+                .padding(.vertical, GainsDesign.spacingS)
             
-            HStack(spacing: 12) {
+            HStack(spacing: GainsDesign.spacingM) {
+                // Generate Button
                 Button {
                     showGeneratePlan = true
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: GainsDesign.spacingS) {
                         Image(systemName: "sparkles")
+                            .font(.system(size: 14, weight: .medium))
                         Text("Generate")
+                            .font(.system(size: GainsDesign.subheadline, weight: .semibold))
                     }
-                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.gainsPrimary)
-                    .cornerRadius(10)
+                    .frame(height: GainsDesign.buttonHeightMedium)
+                    .background(
+                        RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusSmall)
+                            .fill(Color.gainsPrimary)
+                    )
                 }
                 
+                // Create Button
                 Button {
                     showCreatePlan = true
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: GainsDesign.spacingS) {
                         Image(systemName: "plus")
+                            .font(.system(size: 14, weight: .medium))
                         Text("Create")
+                            .font(.system(size: GainsDesign.subheadline, weight: .semibold))
                     }
-                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.gainsPrimary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.gainsCardBackground)
-                    .cornerRadius(10)
+                    .frame(height: GainsDesign.buttonHeightMedium)
+                    .background(
+                        RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusSmall)
+                            .fill(Color.gainsCardSurface)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusSmall)
+                            .stroke(Color.gainsPrimary.opacity(0.3), lineWidth: 1)
+                    )
                 }
             }
         }
     }
 }
 
-// MARK: - Active Plan Card
+// MARK: - Active Plan Card (Premium Highlight Style)
 struct ActivePlanCard: View {
     let plan: WorkoutPlan
     @ObservedObject var planService: WorkoutPlanService
-    @State private var showActionSheet = false
     @State private var showDeleteAlert = false
     @State private var showRetireAlert = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: GainsDesign.spacingL) {
+            // Header
             HStack {
-                Label("Active Plan", systemImage: "checkmark.circle.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.gainsPrimary)
+                HStack(spacing: GainsDesign.spacingS) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 14, weight: .medium))
+                    Text("Active Plan")
+                        .font(.system(size: GainsDesign.footnote, weight: .semibold))
+                }
+                .foregroundColor(.gainsPrimary)
                 
                 Spacer()
                 
-                // More options menu
                 Menu {
                     Button {
                         showRetireAlert = true
@@ -267,71 +331,79 @@ struct ActivePlanCard: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gainsSecondaryText)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.gainsTextSecondary)
                         .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
                 }
             }
             
+            // Plan Title
             Text(plan.name)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.gainsText)
+                .font(.system(size: GainsDesign.titleSmall, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
             
+            // Description
             if let description = plan.description {
                 Text(description)
-                    .font(.system(size: 14))
-                    .foregroundColor(.gainsSecondaryText)
+                    .font(.system(size: GainsDesign.subheadline))
+                    .foregroundColor(.gainsTextSecondary)
                     .lineLimit(2)
             }
             
             // Progress info
             if let startDate = plan.startDate, let endDate = plan.endDate {
-                HStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: GainsDesign.spacingXL) {
+                    VStack(alignment: .leading, spacing: GainsDesign.spacingXXS) {
                         Text("Started")
-                            .font(.system(size: 11))
-                            .foregroundColor(.gainsSecondaryText)
+                            .font(.system(size: GainsDesign.captionSmall))
+                            .foregroundColor(.gainsTextTertiary)
                         Text(startDate, style: .date)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.gainsText)
+                            .font(.system(size: GainsDesign.footnote, weight: .medium))
+                            .foregroundColor(.white)
                     }
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: GainsDesign.spacingXXS) {
                         Text("Ends")
-                            .font(.system(size: 11))
-                            .foregroundColor(.gainsSecondaryText)
+                            .font(.system(size: GainsDesign.captionSmall))
+                            .foregroundColor(.gainsTextTertiary)
                         Text(endDate, style: .date)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.gainsText)
+                            .font(.system(size: GainsDesign.footnote, weight: .medium))
+                            .foregroundColor(.white)
                     }
                 }
-                .padding(.top, 4)
             }
             
-            HStack {
+            // Meta info
+            HStack(spacing: GainsDesign.spacingL) {
                 Label("\(plan.daysPerWeek) days/week", systemImage: "calendar")
                 Spacer()
                 Label("\(plan.durationWeeks) weeks", systemImage: "clock")
             }
-            .font(.system(size: 12))
-            .foregroundColor(.gainsSecondaryText)
+            .font(.system(size: GainsDesign.caption))
+            .foregroundColor(.gainsTextSecondary)
             
+            // View Plan Button
             NavigationLink(destination: WorkoutPlanDetailView(plan: plan, planService: planService)) {
                 Text("View Plan")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: GainsDesign.subheadline, weight: .semibold))
                     .foregroundColor(.gainsPrimary)
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.gainsCardBackground)
-                    .cornerRadius(8)
+                    .frame(height: GainsDesign.buttonHeightMedium)
+                    .background(
+                        RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusSmall)
+                            .fill(Color.gainsPrimary.opacity(0.12))
+                    )
             }
         }
-        .padding()
-        .background(Color.gainsPrimary.opacity(0.1))
-        .cornerRadius(16)
+        .padding(GainsDesign.spacingXL)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusXL)
+                .fill(Color.gainsPrimary.opacity(0.08))
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gainsPrimary, lineWidth: 2)
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusXL)
+                .stroke(Color.gainsPrimary.opacity(0.4), lineWidth: 1.5)
         )
         .alert("Delete Plan", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) { }
@@ -364,11 +436,12 @@ struct WorkoutPlanCard: View {
     @State private var showRetireAlert = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: GainsDesign.spacingL) {
             HStack {
                 Text(plan.name)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.gainsText)
+                    .font(.system(size: GainsDesign.headline, weight: .semibold))
+                    .foregroundColor(.white)
+                
                 Spacer()
                 
                 Menu {
@@ -395,34 +468,47 @@ struct WorkoutPlanCard: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .foregroundColor(.gainsSecondaryText)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.gainsTextSecondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
                 }
             }
             
             if let description = plan.description {
                 Text(description)
-                    .font(.system(size: 14))
-                    .foregroundColor(.gainsSecondaryText)
+                    .font(.system(size: GainsDesign.subheadline))
+                    .foregroundColor(.gainsTextSecondary)
                     .lineLimit(2)
             }
             
-            HStack {
+            HStack(spacing: GainsDesign.spacingL) {
                 Label("\(plan.daysPerWeek) days/week", systemImage: "calendar")
                 Spacer()
                 Label(plan.difficulty.rawValue, systemImage: "chart.bar")
             }
-            .font(.system(size: 12))
-            .foregroundColor(.gainsSecondaryText)
+            .font(.system(size: GainsDesign.caption))
+            .foregroundColor(.gainsTextSecondary)
             
             NavigationLink(destination: WorkoutPlanDetailView(plan: plan, planService: planService)) {
-                Text("View Details")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.gainsPrimary)
+                HStack {
+                    Text("View Details")
+                        .font(.system(size: GainsDesign.subheadline, weight: .medium))
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .foregroundColor(.gainsPrimary)
             }
         }
-        .padding()
-        .background(Color.gainsCardBackground)
-        .cornerRadius(16)
+        .padding(GainsDesign.cardPadding)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
+                .fill(Color.gainsCardSurface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
+                .stroke(Color.white.opacity(0.04), lineWidth: 0.5)
+        )
         .alert("Delete Plan", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
@@ -453,17 +539,17 @@ struct RetiredPlanCard: View {
     @State private var showDeleteAlert = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: GainsDesign.spacingM) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: GainsDesign.spacingXS) {
                     Text(plan.name)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.gainsText)
+                        .font(.system(size: GainsDesign.body, weight: .semibold))
+                        .foregroundColor(.white)
                     
                     if let retiredAt = plan.retiredAt {
                         Text("Retired \(retiredAt, style: .relative) ago")
-                            .font(.system(size: 12))
-                            .foregroundColor(.gainsSecondaryText)
+                            .font(.system(size: GainsDesign.caption))
+                            .foregroundColor(.gainsTextTertiary)
                     }
                 }
                 
@@ -495,21 +581,26 @@ struct RetiredPlanCard: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .foregroundColor(.gainsSecondaryText)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.gainsTextSecondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
                 }
             }
             
-            HStack {
+            HStack(spacing: GainsDesign.spacingL) {
                 Label("\(plan.daysPerWeek) days/week", systemImage: "calendar")
                 Spacer()
                 Label("\(plan.durationWeeks) weeks", systemImage: "clock")
             }
-            .font(.system(size: 11))
-            .foregroundColor(.gainsSecondaryText)
+            .font(.system(size: GainsDesign.captionSmall))
+            .foregroundColor(.gainsTextTertiary)
         }
-        .padding()
-        .background(Color.gainsCardBackground.opacity(0.6))
-        .cornerRadius(12)
+        .padding(GainsDesign.spacingL)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
+                .fill(Color.gainsCardSurface.opacity(0.6))
+        )
         .alert("Delete Plan", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
