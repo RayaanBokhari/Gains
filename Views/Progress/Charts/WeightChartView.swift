@@ -21,9 +21,21 @@ struct WeightChartView: View {
     @State private var showTooltip = false
     @State private var tooltipPosition: CGPoint = .zero
     
+    // Show last 10 entries, sorted by date ascending for chart
     var displayEntries: [WeightEntry] {
-        // Show last 10 entries, sorted by date ascending for chart
-        Array(weightEntries.prefix(10).reversed())
+        let sorted = weightEntries.sorted { $0.date < $1.date }
+        return Array(sorted.suffix(10))
+    }
+    
+    // All actual data point dates for labels
+    private var xAxisDates: [Date] {
+        displayEntries.map { $0.date }
+    }
+    
+    private func formatAxisDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d"
+        return formatter.string(from: date)
     }
     
     // Convert kg to user's preferred unit for display
@@ -63,11 +75,12 @@ struct WeightChartView: View {
         return change > 0 ? .gainsAccentRed : .gainsSuccess
     }
     
+    // Domain based only on what we're actually showing in the chart
     var yAxisDomain: ClosedRange<Double> {
-        guard !weightEntries.isEmpty else {
+        guard !displayEntries.isEmpty else {
             return 0...100
         }
-        let weights = weightEntries.map { convertWeight($0.weight) }
+        let weights = displayEntries.map { convertWeight($0.weight) }
         let minWeight = (weights.min() ?? 0) - 2
         let maxWeight = (weights.max() ?? 100) + 2
         return minWeight...maxWeight
@@ -134,16 +147,22 @@ struct WeightChartView: View {
                         }
                         .chartYScale(domain: yAxisDomain)
                         .chartXAxis {
-                            AxisMarks(values: .stride(by: .day, count: max(1, displayEntries.count / 5))) { value in
+                            AxisMarks(values: xAxisDates) { value in
                                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                                     .foregroundStyle(Color.gainsBgTertiary)
-                                AxisValueLabel(format: .dateTime.month().day())
-                                    .foregroundStyle(Color.gainsTextMuted)
-                                    .font(.system(size: 10))
+                                AxisValueLabel {
+                                    if let date = value.as(Date.self) {
+                                        Text(formatAxisDate(date))
+                                            .font(.system(size: 9))
+                                            .foregroundColor(.gainsTextMuted)
+                                    }
+                                }
                             }
                         }
                         .chartYAxis {
-                            AxisMarks(position: .leading) { value in
+                            AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
+                                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                                    .foregroundStyle(Color.gainsBgTertiary)
                                 AxisValueLabel {
                                     if let weight = value.as(Double.self) {
                                         Text("\(Int(weight))")
@@ -218,7 +237,9 @@ struct WeightChartView: View {
             }
         } message: {
             if let entry = entryToDelete {
-                let weightDisplay = useMetricUnits ? String(format: "%.1f kg", entry.weight) : String(format: "%.1f lbs", entry.weight * 2.20462)
+                let weightDisplay = useMetricUnits
+                    ? String(format: "%.1f kg", entry.weight)
+                    : String(format: "%.1f lbs", entry.weight * 2.20462)
                 Text("Are you sure you want to delete the weight entry from \(formatDate(entry.date)) (\(weightDisplay))?")
             }
         }
