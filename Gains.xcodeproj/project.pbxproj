@@ -92,6 +92,8 @@
 		B9FCF7CB2EE7EB3E00C112ED /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7CA2EE7EB3E00C112ED /* HealthKitService.swift */; };
 		B9FCF7CD2EE7EB8800C112ED /* HealthKitSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7CC2EE7EB8800C112ED /* HealthKitSettingsView.swift */; };
 		B9FCF7CE2EE7EB8900C112ED /* LogWeightSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF7CF2EE7EB8900C112ED /* LogWeightSheet.swift */; };
+		B9FCF80C2EE90C9F00C112ED /* SuggestMealsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF80B2EE90C9F00C112ED /* SuggestMealsView.swift */; };
+		B9FCF80E2EE912EE00C112ED /* SavedMealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF80D2EE912EE00C112ED /* SavedMealPlanView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -194,6 +196,8 @@
 		B9FCF7CA2EE7EB3E00C112ED /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
 		B9FCF7CC2EE7EB8800C112ED /* HealthKitSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSettingsView.swift; sourceTree = "<group>"; };
 		B9FCF7CF2EE7EB8900C112ED /* LogWeightSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWeightSheet.swift; sourceTree = "<group>"; };
+		B9FCF80B2EE90C9F00C112ED /* SuggestMealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestMealsView.swift; sourceTree = "<group>"; };
+		B9FCF80D2EE912EE00C112ED /* SavedMealPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedMealPlanView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -434,6 +438,8 @@
 		B94DAB392ECFC60000DB65EB /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF80D2EE912EE00C112ED /* SavedMealPlanView.swift */,
+				B9FCF80B2EE90C9F00C112ED /* SuggestMealsView.swift */,
 				B94DAB2A2ECFC60000DB65EB /* HomeView.swift */,
 				B94DAB4B2ECFC81000DB65EB /* FoodLoggingView.swift */,
 				B94DAB4F2ECFC83000DB65EB /* MealCard.swift */,
@@ -520,7 +526,6 @@
 				B94DAACB2ECFC2EE00DB65EB /* Sources */,
 				B94DAACC2ECFC2EE00DB65EB /* Frameworks */,
 				B94DAACD2ECFC2EE00DB65EB /* Resources */,
-				B9FCF80A2EE8EAF900C112ED /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -662,31 +667,12 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		B9FCF80A2EE8EAF900C112ED /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# # Only run in CI\nif [ -z \"$GOOGLE_SERVICE_INFO_PLIST_B64\" ]; then\n  echo \"No GOOGLE_SERVICE_INFO_PLIST_B64 secret found. Skipping plist creation.\"\n  exit 0\nfi\n\n# Path where Xcode expects the plist — update if your file is in a subfolder\nPLIST_PATH=\"${PROJECT_DIR}/Gains/GoogleService-Info.plist\"\n\necho \"Recreating GoogleService-Info.plist at: $PLIST_PATH\"\n\nmkdir -p \"$(dirname \"$PLIST_PATH\")\"\n\n# Decode Base64 into the plist file\necho \"$GOOGLE_SERVICE_INFO_PLIST_B64\" | base64 -D > \"$PLIST_PATH\"\n\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		B94DAACB2ECFC2EE00DB65EB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9FCF80C2EE90C9F00C112ED /* SuggestMealsView.swift in Sources */,
 				B94DAAD52ECFC2EE00DB65EB /* ContentView.swift in Sources */,
 				B933B87B2ECFE68400DC9770 /* DailyLog.swift in Sources */,
 				B9FCF74F2EDFD3D000C112ED /* WorkoutPlan.swift in Sources */,
@@ -696,6 +682,7 @@
 				B9FCF7C72EE7DED400C112ED /* GenerateDietaryPlanView.swift in Sources */,
 				B9FCF7502EDFD3D000C112ED /* TrainingSummary.swift in Sources */,
 				B9FCF7512EDFD3D000C112ED /* ChatConversation.swift in Sources */,
+				B9FCF80E2EE912EE00C112ED /* SavedMealPlanView.swift in Sources */,
 				B9FCF7522EDFD3D000C112ED /* NutritionSummary.swift in Sources */,
 				B9FCF7532EDFD3D000C112ED /* WeightTrend.swift in Sources */,
 				B9DDCC922ED14AE4000E97E3 /* UIImage+Base64.swift in Sources */,

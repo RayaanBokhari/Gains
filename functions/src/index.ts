@@ -106,10 +106,12 @@ export const aiChat = functions
             }
           });
 
-        // Check if this is a workout plan request (needs more tokens)
-        const isWorkoutPlanRequest = messages.some((msg) => {
+        // Check if this is a structured plan request (needs more tokens)
+        const isStructuredPlanRequest = messages.some((msg) => {
           if (typeof msg.content !== "string") return false;
-          return msg.content.includes("workout plan") &&
+          return (msg.content.includes("workout plan") ||
+                  msg.content.includes("meal plan") ||
+                  msg.content.includes("dietary plan")) &&
             msg.content.includes("JSON");
         });
 
@@ -117,7 +119,7 @@ export const aiChat = functions
           model: "gpt-4o-mini",
           messages: openaiMessages,
           temperature: 0.7,
-          max_tokens: isWorkoutPlanRequest ? 4000 : 1000,
+          max_tokens: isStructuredPlanRequest ? 4000 : 1000,
         });
 
         const reply =

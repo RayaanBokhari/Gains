@@ -397,8 +397,8 @@ struct GenerateDietaryPlanView: View {
             restrictions = allergies
         }
         
-        // Update macros based on goal if defaults are still in place
-        if profile.macros.protein == 450 && profile.macros.carbs == 202 {
+        // Update macros based on goal if defaults are still in place (150g protein, 200g carbs are defaults)
+        if profile.macros.protein == 150 && profile.macros.carbs == 200 {
             updateMacrosForGoal(selectedGoal)
         }
     }

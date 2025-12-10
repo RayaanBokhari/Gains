@@ -14,6 +14,8 @@ struct HomeView: View {
     @State private var showEditMeal = false
     @State private var selectedMeal: Food?
     @State private var showDatePicker = false
+    @State private var showSuggestMeals = false
+    @State private var showSavedMealPlan = false
     
     var body: some View {
         NavigationView {
@@ -41,6 +43,11 @@ struct HomeView: View {
                         // Macros Overview Card
                         macrosOverviewCard
                         
+                        // Meal Plan Card (if suggestions exist)
+                        if !viewModel.savedMealSuggestions.isEmpty {
+                            mealPlanCard
+                        }
+                        
                         // Today's Meals Section (always includes quick actions)
                         mealsSection
                     }
@@ -50,6 +57,12 @@ struct HomeView: View {
             .navigationBarHidden(true)
             .task {
                 await viewModel.loadTodayIfPossible()
+            }
+            .onAppear {
+                // Reload profile when view appears to sync any changes from Profile settings
+                Task {
+                    await viewModel.refreshProfile()
+                }
             }
             .sheet(isPresented: $showFoodLogging) {
                 FoodLoggingView(
@@ -84,6 +97,25 @@ struct HomeView: View {
                         Task {
                             await viewModel.loadDate(date)
                         }
+                    }
+                )
+            }
+            .sheet(isPresented: $showSuggestMeals) {
+                SuggestMealsView(
+                    remainingCalories: viewModel.dailyNutrition.caloriesRemaining,
+                    remainingProtein: max(0, viewModel.dailyNutrition.proteinGoal - viewModel.dailyNutrition.proteinConsumed),
+                    remainingCarbs: max(0, viewModel.dailyNutrition.carbsGoal - viewModel.dailyNutrition.carbsConsumed),
+                    remainingFats: max(0, viewModel.dailyNutrition.fatsGoal - viewModel.dailyNutrition.fatsConsumed),
+                    onSave: { meals in
+                        viewModel.saveMealSuggestions(meals)
+                    }
+                )
+            }
+            .sheet(isPresented: $showSavedMealPlan) {
+                SavedMealPlanView(
+                    meals: viewModel.savedMealSuggestions,
+                    onClear: {
+                        viewModel.clearMealSuggestions()
                     }
                 )
             }
@@ -195,6 +227,47 @@ struct HomeView: View {
         .padding(.horizontal, 24)
     }
     
+    // MARK: - Meal Plan Card
+    private var mealPlanCard: some View {
+        Button {
+            showSavedMealPlan = true
+        } label: {
+            HStack(spacing: 12) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(Color.purple.opacity(0.2))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.purple)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Today's Meal Plan")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                    Text("\(viewModel.savedMealSuggestions.count) meals suggested")
+                        .font(.system(size: 13))
+                        .foregroundColor(.gainsTextSecondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.gainsTextMuted)
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "1A1C20"))
+            )
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 24)
+    }
+    
     // MARK: - Macros Overview Card
     private var macrosOverviewCard: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -288,7 +361,7 @@ struct HomeView: View {
             Text("Quick Actions")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.white)
-            
+
             HStack(spacing: 12) {
                 // Log Food Button (Green)
                 Button {
@@ -306,7 +379,24 @@ struct HomeView: View {
                     .background(Color.gainsAccentGreen)
                     .cornerRadius(10)
                 }
-                
+
+                // AI Suggest Meals Button (Purple)
+                Button {
+                    showSuggestMeals = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Suggest")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 42)
+                    .background(Color.purple)
+                    .cornerRadius(10)
+                }
+
                 // Add Water Button (Blue)
                 Button {
                     Task {
@@ -316,28 +406,13 @@ struct HomeView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "drop.fill")
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Add Water")
+                        Text("Water")
                             .font(.system(size: 14, weight: .semibold))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 42)
                     .background(Color.gainsPrimary)
-                    .cornerRadius(10)
-                }
-                
-                // Meal Plans Button (Teal)
-                NavigationLink(destination: DietaryPlansContentView()) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "list.bullet.clipboard")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Plans")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 42)
-                    .background(Color.gainsSuccess)
                     .cornerRadius(10)
                 }
             }
@@ -358,7 +433,7 @@ struct HomeView: View {
                 Text("Quick Actions")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
-                
+
                 Button {
                     showFoodLogging = true
                 } label: {
@@ -374,7 +449,23 @@ struct HomeView: View {
                     .background(Color.gainsAccentGreen)
                     .cornerRadius(10)
                 }
-                
+
+                Button {
+                    showSuggestMeals = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("AI Suggest")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 42)
+                    .background(Color.purple)
+                    .cornerRadius(10)
+                }
+
                 Button {
                     Task {
                         await viewModel.addWater(8)
@@ -392,46 +483,32 @@ struct HomeView: View {
                     .background(Color.gainsPrimary)
                     .cornerRadius(10)
                 }
-                
-                NavigationLink(destination: DietaryPlansContentView()) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "list.bullet.clipboard")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Meal Plans")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 42)
-                    .background(Color.gainsSuccess)
-                    .cornerRadius(10)
-                }
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color(hex: "1A1C20"))
             )
-            
+
             // Right side - Empty State Message
             VStack(spacing: 12) {
                 Spacer()
-                
+
                 Image(systemName: "fork.knife")
                     .font(.system(size: 32))
                     .foregroundColor(.gainsTextMuted)
-                
+
                 Text("No meals added yet")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                
-                Text("Log food or follow a meal plan")
+
+                Text("Log food or use AI to suggest meals")
                     .font(.system(size: 13))
                     .foregroundColor(.gainsTextSecondary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                
+
                 Spacer()
             }
             .padding(16)

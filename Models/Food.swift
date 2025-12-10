@@ -44,7 +44,7 @@ struct DailyNutrition: Codable {
     var waterGoal: Double // in oz
     var foods: [Food]
     
-    init(caloriesGoal: Int = 2460, proteinGoal: Double = 450, carbsGoal: Double = 202, fatsGoal: Double = 33, waterGoal: Double = 96) {
+    init(caloriesGoal: Int = 2000, proteinGoal: Double = 150, carbsGoal: Double = 200, fatsGoal: Double = 65, waterGoal: Double = 96) {
         self.caloriesConsumed = 0
         self.caloriesGoal = caloriesGoal
         self.proteinConsumed = 0
@@ -117,7 +117,7 @@ struct UserProfile: Codable {
         var fats: Double
     }
     
-    init(name: String = "Alex", dateJoined: Date = Date(), weight: Double = 116, height: String = "5 ft 10 in", gender: String = "Male", dailyCaloriesGoal: Int = 2460, macros: MacroGoals = MacroGoals(protein: 450, carbs: 202, fats: 33), waterGoal: Double = 96, useMetricUnits: Bool = false, primaryGoal: FitnessGoal? = nil, targetWeight: Double? = nil, targetDate: Date? = nil, trainingExperience: TrainingExperience? = nil, trainingSplit: TrainingSplit? = nil, activityLevel: ActivityLevel? = nil, preferredTrainingDays: [Weekday]? = nil, dietType: DietType? = nil, allergies: [String]? = nil, dislikedFoods: [String]? = nil, mealPattern: MealPattern? = nil, coachingStyle: CoachingStyle? = nil, detailPreference: DetailPreference? = nil) {
+    init(name: String = "Alex", dateJoined: Date = Date(), weight: Double = 150, height: String = "5 ft 10 in", gender: String = "Male", dailyCaloriesGoal: Int = 2000, macros: MacroGoals = MacroGoals(protein: 150, carbs: 200, fats: 65), waterGoal: Double = 96, useMetricUnits: Bool = false, primaryGoal: FitnessGoal? = nil, targetWeight: Double? = nil, targetDate: Date? = nil, trainingExperience: TrainingExperience? = nil, trainingSplit: TrainingSplit? = nil, activityLevel: ActivityLevel? = nil, preferredTrainingDays: [Weekday]? = nil, dietType: DietType? = nil, allergies: [String]? = nil, dislikedFoods: [String]? = nil, mealPattern: MealPattern? = nil, coachingStyle: CoachingStyle? = nil, detailPreference: DetailPreference? = nil) {
         self.name = name
         self.dateJoined = dateJoined
         self.weight = weight

@@ -17,10 +17,18 @@ final class HomeViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var selectedDate: Date = Date()
-    
+    @Published private var userProfile: UserProfile?
+    @Published var savedMealSuggestions: [PlannedMeal] = []
+
     // Computed properties to bridge DailyLog to DailyNutrition format for UI
     var dailyNutrition: DailyNutrition {
-        var nutrition = DailyNutrition()
+        var nutrition = DailyNutrition(
+            caloriesGoal: userProfile?.dailyCaloriesGoal ?? 2000,
+            proteinGoal: userProfile?.macros.protein ?? 150,
+            carbsGoal: userProfile?.macros.carbs ?? 200,
+            fatsGoal: userProfile?.macros.fats ?? 65,
+            waterGoal: userProfile?.waterGoal ?? 96
+        )
         nutrition.caloriesConsumed = dailyLog.calories
         nutrition.proteinConsumed = Double(dailyLog.protein)
         nutrition.carbsConsumed = Double(dailyLog.carbs)
@@ -29,13 +37,64 @@ final class HomeViewModel: ObservableObject {
         nutrition.foods = recentFoods
         return nutrition
     }
-    
+
     private let firestore = FirestoreService.shared
     private let auth = AuthService.shared
     
     func loadTodayIfPossible() async {
         selectedDate = Date()
+        await loadProfile()
+        loadSavedMealSuggestions()
         await loadDate(Date())
+    }
+
+    private func loadProfile() async {
+        guard let user = auth.user else { return }
+
+        do {
+            if let profile = try await firestore.fetchUserProfile(userId: user.uid) {
+                userProfile = profile
+            }
+        } catch {
+            print("Failed to load profile for home: \(error)")
+        }
+    }
+
+    /// Refreshes the user profile to sync any changes from settings
+    func refreshProfile() async {
+        await loadProfile()
+        loadSavedMealSuggestions()
+    }
+
+    // MARK: - Meal Suggestions Storage
+
+    /// Saves meal suggestions for today
+    func saveMealSuggestions(_ meals: [PlannedMeal]) {
+        savedMealSuggestions = meals
+
+        // Store with today's date as key
+        let dateKey = FirestoreService.id(for: Date())
+        if let encoded = try? JSONEncoder().encode(meals) {
+            UserDefaults.standard.set(encoded, forKey: "mealSuggestions_\(dateKey)")
+        }
+    }
+
+    /// Loads saved meal suggestions for today
+    func loadSavedMealSuggestions() {
+        let dateKey = FirestoreService.id(for: selectedDate)
+        if let data = UserDefaults.standard.data(forKey: "mealSuggestions_\(dateKey)"),
+           let meals = try? JSONDecoder().decode([PlannedMeal].self, from: data) {
+            savedMealSuggestions = meals
+        } else {
+            savedMealSuggestions = []
+        }
+    }
+
+    /// Clears saved meal suggestions for today
+    func clearMealSuggestions() {
+        savedMealSuggestions = []
+        let dateKey = FirestoreService.id(for: selectedDate)
+        UserDefaults.standard.removeObject(forKey: "mealSuggestions_\(dateKey)")
     }
     
     func addCalories(_ amount: Int) async {
@@ -209,6 +268,8 @@ final class HomeViewModel: ObservableObject {
     
     func loadDate(_ date: Date) async {
         selectedDate = date
+        loadSavedMealSuggestions() // Load meal suggestions for the new date
+        
         guard let user = auth.user else {
             print("No user signed in yet")
             return
@@ -352,10 +413,10 @@ final class HomeViewModel: ObservableObject {
             let avgCarbs = totalCarbs / Double(logs.count)
             let avgFats = totalFats / Double(logs.count)
             
-            // Get goals from profile
+            // Get goals from profile (default protein = 1g per lb, assume 150lb if no profile)
             let profile = try? await firestore.fetchUserProfile(userId: user.uid)
-            let calorieGoal = Double(profile?.dailyCaloriesGoal ?? 2460)
-            let proteinGoal = profile?.macros.protein ?? 450
+            let calorieGoal = Double(profile?.dailyCaloriesGoal ?? 2000)
+            let proteinGoal = profile?.macros.protein ?? 150
             
             // Calculate days on target (within ±10%)
             let daysOnCalorieTarget = logs.filter { log in

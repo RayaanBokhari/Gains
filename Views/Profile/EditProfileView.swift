@@ -221,7 +221,31 @@ struct EditProfileView: View {
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.gainsSecondaryText)
                             
-                            ProfileTextField(label: "Protein", text: $proteinGoal, keyboardType: .decimalPad, focusField: $focusedField, fieldValue: .protein)
+                            // Protein with suggested amount based on body weight
+                            VStack(alignment: .leading, spacing: 4) {
+                                ProfileTextField(label: "Protein", text: $proteinGoal, keyboardType: .decimalPad, focusField: $focusedField, fieldValue: .protein)
+                                
+                                // Suggested protein based on 1g per lb body weight
+                                if let weightValue = Double(weight) {
+                                    let suggestedProtein = useMetricUnits ? Int(weightValue * 2.2) : Int(weightValue)
+                                    let currentProtein = Int(Double(proteinGoal) ?? 0)
+                                    
+                                    if abs(currentProtein - suggestedProtein) > 10 {
+                                        Button {
+                                            proteinGoal = String(suggestedProtein)
+                                        } label: {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "lightbulb.fill")
+                                                    .font(.system(size: 11))
+                                                Text("Recommended: \(suggestedProtein)g (1g per lb)")
+                                                    .font(.system(size: 12))
+                                            }
+                                            .foregroundColor(.gainsPrimary)
+                                        }
+                                        .padding(.leading, 4)
+                                    }
+                                }
+                            }
                             ProfileTextField(label: "Carbs", text: $carbsGoal, keyboardType: .decimalPad, focusField: $focusedField, fieldValue: .carbs)
                             ProfileTextField(label: "Fats", text: $fatsGoal, keyboardType: .decimalPad, focusField: $focusedField, fieldValue: .fats)
                             
