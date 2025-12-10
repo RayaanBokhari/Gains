@@ -30,7 +30,7 @@ Pods/
 .firebaserc
 firebase-debug.log
 firebase-debug.*.log
-GoogleService-Info.plist
+# GoogleService-Info.plist  # Needed for Xcode Cloud builds
 
 # Node modules (for functions)
 functions/node_modules/
