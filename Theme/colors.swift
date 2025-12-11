@@ -93,6 +93,19 @@ extension Color {
         )
     }
     
+    /// Standard app background gradient (matches HomeView)
+    static var gainsAppBackground: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(hex: "0F1318"),  // Dark navy blue at top
+                Color(hex: "0D0F12"),  // Slightly lighter
+                Color(hex: "0A0B0E")   // Near black at bottom
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+    
     static var gainsPrimaryGradient: LinearGradient {
         LinearGradient(
             colors: [gainsPrimaryLight, gainsPrimary],
@@ -286,5 +299,10 @@ extension View {
     
     func pillInput() -> some View {
         modifier(PillInputStyle())
+    }
+    
+    /// Applies the standard app background gradient
+    func appBackground() -> some View {
+        self.background(Color.gainsAppBackground.ignoresSafeArea())
     }
 }

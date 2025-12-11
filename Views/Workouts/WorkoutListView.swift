@@ -20,8 +20,8 @@ struct WorkoutListView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Deep black background
-                Color.gainsBgPrimary
+                // App background gradient
+                Color.gainsAppBackground
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
@@ -187,15 +187,16 @@ struct WorkoutHistoryView: View {
     
     // MARK: - Loading State
     private var loadingState: some View {
-                VStack(spacing: GainsDesign.spacingL) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
-                        .scaleEffect(1.2)
-                    
-                    Text("Loading workouts...")
-                        .font(.system(size: GainsDesign.subheadline))
-                        .foregroundColor(.gainsTextSecondary)
-                }
+        VStack(spacing: GainsDesign.spacingL) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
+                .scaleEffect(1.2)
+            
+            Text("Loading workouts...")
+                .font(.system(size: GainsDesign.subheadline))
+                .foregroundColor(.gainsTextSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Selected Day Section
@@ -294,82 +295,185 @@ struct WorkoutHistoryView: View {
     }
 }
 
-// MARK: - New Workout View
+// MARK: - New Workout View (Premium Design)
 struct NewWorkoutView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: WorkoutViewModel
     @State private var workoutName = ""
     @State private var showActiveWorkout = false
+    @FocusState private var isInputFocused: Bool
     
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBgPrimary.ignoresSafeArea()
+                // App background gradient
+                Color.gainsAppBackground.ignoresSafeArea()
                 
-                VStack(spacing: GainsDesign.spacingXXL) {
-                    // Input Section
-                    VStack(alignment: .leading, spacing: GainsDesign.spacingM) {
-                        Text("Workout Name")
-                            .font(.system(size: GainsDesign.subheadline, weight: .medium))
-                            .foregroundColor(.gainsTextSecondary)
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    // Main Card
+                    VStack(spacing: 28) {
+                        // Icon
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.gainsPrimary.opacity(0.2), Color.gainsAccentBlue.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 72, height: 72)
+                            
+                            Image(systemName: "dumbbell.fill")
+                                .font(.system(size: 28, weight: .medium))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
                         
-                        TextField("e.g., Push Day, Leg Day", text: $workoutName)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: GainsDesign.body))
-                            .padding(.horizontal, GainsDesign.spacingL)
-                            .padding(.vertical, GainsDesign.spacingL)
+                        // Title & Subtitle
+                        VStack(spacing: 8) {
+                            Text("New Workout")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                            
+                            Text("Name your workout to begin")
+                                .font(.system(size: 15))
+                                .foregroundColor(.gainsTextSecondary)
+                        }
+                        
+                        // Glass Input
+                        HStack(spacing: 12) {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(isInputFocused ? .gainsPrimary : .gainsTextTertiary)
+                            
+                            TextField("Push Day, Leg Day...", text: $workoutName)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.white)
+                                .focused($isInputFocused)
+                        }
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(.ultraThinMaterial)
+                                .environment(\.colorScheme, .dark)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(
+                                    isInputFocused
+                                        ? Color.gainsPrimary.opacity(0.5)
+                                        : Color.white.opacity(0.1),
+                                    lineWidth: isInputFocused ? 1.5 : 1
+                                )
+                        )
+                        .shadow(
+                            color: isInputFocused ? Color.gainsPrimary.opacity(0.15) : .clear,
+                            radius: 12,
+                            x: 0,
+                            y: 4
+                        )
+                        
+                        // Start Button
+                        Button {
+                            if !workoutName.isEmpty {
+                                viewModel.startWorkout(name: workoutName)
+                                showActiveWorkout = true
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Text("Start Workout")
+                                    .font(.system(size: 17, weight: .semibold))
+                                
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundColor(workoutName.isEmpty ? .gainsTextTertiary : .white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
                             .background(
-                                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                                    .fill(Color.gainsCardSurface)
+                                Group {
+                                    if workoutName.isEmpty {
+                                        Capsule()
+                                            .fill(Color.gainsCardSurface)
+                                    } else {
+                                        Capsule()
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                    }
+                                }
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                                    .stroke(Color.gainsInputBorder, lineWidth: 0.5)
+                                Capsule()
+                                    .stroke(
+                                        workoutName.isEmpty
+                                            ? Color.white.opacity(0.06)
+                                            : Color.white.opacity(0.2),
+                                        lineWidth: 1
+                                    )
                             )
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, GainsDesign.paddingHorizontal)
-                    
-                    // Start Button
-                    Button {
-                        if !workoutName.isEmpty {
-                            viewModel.startWorkout(name: workoutName)
-                            showActiveWorkout = true
+                            .shadow(
+                                color: workoutName.isEmpty ? .clear : Color.gainsPrimary.opacity(0.4),
+                                radius: 20,
+                                x: 0,
+                                y: 10
+                            )
                         }
-                    } label: {
-                        Text("Start Workout")
-                            .font(.system(size: GainsDesign.body, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: GainsDesign.buttonHeightLarge)
-                            .background(
-                                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                                    .fill(workoutName.isEmpty ? Color.gainsTextMuted : Color.gainsPrimary)
-                            )
-                            .shadow(color: workoutName.isEmpty ? .clear : Color.gainsPrimary.opacity(0.3), radius: 12, x: 0, y: 6)
+                        .disabled(workoutName.isEmpty)
+                        .animation(.easeInOut(duration: 0.25), value: workoutName.isEmpty)
                     }
-                    .disabled(workoutName.isEmpty)
-                    .padding(.horizontal, GainsDesign.paddingHorizontal)
-                    .animation(.easeInOut(duration: 0.2), value: workoutName.isEmpty)
+                    .padding(28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                            .environment(\.colorScheme, .dark)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 20)
                     
                     Spacer()
+                    Spacer()
                 }
-                .padding(.top, GainsDesign.spacingXXL)
             }
-            .navigationTitle("New Workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(.gainsPrimary)
                     }
-                    .foregroundColor(.gainsPrimary)
                 }
             }
             .fullScreenCover(isPresented: $showActiveWorkout, onDismiss: {
                 dismiss()
             }) {
                 ActiveWorkoutView(viewModel: viewModel)
+            }
+            .onAppear {
+                // Auto-focus the input
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isInputFocused = true
+                }
             }
         }
     }
