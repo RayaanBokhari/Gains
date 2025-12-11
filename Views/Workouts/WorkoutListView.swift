@@ -84,7 +84,9 @@ struct WorkoutListView: View {
     // MARK: - Tab Selector (Apple Fitness Style)
     private var tabSelector: some View {
         GeometryReader { geometry in
-            ZStack(alignment: selectedTab == .history ? .leading : .trailing) {
+            let tabWidth = (geometry.size.width - 8) / 2
+            
+            ZStack(alignment: .leading) {
                 // Background pill
                 RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusSmall)
                     .fill(Color.gainsBgTertiary.opacity(0.6))
@@ -92,9 +94,8 @@ struct WorkoutListView: View {
                 // Selection indicator
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.gainsCardElevated)
-                    .frame(width: (geometry.size.width - 8) / 2)
-                    .padding(4)
-                    .offset(x: selectedTab == .history ? 0 : (geometry.size.width - 8) / 2)
+                    .frame(width: tabWidth)
+                    .offset(x: selectedTab == .history ? 4 : tabWidth + 4)
                     .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selectedTab)
                 
                 // Tab buttons

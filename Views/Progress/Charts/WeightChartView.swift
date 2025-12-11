@@ -123,27 +123,15 @@ struct WeightChartView: View {
                             )
                             .foregroundStyle(Color.gainsAccentPurple)
                             .interpolationMethod(.catmullRom)
-                            
-                            AreaMark(
-                                x: .value("Date", entry.date, unit: .day),
-                                y: .value("Weight", convertWeight(entry.weight))
-                            )
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [Color.gainsAccentPurple.opacity(0.3), .clear],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .interpolationMethod(.catmullRom)
+                            .lineStyle(StrokeStyle(lineWidth: 2.5))
                             
                             PointMark(
                                 x: .value("Date", entry.date, unit: .day),
                                 y: .value("Weight", convertWeight(entry.weight))
                             )
                             .foregroundStyle(selectedEntry?.id == entry.id ? Color.gainsAccentRed : Color.gainsAccentPurple)
-                            .symbolSize(selectedEntry?.id == entry.id ? 40 : 30)
-                            .opacity(selectedEntry?.id == entry.id ? 1.0 : 0.8)
+                            .symbolSize(selectedEntry?.id == entry.id ? 50 : 35)
+                            .opacity(selectedEntry?.id == entry.id ? 1.0 : 0.9)
                         }
                         .chartYScale(domain: yAxisDomain)
                         .chartXAxis {
