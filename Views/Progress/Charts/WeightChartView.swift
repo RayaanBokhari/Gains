@@ -58,13 +58,27 @@ struct WeightChartView: View {
     }
     
     var weeklyChange: Double? {
+        // Need at least 2 entries to calculate change
+        guard weightEntries.count >= 2 else { return nil }
         guard let currentKg = weightEntries.first?.weight else { return nil }
+        
         let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-        // Find weight entry closest to 7 days ago (entries are sorted descending by date)
-        let weekAgoEntry = weightEntries.first { $0.date <= weekAgo }
-        guard let weekAgoKg = weekAgoEntry?.weight else { return nil }
+        
+        // Try to find an entry from 7+ days ago first
+        var comparisonEntry = weightEntries.first { $0.date <= weekAgo }
+        
+        // If no entry from 7+ days ago, use the oldest entry we have
+        if comparisonEntry == nil {
+            comparisonEntry = weightEntries.last // entries sorted descending, so last is oldest
+        }
+        
+        guard let comparisonKg = comparisonEntry?.weight else { return nil }
+        
+        // Don't compare entry to itself
+        guard comparisonEntry?.id != weightEntries.first?.id else { return nil }
+        
         // Calculate change in kg, then convert to display unit
-        let changeKg = currentKg - weekAgoKg
+        let changeKg = currentKg - comparisonKg
         // Convert the change amount to user's preferred unit
         return useMetricUnits ? changeKg : changeKg * 2.20462
     }
@@ -279,12 +293,18 @@ struct WeightChartView: View {
             )
             
             WeightStatBox(
-                label: "Change",
+                label: changeLabel,
                 value: formatWeightChange(weeklyChange),
                 unit: useMetricUnits ? "kg" : "lbs",
                 changeColor: changeColor
             )
         }
+    }
+    
+    private var changeLabel: String {
+        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        let hasWeekOldEntry = weightEntries.contains { $0.date <= weekAgo }
+        return hasWeekOldEntry ? "7-Day Δ" : "Change"
     }
     
     private func formatWeight(_ weight: Double?) -> String {
@@ -313,55 +333,91 @@ struct WeightChartView: View {
     private func handleChartTap(at location: CGPoint, in size: CGSize) {
         guard !displayEntries.isEmpty else { return }
         
-        // Calculate which entry is closest to the tap location
-        let chartWidth = size.width
         let chartHeight = size.height
+        let chartWidth = size.width
         
-        // Normalize tap location (0-1 range)
-        let normalizedX = location.x / chartWidth
+        // Account for chart padding/margins (approximate)
+        let chartInsetLeft: CGFloat = 30
+        let chartInsetRight: CGFloat = 10
+        let effectiveWidth = chartWidth - chartInsetLeft - chartInsetRight
+        let adjustedX = location.x - chartInsetLeft
+        
+        // Get date range for the chart
+        let dates = displayEntries.map { Calendar.current.startOfDay(for: $0.date) }
+        guard let minDate = dates.min(), let maxDate = dates.max() else { return }
+        
+        // Handle single entry case
+        if displayEntries.count == 1 {
+            let tappedEntry = displayEntries[0]
+            handleEntryTap(tappedEntry, at: location, chartHeight: chartHeight)
+            return
+        }
+        
+        // Calculate date range in days
+        let dateRange = maxDate.timeIntervalSince(minDate)
+        guard dateRange > 0 else {
+            // All entries are on the same day - just select the first one
+            handleEntryTap(displayEntries[0], at: location, chartHeight: chartHeight)
+            return
+        }
+        
+        // Calculate tap position as a date
+        let normalizedX = max(0, min(1, adjustedX / effectiveWidth))
+        let tappedTimeInterval = normalizedX * dateRange
+        let tappedDate = minDate.addingTimeInterval(tappedTimeInterval)
+        
+        // Find the closest entry by date
+        var closestEntry: WeightEntry?
+        var closestDistance: TimeInterval = .infinity
+        
+        for entry in displayEntries {
+            let entryDate = Calendar.current.startOfDay(for: entry.date)
+            let distance = abs(entryDate.timeIntervalSince(tappedDate))
+            if distance < closestDistance {
+                closestDistance = distance
+                closestEntry = entry
+            }
+        }
+        
+        guard let tappedEntry = closestEntry else { return }
+        
+        handleEntryTap(tappedEntry, at: location, chartHeight: chartHeight)
+    }
+    
+    private func handleEntryTap(_ tappedEntry: WeightEntry, at location: CGPoint, chartHeight: CGFloat) {
+        // Check if tap is close enough to the point (within reasonable distance)
         let normalizedY = location.y / chartHeight
+        let entryY = convertWeight(tappedEntry.weight)
+        let minY = yAxisDomain.lowerBound
+        let maxY = yAxisDomain.upperBound
+        let normalizedEntryY = 1.0 - ((entryY - minY) / (maxY - minY))
         
-        // Find the entry closest to the tap
-        let entryCount = displayEntries.count
-        let entryIndex = Int(normalizedX * Double(entryCount - 1))
-        let clampedIndex = max(0, min(entryCount - 1, entryIndex))
-        
-        if clampedIndex < displayEntries.count {
-            let tappedEntry = displayEntries[clampedIndex]
-            
-            // Check if tap is close enough to the point (within reasonable distance)
-            let entryY = convertWeight(tappedEntry.weight)
-            let minY = yAxisDomain.lowerBound
-            let maxY = yAxisDomain.upperBound
-            let normalizedEntryY = 1.0 - ((entryY - minY) / (maxY - minY))
-            
-            // If tap is within reasonable distance of the point
-            if abs(normalizedY - normalizedEntryY) < 0.2 {
-                // If same entry is tapped again, show delete confirmation
-                if selectedEntry?.id == tappedEntry.id && showTooltip {
-                    entryToDelete = tappedEntry
-                    showDeleteConfirmation = true
-                    showTooltip = false
-                    selectedEntry = nil
-                } else {
-                    // First tap - show tooltip
-                    selectedEntry = tappedEntry
-                    tooltipPosition = location
-                    showTooltip = true
-                    
-                    // Hide tooltip after 3 seconds
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                        if selectedEntry?.id == tappedEntry.id {
-                            showTooltip = false
-                            selectedEntry = nil
-                        }
-                    }
-                }
-            } else {
-                // Tap was not close to any point, hide tooltip
+        // If tap is within reasonable distance of the point
+        if abs(normalizedY - normalizedEntryY) < 0.3 {
+            // If same entry is tapped again, show delete confirmation
+            if selectedEntry?.id == tappedEntry.id && showTooltip {
+                entryToDelete = tappedEntry
+                showDeleteConfirmation = true
                 showTooltip = false
                 selectedEntry = nil
+            } else {
+                // First tap - show tooltip
+                selectedEntry = tappedEntry
+                tooltipPosition = location
+                showTooltip = true
+                
+                // Hide tooltip after 3 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    if self.selectedEntry?.id == tappedEntry.id {
+                        self.showTooltip = false
+                        self.selectedEntry = nil
+                    }
+                }
             }
+        } else {
+            // Tap was not close to any point, hide tooltip
+            showTooltip = false
+            selectedEntry = nil
         }
     }
 }
