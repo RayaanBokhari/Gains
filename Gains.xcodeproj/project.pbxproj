@@ -99,6 +99,8 @@
 		B9FCF8242EEB66B700C112ED /* WorkoutStreakHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8222EEB66B700C112ED /* WorkoutStreakHeader.swift */; };
 		B9FCF8252EEB66B700C112ED /* WorkoutCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8202EEB66B700C112ED /* WorkoutCalendarView.swift */; };
 		B9FCF8262EEB66B700C112ED /* WorkoutDayPillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8212EEB66B700C112ED /* WorkoutDayPillView.swift */; };
+		B9FCF82A2EEB76B700C112ED /* AICoachFloatingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8272EEB76B700C112ED /* AICoachFloatingPanel.swift */; };
+		B9FCF82B2EEB76B700C112ED /* AICoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8282EEB76B700C112ED /* AICoachView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -208,6 +210,8 @@
 		B9FCF8202EEB66B700C112ED /* WorkoutCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCalendarView.swift; sourceTree = "<group>"; };
 		B9FCF8212EEB66B700C112ED /* WorkoutDayPillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDayPillView.swift; sourceTree = "<group>"; };
 		B9FCF8222EEB66B700C112ED /* WorkoutStreakHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutStreakHeader.swift; sourceTree = "<group>"; };
+		B9FCF8272EEB76B700C112ED /* AICoachFloatingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICoachFloatingPanel.swift; sourceTree = "<group>"; };
+		B9FCF8282EEB76B700C112ED /* AICoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICoachView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -341,6 +345,7 @@
 		B94DAAFC2ECFC32F00DB65EB /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF8292EEB76B700C112ED /* AICoach */,
 				B9FCF81C2EEB5DA200C112ED /* Onboarding */,
 				B9FCF7C32EE7DED400C112ED /* Nutrition */,
 				B9DDCCAF2ED1F00200E97E3 /* Auth */,
@@ -545,6 +550,15 @@
 				B9FCF8222EEB66B700C112ED /* WorkoutStreakHeader.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		B9FCF8292EEB76B700C112ED /* AICoach */ = {
+			isa = PBXGroup;
+			children = (
+				B9FCF8272EEB76B700C112ED /* AICoachFloatingPanel.swift */,
+				B9FCF8282EEB76B700C112ED /* AICoachView.swift */,
+			);
+			path = AICoach;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -768,6 +782,8 @@
 				B94DAB412ECFC70000DB65EB /* APIConfiguration.swift in Sources */,
 				B9DDCC932ED14AE5000E97E3 /* MealTemplate.swift in Sources */,
 				B9DDCC952ED14AE6000E97E3 /* Streak.swift in Sources */,
+				B9FCF82A2EEB76B700C112ED /* AICoachFloatingPanel.swift in Sources */,
+				B9FCF82B2EEB76B700C112ED /* AICoachView.swift in Sources */,
 				B9DDCC972ED14AE7000E97E3 /* Achievement.swift in Sources */,
 				B9FCF7562EDFD3DE00C112ED /* WorkoutPlanService.swift in Sources */,
 				B9FCF7572EDFD3DE00C112ED /* ChatStorageService.swift in Sources */,

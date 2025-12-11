@@ -14,7 +14,6 @@ enum WorkoutTab: String, CaseIterable {
 
 struct WorkoutListView: View {
     @StateObject private var viewModel = WorkoutViewModel()
-    @State private var showAICoach = false
     @State private var showNewWorkout = false
     @State private var selectedTab: WorkoutTab = .history
     
@@ -37,16 +36,16 @@ struct WorkoutListView: View {
                     // Content
                     switch selectedTab {
                     case .history:
-                        WorkoutHistoryView(viewModel: viewModel, showAICoach: $showAICoach, showNewWorkout: $showNewWorkout)
+                        WorkoutHistoryView(viewModel: viewModel, showNewWorkout: $showNewWorkout)
                     case .plans:
                         WorkoutPlansContentView()
                     }
                 }
+                
+                // AI Coach Floating Panel (Apple Maps style)
+                AICoachFloatingPanel()
             }
             .navigationBarHidden(true)
-            .sheet(isPresented: $showAICoach) {
-                AICoachView()
-            }
         }
     }
     
@@ -123,7 +122,6 @@ struct WorkoutListView: View {
 // MARK: - Workout History View
 struct WorkoutHistoryView: View {
     @ObservedObject var viewModel: WorkoutViewModel
-    @Binding var showAICoach: Bool
     @Binding var showNewWorkout: Bool
     @State private var selectedDate: Date = Date()
     
@@ -163,20 +161,11 @@ struct WorkoutHistoryView: View {
                         selectedDaySection
                             .padding(.horizontal, GainsDesign.paddingHorizontal)
                     }
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 140) // Extra padding for floating panel
                 }
                 .refreshable {
                     await viewModel.refreshWorkouts()
                     viewModel.rebuildCalendarDays()
-                }
-            }
-            
-            // AI Coach Floating Button
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    aiCoachButton
                 }
             }
         }
@@ -298,30 +287,6 @@ struct WorkoutHistoryView: View {
             RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
                 .fill(Color.gainsCardSurface.opacity(0.5))
         )
-    }
-    
-    // MARK: - AI Coach Button
-    private var aiCoachButton: some View {
-        Button {
-            showAICoach = true
-        } label: {
-            HStack(spacing: GainsDesign.spacingS) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 15, weight: .semibold))
-                Text("AI Coach")
-                    .font(.system(size: GainsDesign.subheadline, weight: .semibold))
-            }
-            .foregroundColor(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(
-                Capsule()
-                    .fill(Color.gainsPrimaryGradient)
-            )
-            .shadow(color: Color.gainsPrimary.opacity(0.4), radius: 16, x: 0, y: 6)
-        }
-        .padding(.trailing, GainsDesign.paddingHorizontal)
-        .padding(.bottom, GainsDesign.spacingXXL)
     }
 }
 

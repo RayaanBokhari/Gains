@@ -273,18 +273,6 @@ Under the calendar, before the list of workouts:
 This becomes the **narrative hook**: “I don’t want to break this.”
 
 ---
-
-## 5. How This Fits Your Current Screen
-
-On the mockup you just generated:
-
-* Keep the **liquid glass calendar panel** exactly as is.
-* For **days with workouts**:
-
-  * Swap the plain pill for a glass pill with:
-
-    * inner stroke
-    * subtle outer blur
 * For **streaks**:
 
   * Add:
