@@ -19,13 +19,9 @@ struct ProfileView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Gradient background
-                LinearGradient(
-                    colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // App background gradient
+                Color.gainsAppBackground
+                    .ignoresSafeArea()
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: GainsDesign.sectionSpacing) {

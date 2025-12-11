@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ExerciseSet: Identifiable, Codable {
+struct ExerciseSet: Identifiable, Codable, Equatable {
     let id: UUID
     var reps: Int?
     var weight: Double?

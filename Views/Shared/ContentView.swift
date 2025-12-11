@@ -12,12 +12,18 @@ struct ContentView: View {
     
     var body: some View {
         Group {
-            if authService.isLoading {
+            if authService.isLoading || authService.isCheckingOnboarding {
                 // Loading state
                 LoadingView()
             } else if authService.isAuthenticated {
-                // User is signed in with email/password
-                TabBarView()
+                // User is signed in
+                if authService.hasCompletedOnboarding {
+                    // User has completed onboarding, show main app
+                    TabBarView()
+                } else {
+                    // User needs to complete onboarding
+                    OnboardingView()
+                }
             } else {
                 // User needs to sign in
                 AuthenticationView()
@@ -25,6 +31,7 @@ struct ContentView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: authService.isAuthenticated)
         .animation(.easeInOut(duration: 0.3), value: authService.isLoading)
+        .animation(.easeInOut(duration: 0.3), value: authService.hasCompletedOnboarding)
     }
 }
 

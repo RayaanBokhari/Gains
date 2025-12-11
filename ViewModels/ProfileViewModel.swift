@@ -15,6 +15,7 @@ class ProfileViewModel: ObservableObject {
     @Published var profile: UserProfile
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var todayLog: DailyLog?
     
     private let firestore = FirestoreService.shared
     private let auth = AuthService.shared
@@ -24,9 +25,23 @@ class ProfileViewModel: ObservableObject {
         self.profile = UserProfile()
     }
     
+    /// Calculate macro progress based on today's logged data vs goals
     var macroProgress: (protein: Double, carbs: Double, fats: Double) {
-        // Sample progress: 25%, 90%, 25%
-        return (0.25, 0.90, 0.25)
+        guard let log = todayLog else {
+            return (0.0, 0.0, 0.0)
+        }
+        
+        let proteinProgress = profile.macros.protein > 0 
+            ? min(1.0, Double(log.protein) / profile.macros.protein) 
+            : 0.0
+        let carbsProgress = profile.macros.carbs > 0 
+            ? min(1.0, Double(log.carbs) / profile.macros.carbs) 
+            : 0.0
+        let fatsProgress = profile.macros.fats > 0 
+            ? min(1.0, Double(log.fats) / profile.macros.fats) 
+            : 0.0
+        
+        return (proteinProgress, carbsProgress, fatsProgress)
     }
     
     func loadProfile() async {
@@ -41,17 +56,41 @@ class ProfileViewModel: ObservableObject {
         defer { isLoading = false }
         
         do {
-            if let fetchedProfile = try await firestore.fetchUserProfile(userId: user.uid) {
+            if var fetchedProfile = try await firestore.fetchUserProfile(userId: user.uid) {
                 print("✅ ProfileViewModel: Successfully loaded profile")
+                
+                // Handle existing users who had profiles before onboarding was added
+                // If they have meaningful data (not default values), mark them as onboarded
+                if !fetchedProfile.hasCompletedOnboarding {
+                    let hasCustomData = fetchedProfile.name != "Alex" ||
+                                       fetchedProfile.weight != 150 ||
+                                       fetchedProfile.height != "5 ft 10 in" ||
+                                       fetchedProfile.dailyCaloriesGoal != 2000
+                    
+                    if hasCustomData {
+                        print("📝 ProfileViewModel: Existing user with custom data, marking as onboarded")
+                        fetchedProfile.hasCompletedOnboarding = true
+                        try await firestore.saveUserProfile(userId: user.uid, profile: fetchedProfile)
+                        
+                        // Update AuthService state
+                        await MainActor.run {
+                            auth.hasCompletedOnboarding = true
+                        }
+                    }
+                }
+                
                 profile = fetchedProfile
             } else {
                 print("📝 ProfileViewModel: No profile found, creating default")
-                // No profile exists, create default one
+                // No profile exists, create default one (but don't mark as onboarded)
                 profile = UserProfile(dateJoined: Date())
                 // Save default profile
                 try await firestore.saveUserProfile(userId: user.uid, profile: profile)
                 print("✅ ProfileViewModel: Default profile created and saved")
             }
+            
+            // Load today's nutrition data for macro progress
+            await loadTodayLog(userId: user.uid)
             
             // Set up HealthKit weight update callback
             setupHealthKitWeightObserver()
@@ -60,6 +99,23 @@ class ProfileViewModel: ObservableObject {
             print("❌ ProfileViewModel: Error loading profile: \(error)")
             print("❌ Error details: \(error.localizedDescription)")
         }
+    }
+    
+    /// Load today's daily log for macro progress calculation
+    private func loadTodayLog(userId: String) async {
+        do {
+            todayLog = try await firestore.fetchDailyLog(userId: userId, for: Date())
+            print("✅ ProfileViewModel: Loaded today's log - Protein: \(todayLog?.protein ?? 0)g, Carbs: \(todayLog?.carbs ?? 0)g, Fats: \(todayLog?.fats ?? 0)g")
+        } catch {
+            print("⚠️ ProfileViewModel: Error loading today's log: \(error)")
+            todayLog = nil
+        }
+    }
+    
+    /// Refresh today's log (can be called from other views when meals are logged)
+    func refreshTodayLog() async {
+        guard let user = auth.user else { return }
+        await loadTodayLog(userId: user.uid)
     }
     
     private func setupHealthKitWeightObserver() {

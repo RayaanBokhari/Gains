@@ -55,6 +55,8 @@ final class AuthService: ObservableObject {
     @Published var user: User? = nil
     @Published var isAuthenticated: Bool = false
     @Published var isLoading: Bool = true
+    @Published var hasCompletedOnboarding: Bool = false
+    @Published var isCheckingOnboarding: Bool = false
     
     private var authStateHandler: AuthStateDidChangeListenerHandle?
     
@@ -64,7 +66,59 @@ final class AuthService: ObservableObject {
                 self?.user = user
                 self?.isAuthenticated = user != nil && !user!.isAnonymous
                 self?.isLoading = false
+                
+                // Check onboarding status when user signs in
+                if user != nil && !user!.isAnonymous {
+                    await self?.checkOnboardingStatus()
+                } else {
+                    self?.hasCompletedOnboarding = false
+                }
             }
+        }
+    }
+    
+    /// Check if user has completed onboarding
+    func checkOnboardingStatus() async {
+        guard let userId = user?.uid else {
+            hasCompletedOnboarding = false
+            return
+        }
+        
+        isCheckingOnboarding = true
+        defer { isCheckingOnboarding = false }
+        
+        do {
+            if let profile = try await FirestoreService.shared.fetchUserProfile(userId: userId) {
+                // Check if existing user with custom data (bypass onboarding for existing users)
+                if !profile.hasCompletedOnboarding {
+                    let hasCustomData = profile.name != "Alex" ||
+                                       profile.weight != 150 ||
+                                       profile.height != "5 ft 10 in" ||
+                                       profile.dailyCaloriesGoal != 2000
+                    
+                    if hasCustomData {
+                        // Existing user with custom data - mark as onboarded and save
+                        print("📝 AuthService: Existing user with custom data, marking as onboarded")
+                        var updatedProfile = profile
+                        updatedProfile.hasCompletedOnboarding = true
+                        try await FirestoreService.shared.saveUserProfile(userId: userId, profile: updatedProfile)
+                        hasCompletedOnboarding = true
+                    } else {
+                        hasCompletedOnboarding = false
+                    }
+                } else {
+                    hasCompletedOnboarding = profile.hasCompletedOnboarding
+                }
+                print("✅ AuthService: Onboarding status: \(hasCompletedOnboarding)")
+            } else {
+                // No profile means they haven't onboarded
+                hasCompletedOnboarding = false
+                print("📝 AuthService: No profile found, needs onboarding")
+            }
+        } catch {
+            print("❌ AuthService: Error checking onboarding status: \(error)")
+            // Default to needing onboarding if we can't check
+            hasCompletedOnboarding = false
         }
     }
     

@@ -13,13 +13,9 @@ struct ProgressTrackingView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Gradient background
-                LinearGradient(
-                    colors: [Color(hex: "0D0E14"), Color(hex: "0A0A0B")],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // App background gradient
+                Color.gainsAppBackground
+                    .ignoresSafeArea()
                 
                 if viewModel.isLoading {
                     ProgressView()

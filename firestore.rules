@@ -66,6 +66,11 @@ service cloud.firestore {
       match /workoutPlans/{planId} {
         allow read, write: if isOwner(userId);
       }
+      
+      // Dietary Plans subcollection
+      match /dietaryPlans/{planId} {
+        allow read, write: if isOwner(userId);
+      }
     }
     
     // Community/public posts (if you implement social features)

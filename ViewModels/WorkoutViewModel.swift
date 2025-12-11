@@ -15,9 +15,12 @@ class WorkoutViewModel: ObservableObject {
     @Published var workouts: [Workout] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var calendarDays: [WorkoutDay] = []
+    @Published var currentMonth: CalendarMonth = .current
     
     private let workoutService = WorkoutService()
     private var cancellables = Set<AnyCancellable>()
+    private let calendar = Calendar.current
     
     init() {
         // Subscribe to workoutService's workouts updates
@@ -236,6 +239,234 @@ class WorkoutViewModel: ObservableObject {
             averageExercisesPerSession: thisWeekWorkouts.isEmpty ? 0 : Double(totalExercises) / Double(thisWeekWorkouts.count),
             averageSetsPerSession: thisWeekWorkouts.isEmpty ? 0 : Double(totalSets) / Double(thisWeekWorkouts.count)
         )
+    }
+    
+    // MARK: - Calendar & Streak System
+    
+    /// Get unique days when workouts were logged (not count of workouts)
+    private var uniqueWorkoutDays: Set<Date> {
+        Set(workouts.map { calendar.startOfDay(for: $0.date) })
+    }
+    
+    /// Current workout streak (consecutive DAYS with workouts, counting back from today/yesterday)
+    var currentWorkoutStreak: Int {
+        let uniqueDays = uniqueWorkoutDays
+        guard !uniqueDays.isEmpty else { return 0 }
+        
+        let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        
+        // Streak only counts if we worked out today or yesterday
+        // If last workout was 2+ days ago, streak is broken
+        var checkDate: Date
+        if uniqueDays.contains(today) {
+            checkDate = today
+        } else if uniqueDays.contains(yesterday) {
+            checkDate = yesterday
+        } else {
+            // No workout today or yesterday = streak is 0
+            return 0
+        }
+        
+        // Count consecutive days going backwards
+        var streak = 0
+        while uniqueDays.contains(checkDate) {
+            streak += 1
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+        }
+        
+        return streak
+    }
+    
+    /// Longest workout streak ever achieved
+    var longestWorkoutStreak: Int {
+        let uniqueDays = Array(uniqueWorkoutDays).sorted()
+        guard uniqueDays.count >= 1 else { return 0 }
+        guard uniqueDays.count >= 2 else { return 1 }
+        
+        var maxStreak = 1
+        var currentStreak = 1
+        
+        for i in 1..<uniqueDays.count {
+            let daysDiff = calendar.dateComponents([.day], from: uniqueDays[i-1], to: uniqueDays[i]).day ?? 0
+            if daysDiff == 1 {
+                currentStreak += 1
+                maxStreak = max(maxStreak, currentStreak)
+            } else {
+                currentStreak = 1
+            }
+        }
+        
+        return maxStreak
+    }
+    
+    /// Number of unique DAYS with workouts this month (not total workout count)
+    var workoutDaysThisMonth: Int {
+        uniqueWorkoutDays.filter { calendar.isDate($0, equalTo: Date(), toGranularity: .month) }.count
+    }
+    
+    /// Total workouts in current month (can be multiple per day)
+    var workoutsThisMonth: Int {
+        workouts.filter { calendar.isDate($0.date, equalTo: Date(), toGranularity: .month) }.count
+    }
+    
+    /// Navigate to previous month
+    func previousMonth() {
+        currentMonth = currentMonth.previous()
+        rebuildCalendarDays()
+    }
+    
+    /// Navigate to next month
+    func nextMonth() {
+        currentMonth = currentMonth.next()
+        rebuildCalendarDays()
+    }
+    
+    /// Navigate to current month
+    func goToCurrentMonth() {
+        currentMonth = .current
+        rebuildCalendarDays()
+    }
+    
+    /// Rebuild calendar days when workouts or month changes
+    func rebuildCalendarDays() {
+        calendarDays = buildWorkoutDays(for: currentMonth.date)
+    }
+    
+    /// Build workout days for a given month
+    func buildWorkoutDays(for month: Date) -> [WorkoutDay] {
+        // Get start and end of month
+        guard let monthInterval = calendar.dateInterval(of: .month, for: month) else {
+            return []
+        }
+        
+        // Get the first day of the week containing the month start
+        let firstWeekday = calendar.component(.weekday, from: monthInterval.start)
+        let daysToSubtract = firstWeekday - calendar.firstWeekday
+        guard let gridStart = calendar.date(byAdding: .day, value: -daysToSubtract, to: monthInterval.start) else {
+            return []
+        }
+        
+        // Group workouts by day
+        var workoutsByDay: [Date: [Workout]] = [:]
+        for workout in workouts {
+            let dayStart = calendar.startOfDay(for: workout.date)
+            workoutsByDay[dayStart, default: []].append(workout)
+        }
+        
+        // Calculate max volume for normalization
+        let maxVolume = calculateMaxDailyVolume(workoutsByDay: workoutsByDay)
+        
+        // Detect streak days (2+ consecutive workout days)
+        let streakDays = detectStreakDays()
+        
+        // Build 6 weeks (42 days) of calendar
+        var days: [WorkoutDay] = []
+        var currentDate = gridStart
+        let today = calendar.startOfDay(for: Date())
+        
+        for _ in 0..<42 {
+            let dayStart = calendar.startOfDay(for: currentDate)
+            let dayWorkouts = workoutsByDay[dayStart] ?? []
+            let volumeScore = calculateVolumeScore(for: dayWorkouts, maxVolume: maxVolume)
+            let isCurrentDay = dayStart == today
+            
+            let state: WorkoutDayState
+            if dayWorkouts.isEmpty {
+                state = .empty
+            } else if streakDays.contains(dayStart) {
+                state = .streak(volumeScore: volumeScore, isCurrentDay: isCurrentDay)
+            } else {
+                state = .logged(volumeScore: volumeScore)
+            }
+            
+            days.append(WorkoutDay(date: currentDate, state: state, workouts: dayWorkouts))
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+        }
+        
+        return days
+    }
+    
+    /// Detect days that are part of a streak (2+ consecutive workout days)
+    private func detectStreakDays() -> Set<Date> {
+        let workoutDates = workouts.map { calendar.startOfDay(for: $0.date) }
+        let uniqueDates = Array(Set(workoutDates)).sorted()
+        
+        guard uniqueDates.count >= 2 else { return [] }
+        
+        var streakDays: Set<Date> = []
+        var currentRun: [Date] = [uniqueDates[0]]
+        
+        for i in 1..<uniqueDates.count {
+            let daysDiff = calendar.dateComponents([.day], from: uniqueDates[i-1], to: uniqueDates[i]).day ?? 0
+            
+            if daysDiff == 1 {
+                currentRun.append(uniqueDates[i])
+            } else {
+                // End of run - add to streakDays if 2+ consecutive
+                if currentRun.count >= 2 {
+                    streakDays.formUnion(currentRun)
+                }
+                currentRun = [uniqueDates[i]]
+            }
+        }
+        
+        // Don't forget the last run
+        if currentRun.count >= 2 {
+            streakDays.formUnion(currentRun)
+        }
+        
+        return streakDays
+    }
+    
+    /// Calculate volume score for a day's workouts (normalized 0-1)
+    private func calculateVolumeScore(for workouts: [Workout], maxVolume: Double) -> Double {
+        guard maxVolume > 0 else { return 0 }
+        
+        var totalVolume: Double = 0
+        for workout in workouts {
+            for exercise in workout.exercises {
+                for set in exercise.sets {
+                    if let weight = set.weight, let reps = set.reps {
+                        totalVolume += weight * Double(reps)
+                    } else if let reps = set.reps {
+                        // Bodyweight exercise - count reps as volume
+                        totalVolume += Double(reps) * 10
+                    }
+                }
+            }
+        }
+        
+        return min(1.0, totalVolume / maxVolume)
+    }
+    
+    /// Calculate max daily volume for normalization
+    private func calculateMaxDailyVolume(workoutsByDay: [Date: [Workout]]) -> Double {
+        var maxVolume: Double = 0
+        
+        for (_, dayWorkouts) in workoutsByDay {
+            var dayVolume: Double = 0
+            for workout in dayWorkouts {
+                for exercise in workout.exercises {
+                    for set in exercise.sets {
+                        if let weight = set.weight, let reps = set.reps {
+                            dayVolume += weight * Double(reps)
+                        } else if let reps = set.reps {
+                            dayVolume += Double(reps) * 10
+                        }
+                    }
+                }
+            }
+            maxVolume = max(maxVolume, dayVolume)
+        }
+        
+        return maxVolume > 0 ? maxVolume : 1000 // Default to prevent division by zero
+    }
+    
+    /// Get workouts for a specific date
+    func workouts(for date: Date) -> [Workout] {
+        let dayStart = calendar.startOfDay(for: date)
+        return workouts.filter { calendar.startOfDay(for: $0.date) == dayStart }
     }
 }
 

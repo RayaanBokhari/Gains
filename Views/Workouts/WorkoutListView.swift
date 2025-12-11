@@ -14,15 +14,14 @@ enum WorkoutTab: String, CaseIterable {
 
 struct WorkoutListView: View {
     @StateObject private var viewModel = WorkoutViewModel()
-    @State private var showAICoach = false
     @State private var showNewWorkout = false
     @State private var selectedTab: WorkoutTab = .history
     
     var body: some View {
         NavigationView {
             ZStack {
-                // Deep black background
-                Color.gainsBgPrimary
+                // App background gradient
+                Color.gainsAppBackground
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
@@ -37,16 +36,16 @@ struct WorkoutListView: View {
                     // Content
                     switch selectedTab {
                     case .history:
-                        WorkoutHistoryView(viewModel: viewModel, showAICoach: $showAICoach, showNewWorkout: $showNewWorkout)
+                        WorkoutHistoryView(viewModel: viewModel, showNewWorkout: $showNewWorkout)
                     case .plans:
                         WorkoutPlansContentView()
                     }
                 }
+                
+                // AI Coach Floating Panel (Apple Maps style)
+                AICoachFloatingPanel()
             }
             .navigationBarHidden(true)
-            .sheet(isPresented: $showAICoach) {
-                AICoachView()
-            }
         }
     }
     
@@ -84,7 +83,9 @@ struct WorkoutListView: View {
     // MARK: - Tab Selector (Apple Fitness Style)
     private var tabSelector: some View {
         GeometryReader { geometry in
-            ZStack(alignment: selectedTab == .history ? .leading : .trailing) {
+            let tabWidth = (geometry.size.width - 8) / 2
+            
+            ZStack(alignment: .leading) {
                 // Background pill
                 RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusSmall)
                     .fill(Color.gainsBgTertiary.opacity(0.6))
@@ -92,9 +93,8 @@ struct WorkoutListView: View {
                 // Selection indicator
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.gainsCardElevated)
-                    .frame(width: (geometry.size.width - 8) / 2)
-                    .padding(4)
-                    .offset(x: selectedTab == .history ? 0 : (geometry.size.width - 8) / 2)
+                    .frame(width: tabWidth)
+                    .offset(x: selectedTab == .history ? 4 : tabWidth + 4)
                     .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selectedTab)
                 
                 // Tab buttons
@@ -122,27 +122,113 @@ struct WorkoutListView: View {
 // MARK: - Workout History View
 struct WorkoutHistoryView: View {
     @ObservedObject var viewModel: WorkoutViewModel
-    @Binding var showAICoach: Bool
     @Binding var showNewWorkout: Bool
+    @State private var selectedDate: Date = Date()
+    
+    private let calendar = Calendar.current
+    
+    // Workouts for the selected date
+    private var selectedDateWorkouts: [Workout] {
+        viewModel.workouts(for: selectedDate)
+    }
     
     var body: some View {
         ZStack {
-            if viewModel.isLoading {
-                VStack(spacing: GainsDesign.spacingL) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
-                        .scaleEffect(1.2)
-                    
-                    Text("Loading workouts...")
-                        .font(.system(size: GainsDesign.subheadline))
-                        .foregroundColor(.gainsTextSecondary)
-                }
-            } else if viewModel.workouts.isEmpty {
-                emptyState
+            if viewModel.isLoading && viewModel.workouts.isEmpty {
+                loadingState
             } else {
                 ScrollView(showsIndicators: false) {
+                    VStack(spacing: GainsDesign.spacingL) {
+                        // Streak Header
+                        WorkoutStreakHeader(
+                            currentStreak: viewModel.currentWorkoutStreak,
+                            longestStreak: viewModel.longestWorkoutStreak,
+                            workoutDaysThisMonth: viewModel.workoutDaysThisMonth
+                        )
+                        .padding(.horizontal, GainsDesign.paddingHorizontal)
+                        
+                        // Calendar Grid
+                        WorkoutCalendarView(
+                            days: viewModel.calendarDays,
+                            selectedDate: $selectedDate,
+                            currentMonth: viewModel.currentMonth,
+                            onPreviousMonth: { viewModel.previousMonth() },
+                            onNextMonth: { viewModel.nextMonth() }
+                        )
+                        .padding(.horizontal, GainsDesign.paddingHorizontal)
+                        
+                        // AI Daily Insight
+                        AIInsightCard()
+                            .padding(.horizontal, GainsDesign.paddingHorizontal)
+                        
+                        // Selected Day Detail
+                        selectedDaySection
+                            .padding(.horizontal, GainsDesign.paddingHorizontal)
+                    }
+                    .padding(.bottom, 140) // Extra padding for floating panel
+                }
+                .refreshable {
+                    await viewModel.refreshWorkouts()
+                    viewModel.rebuildCalendarDays()
+                }
+            }
+        }
+        .onAppear {
+            viewModel.startListening()
+            viewModel.rebuildCalendarDays()
+        }
+        .onChange(of: viewModel.workouts) { _, _ in
+            viewModel.rebuildCalendarDays()
+        }
+        .sheet(isPresented: $showNewWorkout) {
+            NewWorkoutView(viewModel: viewModel)
+        }
+    }
+    
+    // MARK: - Loading State
+    private var loadingState: some View {
+        VStack(spacing: GainsDesign.spacingL) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
+                .scaleEffect(1.2)
+            
+            Text("Loading workouts...")
+                .font(.system(size: GainsDesign.subheadline))
+                .foregroundColor(.gainsTextSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Selected Day Section
+    private var selectedDaySection: some View {
+        VStack(alignment: .leading, spacing: GainsDesign.spacingM) {
+            // Date header
+            HStack {
+                Text(selectedDateLabel)
+                    .font(.system(size: GainsDesign.headline, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                if calendar.isDateInToday(selectedDate) {
+                    Text("Today")
+                        .font(.system(size: GainsDesign.caption, weight: .medium))
+                        .foregroundColor(.gainsPrimary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.gainsPrimary.opacity(0.15))
+                        )
+                }
+            }
+            
+            // Workouts list or empty state
+            if selectedDateWorkouts.isEmpty {
+                selectedDayEmptyState
+            } else {
                     LazyVStack(spacing: GainsDesign.cardSpacing) {
-                        ForEach(viewModel.workouts) { workout in
+                    ForEach(selectedDateWorkouts) { workout in
                             NavigationLink(destination: WorkoutDetailView(workout: workout)) {
                                 WorkoutRowView(workout: workout)
                             }
@@ -158,189 +244,236 @@ struct WorkoutHistoryView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, GainsDesign.paddingHorizontal)
-                    .padding(.bottom, 100)
-                }
-                .refreshable {
-                    await viewModel.refreshWorkouts()
-                }
             }
-            
-            // AI Coach Floating Button
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    aiCoachButton
-                }
-            }
-        }
-        .onAppear {
-            viewModel.startListening()
-        }
-        .sheet(isPresented: $showNewWorkout) {
-            NewWorkoutView(viewModel: viewModel)
         }
     }
     
-    // MARK: - Empty State
-    private var emptyState: some View {
-        VStack(spacing: GainsDesign.spacingXXL) {
-            Spacer()
+    private var selectedDateLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d"
+        return formatter.string(from: selectedDate)
+    }
+    
+    // MARK: - Selected Day Empty State
+    private var selectedDayEmptyState: some View {
+        VStack(spacing: GainsDesign.spacingL) {
+            Image(systemName: "figure.strengthtraining.traditional")
+                .font(.system(size: 32, weight: .light))
+                .foregroundColor(.gainsTextTertiary)
             
-            // Icon with soft background
-            ZStack {
-                Circle()
-                    .fill(Color.gainsBgTertiary)
-                    .frame(width: 96, height: 96)
-                
-                Image(systemName: "dumbbell.fill")
-                    .font(.system(size: 40, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.gainsTextTertiary, Color.gainsTextMuted],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-            }
-            
-            VStack(spacing: GainsDesign.spacingS) {
-                Text("No Workouts Yet")
-                    .font(.system(size: GainsDesign.titleSmall, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-                
-                Text("Start tracking your fitness journey")
-                    .font(.system(size: GainsDesign.callout))
+            Text("No workouts on this day")
+                .font(.system(size: GainsDesign.subheadline))
                     .foregroundColor(.gainsTextSecondary)
-            }
             
-            // Primary CTA
+            if calendar.isDateInToday(selectedDate) {
             Button {
                 showNewWorkout = true
             } label: {
                 HStack(spacing: GainsDesign.spacingS) {
                     Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                     Text("Start Workout")
-                        .font(.system(size: GainsDesign.body, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .frame(width: 200)
-                .frame(height: GainsDesign.buttonHeightLarge)
-                .background(
-                    RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                        .fill(Color.gainsPrimary)
-                )
-                .shadow(color: Color.gainsPrimary.opacity(0.35), radius: 16, x: 0, y: 8)
-            }
-            
-            Spacer()
-        }
-        .padding(.horizontal, GainsDesign.paddingHorizontal)
-    }
-    
-    // MARK: - AI Coach Button
-    private var aiCoachButton: some View {
-        Button {
-            showAICoach = true
-        } label: {
-            HStack(spacing: GainsDesign.spacingS) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 15, weight: .semibold))
-                Text("AI Coach")
                     .font(.system(size: GainsDesign.subheadline, weight: .semibold))
             }
             .foregroundColor(.white)
             .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+                    .padding(.vertical, 12)
             .background(
                 Capsule()
-                    .fill(Color.gainsPrimaryGradient)
+                            .fill(Color.gainsPrimary)
             )
-            .shadow(color: Color.gainsPrimary.opacity(0.4), radius: 16, x: 0, y: 6)
+                    .shadow(color: Color.gainsPrimary.opacity(0.3), radius: 12, x: 0, y: 4)
         }
-        .padding(.trailing, GainsDesign.paddingHorizontal)
-        .padding(.bottom, GainsDesign.spacingXXL)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, GainsDesign.spacingXXL)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
+                .fill(Color.gainsCardSurface.opacity(0.5))
+        )
     }
 }
 
-// MARK: - New Workout View
+// MARK: - New Workout View (Premium Design)
 struct NewWorkoutView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: WorkoutViewModel
     @State private var workoutName = ""
     @State private var showActiveWorkout = false
+    @FocusState private var isInputFocused: Bool
     
     var body: some View {
         NavigationView {
             ZStack {
-                Color.gainsBgPrimary.ignoresSafeArea()
+                // App background gradient
+                Color.gainsAppBackground.ignoresSafeArea()
                 
-                VStack(spacing: GainsDesign.spacingXXL) {
-                    // Input Section
-                    VStack(alignment: .leading, spacing: GainsDesign.spacingM) {
-                        Text("Workout Name")
-                            .font(.system(size: GainsDesign.subheadline, weight: .medium))
-                            .foregroundColor(.gainsTextSecondary)
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    // Main Card
+                    VStack(spacing: 28) {
+                        // Icon
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.gainsPrimary.opacity(0.2), Color.gainsAccentBlue.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 72, height: 72)
+                            
+                            Image(systemName: "dumbbell.fill")
+                                .font(.system(size: 28, weight: .medium))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
                         
-                        TextField("e.g., Push Day, Leg Day", text: $workoutName)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: GainsDesign.body))
-                            .padding(.horizontal, GainsDesign.spacingL)
-                            .padding(.vertical, GainsDesign.spacingL)
+                        // Title & Subtitle
+                        VStack(spacing: 8) {
+                            Text("New Workout")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                            
+                            Text("Name your workout to begin")
+                                .font(.system(size: 15))
+                                .foregroundColor(.gainsTextSecondary)
+                        }
+                        
+                        // Glass Input
+                        HStack(spacing: 12) {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(isInputFocused ? .gainsPrimary : .gainsTextTertiary)
+                            
+                            TextField("Push Day, Leg Day...", text: $workoutName)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.white)
+                                .focused($isInputFocused)
+                        }
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(.ultraThinMaterial)
+                                .environment(\.colorScheme, .dark)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(
+                                    isInputFocused
+                                        ? Color.gainsPrimary.opacity(0.5)
+                                        : Color.white.opacity(0.1),
+                                    lineWidth: isInputFocused ? 1.5 : 1
+                                )
+                        )
+                        .shadow(
+                            color: isInputFocused ? Color.gainsPrimary.opacity(0.15) : .clear,
+                            radius: 12,
+                            x: 0,
+                            y: 4
+                        )
+                        
+                        // Start Button
+                        Button {
+                            if !workoutName.isEmpty {
+                                viewModel.startWorkout(name: workoutName)
+                                showActiveWorkout = true
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Text("Start Workout")
+                                    .font(.system(size: 17, weight: .semibold))
+                                
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundColor(workoutName.isEmpty ? .gainsTextTertiary : .white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
                             .background(
-                                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                                    .fill(Color.gainsCardSurface)
+                                Group {
+                                    if workoutName.isEmpty {
+                                        Capsule()
+                                            .fill(Color.gainsCardSurface)
+                                    } else {
+                                        Capsule()
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                    }
+                                }
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                                    .stroke(Color.gainsInputBorder, lineWidth: 0.5)
+                                Capsule()
+                                    .stroke(
+                                        workoutName.isEmpty
+                                            ? Color.white.opacity(0.06)
+                                            : Color.white.opacity(0.2),
+                                        lineWidth: 1
+                                    )
                             )
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, GainsDesign.paddingHorizontal)
-                    
-                    // Start Button
-                    Button {
-                        if !workoutName.isEmpty {
-                            viewModel.startWorkout(name: workoutName)
-                            showActiveWorkout = true
+                            .shadow(
+                                color: workoutName.isEmpty ? .clear : Color.gainsPrimary.opacity(0.4),
+                                radius: 20,
+                                x: 0,
+                                y: 10
+                            )
                         }
-                    } label: {
-                        Text("Start Workout")
-                            .font(.system(size: GainsDesign.body, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: GainsDesign.buttonHeightLarge)
-                            .background(
-                                RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                                    .fill(workoutName.isEmpty ? Color.gainsTextMuted : Color.gainsPrimary)
-                            )
-                            .shadow(color: workoutName.isEmpty ? .clear : Color.gainsPrimary.opacity(0.3), radius: 12, x: 0, y: 6)
+                        .disabled(workoutName.isEmpty)
+                        .animation(.easeInOut(duration: 0.25), value: workoutName.isEmpty)
                     }
-                    .disabled(workoutName.isEmpty)
-                    .padding(.horizontal, GainsDesign.paddingHorizontal)
-                    .animation(.easeInOut(duration: 0.2), value: workoutName.isEmpty)
+                    .padding(28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                            .environment(\.colorScheme, .dark)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 20)
                     
                     Spacer()
+                    Spacer()
                 }
-                .padding(.top, GainsDesign.spacingXXL)
             }
-            .navigationTitle("New Workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(.gainsPrimary)
                     }
-                    .foregroundColor(.gainsPrimary)
                 }
             }
             .fullScreenCover(isPresented: $showActiveWorkout, onDismiss: {
                 dismiss()
             }) {
                 ActiveWorkoutView(viewModel: viewModel)
+            }
+            .onAppear {
+                // Auto-focus the input
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isInputFocused = true
+                }
             }
         }
     }

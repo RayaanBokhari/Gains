@@ -8,14 +8,88 @@
 import SwiftUI
 import Charts
 
+struct CaloriesPoint: Identifiable {
+    let id = UUID()
+    let date: Date
+    let calories: Double
+}
+
+struct CaloriesSlot: Identifiable {
+    let id = UUID()
+    let position: Int          // 0...6 fixed slots
+    let label: String          // formatted date or ""
+    let point: CaloriesPoint?  // nil means empty slot
+}
+
 struct CaloriesChartView: View {
     let dailyLogs: [DailyLog]
+    private let maxSlots = 7
     
-    // Only show logs that have actual calorie data, limited to last 10 entries
-    private var logsWithData: [DailyLog] {
-        let filtered = dailyLogs.filter { $0.calories > 0 }
-        // Take the most recent 10 entries (logs are sorted descending, so take first 10 then reverse for chart)
-        return Array(filtered.prefix(10).reversed())
+    // Aggregate per-day calories, keep last 10 days, sorted ascending
+    private var logsForChart: [CaloriesPoint] {
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "M/d/yy"
+        
+        // Log raw input
+        print("📊 [CaloriesChart] Raw dailyLogs count: \(dailyLogs.count)")
+        for log in dailyLogs.filter({ $0.calories > 0 }) {
+            print("   - \(dateFormatter.string(from: log.date)): \(log.calories) cal")
+        }
+        
+        // Filter days with any calories
+        let grouped = Dictionary(
+            grouping: dailyLogs.filter { $0.calories > 0 }
+        ) { log in
+            calendar.startOfDay(for: log.date)
+        }
+        
+        let points = grouped.map { (day, logs) in
+            let total = logs.reduce(0) { $0 + Double($1.calories) }
+            print("📊 [CaloriesChart] Aggregated \(dateFormatter.string(from: day)): \(Int(total)) cal from \(logs.count) entries")
+            return CaloriesPoint(
+                date: day,
+                calories: total
+            )
+        }
+        .sorted { $0.date < $1.date }       // ascending
+        
+        // Last 10 days only
+        let result = Array(points.suffix(10))
+        print("📊 [CaloriesChart] Final chart points: \(result.count)")
+        for point in result {
+            print("   → \(dateFormatter.string(from: point.date)): \(Int(point.calories)) cal")
+        }
+        return result
+    }
+    
+    // Build 7 fixed slots, right-aligned with the latest entries
+    private var slots: [CaloriesSlot] {
+        let points = logsForChart
+        let useCount = min(points.count, maxSlots)
+        let df = DateFormatter()
+        df.dateFormat = "M/d"
+        
+        return (0..<maxSlots).map { position in
+            let globalIndex = position - (maxSlots - useCount)
+            if globalIndex >= 0 && globalIndex < useCount {
+                let entryIndex = points.count - useCount + globalIndex
+                let point = points[entryIndex]
+                return CaloriesSlot(
+                    position: position,
+                    label: df.string(from: point.date),
+                    point: point
+                )
+            } else {
+                return CaloriesSlot(position: position, label: "", point: nil)
+            }
+        }
+    }
+    
+    private func formatAxisDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d"
+        return formatter.string(from: date)
     }
     
     var body: some View {
@@ -32,41 +106,53 @@ struct CaloriesChartView: View {
                     .foregroundColor(.gainsAccentOrange)
             }
             
-            if logsWithData.isEmpty {
+            if logsForChart.isEmpty {
                 emptyState
             } else {
                 Chart {
-                    ForEach(logsWithData, id: \.id) { log in
-                        BarMark(
-                            x: .value("Date", log.date, unit: .day),
-                            y: .value("Calories", log.calories)
-                        )
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color.gainsPrimary, Color.gainsAccentTeal],
-                                startPoint: .bottom,
-                                endPoint: .top
+                    ForEach(slots) { slot in
+                        if let point = slot.point {
+                            BarMark(
+                                x: .value("Slot", slot.position),
+                                y: .value("Calories", point.calories)
                             )
-                        )
-                        .cornerRadius(4)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color.gainsPrimary, Color.gainsAccentTeal],
+                                    startPoint: .bottom,
+                                    endPoint: .top
+                                )
+                            )
+                            .cornerRadius(4)
+                        }
                     }
                 }
+                .chartXScale(domain: 0...(maxSlots - 1))
                 .frame(height: 180)
                 .chartXAxis {
-                    AxisMarks(values: .stride(by: .day, count: max(1, logsWithData.count / 5))) { value in
+                    AxisMarks(values: Array(0..<maxSlots)) { value in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                             .foregroundStyle(Color.gainsBgTertiary)
-                        AxisValueLabel(format: .dateTime.month().day())
-                            .foregroundStyle(Color.gainsTextMuted)
-                            .font(.system(size: 10))
+                        AxisTick()
+                        if let idx = value.as(Int.self), idx < slots.count {
+                            let label = slots[idx].label
+                            if !label.isEmpty {
+                                AxisValueLabel {
+                                    Text(label)
+                                        .font(.system(size: 9))
+                                        .foregroundColor(.gainsTextMuted)
+                                }
+                            }
+                        }
                     }
                 }
                 .chartYAxis {
-                    AxisMarks { _ in
+                    AxisMarks(position: .trailing, values: .automatic(desiredCount: 4)) { _ in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                             .foregroundStyle(Color.gainsBgTertiary)
                         AxisValueLabel()
                             .foregroundStyle(Color.gainsTextMuted)
+                            .font(.system(size: 10))
                     }
                 }
                 .chartPlotStyle { plotArea in
