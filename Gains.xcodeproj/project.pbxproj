@@ -95,6 +95,10 @@
 		B9FCF80C2EE90C9F00C112ED /* SuggestMealsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF80B2EE90C9F00C112ED /* SuggestMealsView.swift */; };
 		B9FCF80E2EE912EE00C112ED /* SavedMealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF80D2EE912EE00C112ED /* SavedMealPlanView.swift */; };
 		B9FCF81D2EEB5DA200C112ED /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF81B2EEB5DA200C112ED /* OnboardingView.swift */; };
+		B9FCF81F2EEB66A500C112ED /* WorkoutCalendarModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF81E2EEB66A500C112ED /* WorkoutCalendarModels.swift */; };
+		B9FCF8242EEB66B700C112ED /* WorkoutStreakHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8222EEB66B700C112ED /* WorkoutStreakHeader.swift */; };
+		B9FCF8252EEB66B700C112ED /* WorkoutCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8202EEB66B700C112ED /* WorkoutCalendarView.swift */; };
+		B9FCF8262EEB66B700C112ED /* WorkoutDayPillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8212EEB66B700C112ED /* WorkoutDayPillView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -200,6 +204,10 @@
 		B9FCF80B2EE90C9F00C112ED /* SuggestMealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestMealsView.swift; sourceTree = "<group>"; };
 		B9FCF80D2EE912EE00C112ED /* SavedMealPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedMealPlanView.swift; sourceTree = "<group>"; };
 		B9FCF81B2EEB5DA200C112ED /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		B9FCF81E2EEB66A500C112ED /* WorkoutCalendarModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCalendarModels.swift; sourceTree = "<group>"; };
+		B9FCF8202EEB66B700C112ED /* WorkoutCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCalendarView.swift; sourceTree = "<group>"; };
+		B9FCF8212EEB66B700C112ED /* WorkoutDayPillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDayPillView.swift; sourceTree = "<group>"; };
+		B9FCF8222EEB66B700C112ED /* WorkoutStreakHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutStreakHeader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -296,6 +304,7 @@
 		B94DAAFA2ECFC32100DB65EB /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF81E2EEB66A500C112ED /* WorkoutCalendarModels.swift */,
 				B9FCF7B42EE7DE6700C112ED /* DietaryPlan.swift */,
 				B9FCF74A2EDFD3D000C112ED /* ChatConversation.swift */,
 				B9FCF74B2EDFD3D000C112ED /* NutritionSummary.swift */,
@@ -399,6 +408,7 @@
 		B94DAB212ECFC50000DB65EB /* Workouts */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF8232EEB66B700C112ED /* Components */,
 				B9FCF7462EDF96FA00C112ED /* ActiveWorkoutView.swift */,
 				B9FCF7472EDF96FA00C112ED /* AddExerciseView.swift */,
 				B9FCF75D2EDFD40200C112ED /* CreateWorkoutPlanView.swift */,
@@ -525,6 +535,16 @@
 				B9FCF81B2EEB5DA200C112ED /* OnboardingView.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		B9FCF8232EEB66B700C112ED /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B9FCF8202EEB66B700C112ED /* WorkoutCalendarView.swift */,
+				B9FCF8212EEB66B700C112ED /* WorkoutDayPillView.swift */,
+				B9FCF8222EEB66B700C112ED /* WorkoutStreakHeader.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -692,6 +712,7 @@
 				B9FCF7C62EE7DED400C112ED /* DietaryPlanDetailView.swift in Sources */,
 				B9FCF7C72EE7DED400C112ED /* GenerateDietaryPlanView.swift in Sources */,
 				B9FCF7502EDFD3D000C112ED /* TrainingSummary.swift in Sources */,
+				B9FCF81F2EEB66A500C112ED /* WorkoutCalendarModels.swift in Sources */,
 				B9FCF7512EDFD3D000C112ED /* ChatConversation.swift in Sources */,
 				B9FCF80E2EE912EE00C112ED /* SavedMealPlanView.swift in Sources */,
 				B9FCF7522EDFD3D000C112ED /* NutritionSummary.swift in Sources */,
@@ -718,6 +739,9 @@
 				B94DAB1A2ECFC50000DB65EB /* WorkoutService.swift in Sources */,
 				B933B8772ECFE43900DC9770 /* AuthService.swift in Sources */,
 				B94DAB1C2ECFC50000DB65EB /* DateFormatter+Extensions.swift in Sources */,
+				B9FCF8242EEB66B700C112ED /* WorkoutStreakHeader.swift in Sources */,
+				B9FCF8252EEB66B700C112ED /* WorkoutCalendarView.swift in Sources */,
+				B9FCF8262EEB66B700C112ED /* WorkoutDayPillView.swift in Sources */,
 				B94DAB1E2ECFC50000DB65EB /* WeightFormatter.swift in Sources */,
 				B94DAB4C2ECFC82000DB65EB /* ImageUtilities.swift in Sources */,
 				B94DAB252ECFC50000DB65EB /* colors.swift in Sources */,

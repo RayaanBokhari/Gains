@@ -116,6 +116,18 @@ extension Color {
             endPoint: .top
         )
     }
+    
+    static var gainsStreakGradient: LinearGradient {
+        LinearGradient(
+            colors: [gainsPrimary, Color.indigo],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+    
+    static var gainsStreakGlow: Color {
+        gainsAccentOrange.opacity(0.55)
+    }
 }
 
 // MARK: - Hex Color Extension

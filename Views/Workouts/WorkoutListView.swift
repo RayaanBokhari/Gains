@@ -125,45 +125,49 @@ struct WorkoutHistoryView: View {
     @ObservedObject var viewModel: WorkoutViewModel
     @Binding var showAICoach: Bool
     @Binding var showNewWorkout: Bool
+    @State private var selectedDate: Date = Date()
+    
+    private let calendar = Calendar.current
+    
+    // Workouts for the selected date
+    private var selectedDateWorkouts: [Workout] {
+        viewModel.workouts(for: selectedDate)
+    }
     
     var body: some View {
         ZStack {
-            if viewModel.isLoading {
-                VStack(spacing: GainsDesign.spacingL) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
-                        .scaleEffect(1.2)
-                    
-                    Text("Loading workouts...")
-                        .font(.system(size: GainsDesign.subheadline))
-                        .foregroundColor(.gainsTextSecondary)
-                }
-            } else if viewModel.workouts.isEmpty {
-                emptyState
+            if viewModel.isLoading && viewModel.workouts.isEmpty {
+                loadingState
             } else {
                 ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: GainsDesign.cardSpacing) {
-                        ForEach(viewModel.workouts) { workout in
-                            NavigationLink(destination: WorkoutDetailView(workout: workout)) {
-                                WorkoutRowView(workout: workout)
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    Task {
-                                        await viewModel.deleteWorkout(workout)
-                                    }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                        }
+                    VStack(spacing: GainsDesign.spacingL) {
+                        // Streak Header
+                        WorkoutStreakHeader(
+                            currentStreak: viewModel.currentWorkoutStreak,
+                            longestStreak: viewModel.longestWorkoutStreak,
+                            workoutDaysThisMonth: viewModel.workoutDaysThisMonth
+                        )
+                        .padding(.horizontal, GainsDesign.paddingHorizontal)
+                        
+                        // Calendar Grid
+                        WorkoutCalendarView(
+                            days: viewModel.calendarDays,
+                            selectedDate: $selectedDate,
+                            currentMonth: viewModel.currentMonth,
+                            onPreviousMonth: { viewModel.previousMonth() },
+                            onNextMonth: { viewModel.nextMonth() }
+                        )
+                        .padding(.horizontal, GainsDesign.paddingHorizontal)
+                        
+                        // Selected Day Detail
+                        selectedDaySection
+                            .padding(.horizontal, GainsDesign.paddingHorizontal)
                     }
-                    .padding(.horizontal, GainsDesign.paddingHorizontal)
                     .padding(.bottom, 100)
                 }
                 .refreshable {
                     await viewModel.refreshWorkouts()
+                    viewModel.rebuildCalendarDays()
                 }
             }
             
@@ -178,67 +182,122 @@ struct WorkoutHistoryView: View {
         }
         .onAppear {
             viewModel.startListening()
+            viewModel.rebuildCalendarDays()
+        }
+        .onChange(of: viewModel.workouts) { _, _ in
+            viewModel.rebuildCalendarDays()
         }
         .sheet(isPresented: $showNewWorkout) {
             NewWorkoutView(viewModel: viewModel)
         }
     }
     
-    // MARK: - Empty State
-    private var emptyState: some View {
-        VStack(spacing: GainsDesign.spacingXXL) {
-            Spacer()
+    // MARK: - Loading State
+    private var loadingState: some View {
+        VStack(spacing: GainsDesign.spacingL) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
+                .scaleEffect(1.2)
             
-            // Icon with soft background
-            ZStack {
-                Circle()
-                    .fill(Color.gainsBgTertiary)
-                    .frame(width: 96, height: 96)
-                
-                Image(systemName: "dumbbell.fill")
-                    .font(.system(size: 40, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.gainsTextTertiary, Color.gainsTextMuted],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-            }
-            
-            VStack(spacing: GainsDesign.spacingS) {
-                Text("No Workouts Yet")
-                    .font(.system(size: GainsDesign.titleSmall, weight: .semibold, design: .rounded))
+            Text("Loading workouts...")
+                .font(.system(size: GainsDesign.subheadline))
+                .foregroundColor(.gainsTextSecondary)
+        }
+    }
+    
+    // MARK: - Selected Day Section
+    private var selectedDaySection: some View {
+        VStack(alignment: .leading, spacing: GainsDesign.spacingM) {
+            // Date header
+            HStack {
+                Text(selectedDateLabel)
+                    .font(.system(size: GainsDesign.headline, weight: .semibold))
                     .foregroundColor(.white)
                 
-                Text("Start tracking your fitness journey")
-                    .font(.system(size: GainsDesign.callout))
-                    .foregroundColor(.gainsTextSecondary)
-            }
-            
-            // Primary CTA
-            Button {
-                showNewWorkout = true
-            } label: {
-                HStack(spacing: GainsDesign.spacingS) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .semibold))
-                    Text("Start Workout")
-                        .font(.system(size: GainsDesign.body, weight: .semibold))
+                Spacer()
+                
+                if calendar.isDateInToday(selectedDate) {
+                    Text("Today")
+                        .font(.system(size: GainsDesign.caption, weight: .medium))
+                        .foregroundColor(.gainsPrimary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.gainsPrimary.opacity(0.15))
+                        )
                 }
-                .foregroundColor(.white)
-                .frame(width: 200)
-                .frame(height: GainsDesign.buttonHeightLarge)
-                .background(
-                    RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusMedium)
-                        .fill(Color.gainsPrimary)
-                )
-                .shadow(color: Color.gainsPrimary.opacity(0.35), radius: 16, x: 0, y: 8)
             }
             
-            Spacer()
+            // Workouts list or empty state
+            if selectedDateWorkouts.isEmpty {
+                selectedDayEmptyState
+            } else {
+                LazyVStack(spacing: GainsDesign.cardSpacing) {
+                    ForEach(selectedDateWorkouts) { workout in
+                        NavigationLink(destination: WorkoutDetailView(workout: workout)) {
+                            WorkoutRowView(workout: workout)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                Task {
+                                    await viewModel.deleteWorkout(workout)
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }
+                }
+            }
         }
-        .padding(.horizontal, GainsDesign.paddingHorizontal)
+    }
+    
+    private var selectedDateLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d"
+        return formatter.string(from: selectedDate)
+    }
+    
+    // MARK: - Selected Day Empty State
+    private var selectedDayEmptyState: some View {
+        VStack(spacing: GainsDesign.spacingL) {
+            Image(systemName: "figure.strengthtraining.traditional")
+                .font(.system(size: 32, weight: .light))
+                .foregroundColor(.gainsTextTertiary)
+            
+            Text("No workouts on this day")
+                .font(.system(size: GainsDesign.subheadline))
+                .foregroundColor(.gainsTextSecondary)
+            
+            if calendar.isDateInToday(selectedDate) {
+                Button {
+                    showNewWorkout = true
+                } label: {
+                    HStack(spacing: GainsDesign.spacingS) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("Start Workout")
+                            .font(.system(size: GainsDesign.subheadline, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(
+                        Capsule()
+                            .fill(Color.gainsPrimary)
+                    )
+                    .shadow(color: Color.gainsPrimary.opacity(0.3), radius: 12, x: 0, y: 4)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, GainsDesign.spacingXXL)
+        .background(
+            RoundedRectangle(cornerRadius: GainsDesign.cornerRadiusLarge)
+                .fill(Color.gainsCardSurface.opacity(0.5))
+        )
     }
     
     // MARK: - AI Coach Button
