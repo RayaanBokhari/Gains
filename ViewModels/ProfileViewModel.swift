@@ -41,12 +41,33 @@ class ProfileViewModel: ObservableObject {
         defer { isLoading = false }
         
         do {
-            if let fetchedProfile = try await firestore.fetchUserProfile(userId: user.uid) {
+            if var fetchedProfile = try await firestore.fetchUserProfile(userId: user.uid) {
                 print("✅ ProfileViewModel: Successfully loaded profile")
+                
+                // Handle existing users who had profiles before onboarding was added
+                // If they have meaningful data (not default values), mark them as onboarded
+                if !fetchedProfile.hasCompletedOnboarding {
+                    let hasCustomData = fetchedProfile.name != "Alex" ||
+                                       fetchedProfile.weight != 150 ||
+                                       fetchedProfile.height != "5 ft 10 in" ||
+                                       fetchedProfile.dailyCaloriesGoal != 2000
+                    
+                    if hasCustomData {
+                        print("📝 ProfileViewModel: Existing user with custom data, marking as onboarded")
+                        fetchedProfile.hasCompletedOnboarding = true
+                        try await firestore.saveUserProfile(userId: user.uid, profile: fetchedProfile)
+                        
+                        // Update AuthService state
+                        await MainActor.run {
+                            auth.hasCompletedOnboarding = true
+                        }
+                    }
+                }
+                
                 profile = fetchedProfile
             } else {
                 print("📝 ProfileViewModel: No profile found, creating default")
-                // No profile exists, create default one
+                // No profile exists, create default one (but don't mark as onboarded)
                 profile = UserProfile(dateJoined: Date())
                 // Save default profile
                 try await firestore.saveUserProfile(userId: user.uid, profile: profile)

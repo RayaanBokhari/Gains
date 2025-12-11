@@ -91,6 +91,7 @@ struct UserProfile: Codable {
     var macros: MacroGoals
     var waterGoal: Double // in oz
     var useMetricUnits: Bool // true for metric (kg, cm), false for imperial (lbs, ft/in)
+    var hasCompletedOnboarding: Bool // Tracks if user has gone through onboarding flow
     
     // NEW: Goal & Training Context
     var primaryGoal: FitnessGoal?
@@ -117,7 +118,7 @@ struct UserProfile: Codable {
         var fats: Double
     }
     
-    init(name: String = "Alex", dateJoined: Date = Date(), weight: Double = 150, height: String = "5 ft 10 in", gender: String = "Male", dailyCaloriesGoal: Int = 2000, macros: MacroGoals = MacroGoals(protein: 150, carbs: 200, fats: 65), waterGoal: Double = 96, useMetricUnits: Bool = false, primaryGoal: FitnessGoal? = nil, targetWeight: Double? = nil, targetDate: Date? = nil, trainingExperience: TrainingExperience? = nil, trainingSplit: TrainingSplit? = nil, activityLevel: ActivityLevel? = nil, preferredTrainingDays: [Weekday]? = nil, dietType: DietType? = nil, allergies: [String]? = nil, dislikedFoods: [String]? = nil, mealPattern: MealPattern? = nil, coachingStyle: CoachingStyle? = nil, detailPreference: DetailPreference? = nil) {
+    init(name: String = "Alex", dateJoined: Date = Date(), weight: Double = 150, height: String = "5 ft 10 in", gender: String = "Male", dailyCaloriesGoal: Int = 2000, macros: MacroGoals = MacroGoals(protein: 150, carbs: 200, fats: 65), waterGoal: Double = 96, useMetricUnits: Bool = false, hasCompletedOnboarding: Bool = false, primaryGoal: FitnessGoal? = nil, targetWeight: Double? = nil, targetDate: Date? = nil, trainingExperience: TrainingExperience? = nil, trainingSplit: TrainingSplit? = nil, activityLevel: ActivityLevel? = nil, preferredTrainingDays: [Weekday]? = nil, dietType: DietType? = nil, allergies: [String]? = nil, dislikedFoods: [String]? = nil, mealPattern: MealPattern? = nil, coachingStyle: CoachingStyle? = nil, detailPreference: DetailPreference? = nil) {
         self.name = name
         self.dateJoined = dateJoined
         self.weight = weight
@@ -127,6 +128,7 @@ struct UserProfile: Codable {
         self.macros = macros
         self.waterGoal = waterGoal
         self.useMetricUnits = useMetricUnits
+        self.hasCompletedOnboarding = hasCompletedOnboarding
         self.primaryGoal = primaryGoal
         self.targetWeight = targetWeight
         self.targetDate = targetDate
@@ -140,6 +142,46 @@ struct UserProfile: Codable {
         self.mealPattern = mealPattern
         self.coachingStyle = coachingStyle
         self.detailPreference = detailPreference
+    }
+    
+    // Custom decoder to handle existing profiles without hasCompletedOnboarding field
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        name = try container.decode(String.self, forKey: .name)
+        dateJoined = try container.decode(Date.self, forKey: .dateJoined)
+        weight = try container.decode(Double.self, forKey: .weight)
+        height = try container.decode(String.self, forKey: .height)
+        gender = try container.decode(String.self, forKey: .gender)
+        dailyCaloriesGoal = try container.decode(Int.self, forKey: .dailyCaloriesGoal)
+        macros = try container.decode(MacroGoals.self, forKey: .macros)
+        waterGoal = try container.decode(Double.self, forKey: .waterGoal)
+        useMetricUnits = try container.decode(Bool.self, forKey: .useMetricUnits)
+        
+        // Use decodeIfPresent with default value for backward compatibility
+        hasCompletedOnboarding = try container.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? false
+        
+        // Optional fields
+        primaryGoal = try container.decodeIfPresent(FitnessGoal.self, forKey: .primaryGoal)
+        targetWeight = try container.decodeIfPresent(Double.self, forKey: .targetWeight)
+        targetDate = try container.decodeIfPresent(Date.self, forKey: .targetDate)
+        trainingExperience = try container.decodeIfPresent(TrainingExperience.self, forKey: .trainingExperience)
+        trainingSplit = try container.decodeIfPresent(TrainingSplit.self, forKey: .trainingSplit)
+        activityLevel = try container.decodeIfPresent(ActivityLevel.self, forKey: .activityLevel)
+        preferredTrainingDays = try container.decodeIfPresent([Weekday].self, forKey: .preferredTrainingDays)
+        dietType = try container.decodeIfPresent(DietType.self, forKey: .dietType)
+        allergies = try container.decodeIfPresent([String].self, forKey: .allergies)
+        dislikedFoods = try container.decodeIfPresent([String].self, forKey: .dislikedFoods)
+        mealPattern = try container.decodeIfPresent(MealPattern.self, forKey: .mealPattern)
+        coachingStyle = try container.decodeIfPresent(CoachingStyle.self, forKey: .coachingStyle)
+        detailPreference = try container.decodeIfPresent(DetailPreference.self, forKey: .detailPreference)
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case name, dateJoined, weight, height, gender, dailyCaloriesGoal, macros, waterGoal
+        case useMetricUnits, hasCompletedOnboarding, primaryGoal, targetWeight, targetDate
+        case trainingExperience, trainingSplit, activityLevel, preferredTrainingDays
+        case dietType, allergies, dislikedFoods, mealPattern, coachingStyle, detailPreference
     }
     
     // Computed descriptions for AI context
