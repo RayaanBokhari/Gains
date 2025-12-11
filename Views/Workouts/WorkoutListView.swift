@@ -157,6 +157,10 @@ struct WorkoutHistoryView: View {
                         )
                         .padding(.horizontal, GainsDesign.paddingHorizontal)
                         
+                        // AI Daily Insight
+                        AIInsightCard()
+                            .padding(.horizontal, GainsDesign.paddingHorizontal)
+                        
                         // Selected Day Detail
                         selectedDaySection
                             .padding(.horizontal, GainsDesign.paddingHorizontal)
@@ -183,15 +187,15 @@ struct WorkoutHistoryView: View {
     
     // MARK: - Loading State
     private var loadingState: some View {
-        VStack(spacing: GainsDesign.spacingL) {
-            ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
-                .scaleEffect(1.2)
-            
-            Text("Loading workouts...")
-                .font(.system(size: GainsDesign.subheadline))
-                .foregroundColor(.gainsTextSecondary)
-        }
+                VStack(spacing: GainsDesign.spacingL) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .gainsPrimary))
+                        .scaleEffect(1.2)
+                    
+                    Text("Loading workouts...")
+                        .font(.system(size: GainsDesign.subheadline))
+                        .foregroundColor(.gainsTextSecondary)
+                }
     }
     
     // MARK: - Selected Day Section
@@ -222,23 +226,23 @@ struct WorkoutHistoryView: View {
             if selectedDateWorkouts.isEmpty {
                 selectedDayEmptyState
             } else {
-                LazyVStack(spacing: GainsDesign.cardSpacing) {
+                    LazyVStack(spacing: GainsDesign.cardSpacing) {
                     ForEach(selectedDateWorkouts) { workout in
-                        NavigationLink(destination: WorkoutDetailView(workout: workout)) {
-                            WorkoutRowView(workout: workout)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            Button(role: .destructive) {
-                                Task {
-                                    await viewModel.deleteWorkout(workout)
+                            NavigationLink(destination: WorkoutDetailView(workout: workout)) {
+                                WorkoutRowView(workout: workout)
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    Task {
+                                        await viewModel.deleteWorkout(workout)
+                                    }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
                                 }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
                             }
                         }
                     }
-                }
             }
         }
     }
@@ -258,27 +262,27 @@ struct WorkoutHistoryView: View {
             
             Text("No workouts on this day")
                 .font(.system(size: GainsDesign.subheadline))
-                .foregroundColor(.gainsTextSecondary)
+                    .foregroundColor(.gainsTextSecondary)
             
             if calendar.isDateInToday(selectedDate) {
-                Button {
-                    showNewWorkout = true
-                } label: {
-                    HStack(spacing: GainsDesign.spacingS) {
-                        Image(systemName: "plus")
+            Button {
+                showNewWorkout = true
+            } label: {
+                HStack(spacing: GainsDesign.spacingS) {
+                    Image(systemName: "plus")
                             .font(.system(size: 12, weight: .semibold))
-                        Text("Start Workout")
-                            .font(.system(size: GainsDesign.subheadline, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
+                    Text("Start Workout")
+                    .font(.system(size: GainsDesign.subheadline, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(
-                        Capsule()
+            .background(
+                Capsule()
                             .fill(Color.gainsPrimary)
-                    )
+            )
                     .shadow(color: Color.gainsPrimary.opacity(0.3), radius: 12, x: 0, y: 4)
-                }
+        }
             }
         }
         .frame(maxWidth: .infinity)
