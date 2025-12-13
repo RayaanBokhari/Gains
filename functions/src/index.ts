@@ -116,7 +116,7 @@ export const aiChat = functions
         });
 
         const response = await client.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-5-mini",
           messages: openaiMessages,
           temperature: 0.7,
           max_tokens: isStructuredPlanRequest ? 4000 : 1000,
