@@ -7,7 +7,40 @@
 		<key>Gains.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>GainsWidgetsExtension.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>Promises (Playground).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>B94DAACE2ECFC2EE00DB65EB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B94DAADB2ECFC2EF00DB65EB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B94DAAE52ECFC2EF00DB65EB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B9FCF8312EECF73F00C112ED</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

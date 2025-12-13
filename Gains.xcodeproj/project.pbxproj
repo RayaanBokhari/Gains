@@ -102,6 +102,14 @@
 		B9FCF82A2EEB76B700C112ED /* AICoachFloatingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8272EEB76B700C112ED /* AICoachFloatingPanel.swift */; };
 		B9FCF82B2EEB76B700C112ED /* AICoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8282EEB76B700C112ED /* AICoachView.swift */; };
 		B9FCF82D2EEB781900C112ED /* AIInsightCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF82C2EEB781900C112ED /* AIInsightCard.swift */; };
+		B9FCF8342EECF73F00C112ED /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9FCF8332EECF73F00C112ED /* WidgetKit.framework */; };
+		B9FCF8362EECF73F00C112ED /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9FCF8352EECF73F00C112ED /* SwiftUI.framework */; };
+		B9FCF8472EECF74100C112ED /* GainsWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B9FCF8322EECF73F00C112ED /* GainsWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B9FCF8522EECFA0400C112ED /* ActiveWorkoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF84F2EECFA0400C112ED /* ActiveWorkoutManager.swift */; };
+		B9FCF8532EECFA0400C112ED /* AIWorkoutPlanParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8502EECFA0400C112ED /* AIWorkoutPlanParser.swift */; };
+		B9FCF8542EECFA0400C112ED /* WorkoutLiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8512EECFA0400C112ED /* WorkoutLiveActivityManager.swift */; };
+		B9FCF8572EECFA1A00C112ED /* StartWorkoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8562EECFA1A00C112ED /* StartWorkoutSheet.swift */; };
+		B9FCF8582EECFA1A00C112ED /* ActiveWorkoutSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FCF8552EECFA1A00C112ED /* ActiveWorkoutSessionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,7 +127,28 @@
 			remoteGlobalIDString = B94DAACE2ECFC2EE00DB65EB;
 			remoteInfo = Gains;
 		};
+		B9FCF8452EECF74100C112ED /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B94DAAC72ECFC2EE00DB65EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B9FCF8312EECF73F00C112ED;
+			remoteInfo = GainsWidgetsExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B9FCF84C2EECF74100C112ED /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B9FCF8472EECF74100C112ED /* GainsWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		B933B8742ECFE42400DC9770 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
@@ -214,6 +243,14 @@
 		B9FCF8272EEB76B700C112ED /* AICoachFloatingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICoachFloatingPanel.swift; sourceTree = "<group>"; };
 		B9FCF8282EEB76B700C112ED /* AICoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICoachView.swift; sourceTree = "<group>"; };
 		B9FCF82C2EEB781900C112ED /* AIInsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightCard.swift; sourceTree = "<group>"; };
+		B9FCF8322EECF73F00C112ED /* GainsWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GainsWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9FCF8332EECF73F00C112ED /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		B9FCF8352EECF73F00C112ED /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		B9FCF84F2EECFA0400C112ED /* ActiveWorkoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveWorkoutManager.swift; sourceTree = "<group>"; };
+		B9FCF8502EECFA0400C112ED /* AIWorkoutPlanParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWorkoutPlanParser.swift; sourceTree = "<group>"; };
+		B9FCF8512EECFA0400C112ED /* WorkoutLiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLiveActivityManager.swift; sourceTree = "<group>"; };
+		B9FCF8552EECFA1A00C112ED /* ActiveWorkoutSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveWorkoutSessionView.swift; sourceTree = "<group>"; };
+		B9FCF8562EECFA1A00C112ED /* StartWorkoutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartWorkoutSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -223,6 +260,13 @@
 				Info.plist,
 			);
 			target = B94DAACE2ECFC2EE00DB65EB /* Gains */;
+		};
+		B9FCF84B2EECF74100C112ED /* Exceptions for "GainsWidgets" folder in "GainsWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B9FCF8312EECF73F00C112ED /* GainsWidgetsExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -243,6 +287,14 @@
 		B94DAAE92ECFC2EF00DB65EB /* GainsUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = GainsUITests;
+			sourceTree = "<group>";
+		};
+		B9FCF8372EECF73F00C112ED /* GainsWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B9FCF84B2EECF74100C112ED /* Exceptions for "GainsWidgets" folder in "GainsWidgetsExtension" target */,
+			);
+			path = GainsWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -276,6 +328,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B9FCF82F2EECF73F00C112ED /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B9FCF8362EECF73F00C112ED /* SwiftUI.framework in Frameworks */,
+				B9FCF8342EECF73F00C112ED /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -292,6 +353,7 @@
 				B94DAAD12ECFC2EE00DB65EB /* Gains */,
 				B94DAADF2ECFC2EF00DB65EB /* GainsTests */,
 				B94DAAE92ECFC2EF00DB65EB /* GainsUITests */,
+				B9FCF8372EECF73F00C112ED /* GainsWidgets */,
 				B9DDCC8E2ED1490A000E97E3 /* Frameworks */,
 				B94DAAD02ECFC2EE00DB65EB /* Products */,
 			);
@@ -303,6 +365,7 @@
 				B94DAACF2ECFC2EE00DB65EB /* Gains.app */,
 				B94DAADC2ECFC2EF00DB65EB /* GainsTests.xctest */,
 				B94DAAE62ECFC2EF00DB65EB /* GainsUITests.xctest */,
+				B9FCF8322EECF73F00C112ED /* GainsWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -367,6 +430,9 @@
 		B94DAAFD2ECFC33700DB65EB /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF84F2EECFA0400C112ED /* ActiveWorkoutManager.swift */,
+				B9FCF8502EECFA0400C112ED /* AIWorkoutPlanParser.swift */,
+				B9FCF8512EECFA0400C112ED /* WorkoutLiveActivityManager.swift */,
 				B9FCF7CA2EE7EB3E00C112ED /* HealthKitService.swift */,
 				B9FCF7C82EE7DEF700C112ED /* DietaryPlanService.swift */,
 				B9FCF7542EDFD3DE00C112ED /* ChatStorageService.swift */,
@@ -415,6 +481,8 @@
 		B94DAB212ECFC50000DB65EB /* Workouts */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF8552EECFA1A00C112ED /* ActiveWorkoutSessionView.swift */,
+				B9FCF8562EECFA1A00C112ED /* StartWorkoutSheet.swift */,
 				B9FCF8232EEB66B700C112ED /* Components */,
 				B9FCF7462EDF96FA00C112ED /* ActiveWorkoutView.swift */,
 				B9FCF7472EDF96FA00C112ED /* AddExerciseView.swift */,
@@ -502,6 +570,8 @@
 		B9DDCC8E2ED1490A000E97E3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B9FCF8332EECF73F00C112ED /* WidgetKit.framework */,
+				B9FCF8352EECF73F00C112ED /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -574,10 +644,12 @@
 				B94DAACB2ECFC2EE00DB65EB /* Sources */,
 				B94DAACC2ECFC2EE00DB65EB /* Frameworks */,
 				B94DAACD2ECFC2EE00DB65EB /* Resources */,
+				B9FCF84C2EECF74100C112ED /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B9FCF8462EECF74100C112ED /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				B94DAAD12ECFC2EE00DB65EB /* Gains */,
@@ -642,6 +714,28 @@
 			productReference = B94DAAE62ECFC2EF00DB65EB /* GainsUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		B9FCF8312EECF73F00C112ED /* GainsWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B9FCF8482EECF74100C112ED /* Build configuration list for PBXNativeTarget "GainsWidgetsExtension" */;
+			buildPhases = (
+				B9FCF82E2EECF73F00C112ED /* Sources */,
+				B9FCF82F2EECF73F00C112ED /* Frameworks */,
+				B9FCF8302EECF73F00C112ED /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B9FCF8372EECF73F00C112ED /* GainsWidgets */,
+			);
+			name = GainsWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = GainsWidgetsExtension;
+			productReference = B9FCF8322EECF73F00C112ED /* GainsWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -662,6 +756,9 @@
 					B94DAAE52ECFC2EF00DB65EB = {
 						CreatedOnToolsVersion = 26.1;
 						TestTargetID = B94DAACE2ECFC2EE00DB65EB;
+					};
+					B9FCF8312EECF73F00C112ED = {
+						CreatedOnToolsVersion = 26.1;
 					};
 				};
 			};
@@ -686,6 +783,7 @@
 				B94DAACE2ECFC2EE00DB65EB /* Gains */,
 				B94DAADB2ECFC2EF00DB65EB /* GainsTests */,
 				B94DAAE52ECFC2EF00DB65EB /* GainsUITests */,
+				B9FCF8312EECF73F00C112ED /* GainsWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -713,6 +811,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B9FCF8302EECF73F00C112ED /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -724,6 +829,9 @@
 				B94DAAD52ECFC2EE00DB65EB /* ContentView.swift in Sources */,
 				B933B87B2ECFE68400DC9770 /* DailyLog.swift in Sources */,
 				B9FCF74F2EDFD3D000C112ED /* WorkoutPlan.swift in Sources */,
+				B9FCF8522EECFA0400C112ED /* ActiveWorkoutManager.swift in Sources */,
+				B9FCF8532EECFA0400C112ED /* AIWorkoutPlanParser.swift in Sources */,
+				B9FCF8542EECFA0400C112ED /* WorkoutLiveActivityManager.swift in Sources */,
 				B9FCF7C42EE7DED400C112ED /* CreateDietaryPlanView.swift in Sources */,
 				B9FCF7C52EE7DED400C112ED /* DietaryPlansView.swift in Sources */,
 				B9FCF7C62EE7DED400C112ED /* DietaryPlanDetailView.swift in Sources */,
@@ -767,6 +875,8 @@
 				B94DAB272ECFC60000DB65EB /* Food.swift in Sources */,
 				B94DAB292ECFC60000DB65EB /* HomeView.swift in Sources */,
 				B94DAB4A2ECFC81000DB65EB /* FoodLoggingView.swift in Sources */,
+				B9FCF8572EECFA1A00C112ED /* StartWorkoutSheet.swift in Sources */,
+				B9FCF8582EECFA1A00C112ED /* ActiveWorkoutSessionView.swift in Sources */,
 				B94DAB4E2ECFC83000DB65EB /* MealCard.swift in Sources */,
 				B94DAB502ECFC84000DB65EB /* EditMealView.swift in Sources */,
 				B94DAB2B2ECFC60000DB65EB /* AICoachView.swift in Sources */,
@@ -824,6 +934,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B9FCF82E2EECF73F00C112ED /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -836,6 +953,11 @@
 			isa = PBXTargetDependency;
 			target = B94DAACE2ECFC2EE00DB65EB /* Gains */;
 			targetProxy = B94DAAE72ECFC2EF00DB65EB /* PBXContainerItemProxy */;
+		};
+		B9FCF8462EECF74100C112ED /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B9FCF8312EECF73F00C112ED /* GainsWidgetsExtension */;
+			targetProxy = B9FCF8452EECF74100C112ED /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1111,6 +1233,66 @@
 			};
 			name = Release;
 		};
+		B9FCF8492EECF74100C112ED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X5XJ4X2G7Q;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GainsWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = GainsWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rayaan.Gains.GainsWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B9FCF84A2EECF74100C112ED /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X5XJ4X2G7Q;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GainsWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = GainsWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rayaan.Gains.GainsWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1146,6 +1328,15 @@
 			buildConfigurations = (
 				B94DAAF72ECFC2EF00DB65EB /* Debug */,
 				B94DAAF82ECFC2EF00DB65EB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B9FCF8482EECF74100C112ED /* Build configuration list for PBXNativeTarget "GainsWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9FCF8492EECF74100C112ED /* Debug */,
+				B9FCF84A2EECF74100C112ED /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
