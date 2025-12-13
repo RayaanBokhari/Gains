@@ -14,7 +14,10 @@ enum WorkoutTab: String, CaseIterable {
 
 struct WorkoutListView: View {
     @StateObject private var viewModel = WorkoutViewModel()
+    @ObservedObject var workoutManager = ActiveWorkoutManager.shared
     @State private var showNewWorkout = false
+    @State private var showStartWorkoutSheet = false
+    @State private var showActiveWorkout = false
     @State private var selectedTab: WorkoutTab = .history
     
     var body: some View {
@@ -36,16 +39,93 @@ struct WorkoutListView: View {
                     // Content
                     switch selectedTab {
                     case .history:
-                        WorkoutHistoryView(viewModel: viewModel, showNewWorkout: $showNewWorkout)
+                        WorkoutHistoryView(viewModel: viewModel, showNewWorkout: $showStartWorkoutSheet)
                     case .plans:
                         WorkoutPlansContentView()
                     }
                 }
                 
+                // Active Workout Indicator (when workout in progress)
+                if workoutManager.isWorkoutActive {
+                    activeWorkoutBanner
+                }
+                
                 // AI Coach Floating Panel (Apple Maps style)
-                AICoachFloatingPanel()
+                if !workoutManager.isWorkoutActive {
+                    AICoachFloatingPanel()
+                }
             }
             .navigationBarHidden(true)
+            .sheet(isPresented: $showStartWorkoutSheet) {
+                StartWorkoutSheet()
+            }
+            .fullScreenCover(isPresented: $showActiveWorkout) {
+                ActiveWorkoutSessionView()
+            }
+            .onChange(of: workoutManager.isWorkoutActive) { _, isActive in
+                if isActive {
+                    showStartWorkoutSheet = false
+                    showActiveWorkout = true
+                } else {
+                    showActiveWorkout = false
+                }
+            }
+        }
+    }
+    
+    // MARK: - Active Workout Banner
+    private var activeWorkoutBanner: some View {
+        VStack {
+            Spacer()
+            
+            Button {
+                showActiveWorkout = true
+            } label: {
+                HStack(spacing: GainsDesign.spacingM) {
+                    // Pulsing indicator
+                    ZStack {
+                        Circle()
+                            .fill(Color.gainsSuccess)
+                            .frame(width: 12, height: 12)
+                        
+                        Circle()
+                            .stroke(Color.gainsSuccess.opacity(0.5), lineWidth: 2)
+                            .frame(width: 20, height: 20)
+                            .scaleEffect(1.2)
+                            .opacity(0.6)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Workout in Progress")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        Text("\(workoutManager.workoutName) • \(workoutManager.formattedElapsedTime)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gainsTextSecondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.gainsTextTertiary)
+                }
+                .padding(GainsDesign.spacingL)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                        .environment(\.colorScheme, .dark)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.gainsSuccess.opacity(0.3), lineWidth: 1.5)
+                )
+                .shadow(color: Color.gainsSuccess.opacity(0.2), radius: 20, x: 0, y: 10)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, GainsDesign.paddingHorizontal)
+            .padding(.bottom, 100)
         }
     }
     
@@ -58,19 +138,29 @@ struct WorkoutListView: View {
             
             Spacer()
             
-            if selectedTab == .history {
+            if selectedTab == .history && !workoutManager.isWorkoutActive {
                 Button {
-                    showNewWorkout = true
+                    showStartWorkoutSheet = true
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color.gainsPrimary)
-                            .frame(width: 32, height: 32)
-                        
+                    HStack(spacing: 6) {
                         Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
+                            .font(.system(size: 14, weight: .bold))
+                        Text("Start")
+                            .font(.system(size: 14, weight: .semibold))
                     }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.gainsPrimary, Color.gainsAccentBlue],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
                     .shadow(color: Color.gainsPrimary.opacity(0.4), radius: 8, x: 0, y: 4)
                 }
             }
@@ -180,9 +270,7 @@ struct WorkoutHistoryView: View {
         .onChange(of: viewModel.workouts) { _, _ in
             viewModel.rebuildCalendarDays()
         }
-        .sheet(isPresented: $showNewWorkout) {
-            NewWorkoutView(viewModel: viewModel)
-        }
+        // Sheet is now handled by parent WorkoutListView with StartWorkoutSheet
     }
     
     // MARK: - Loading State
