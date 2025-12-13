@@ -11,9 +11,7 @@ import SwiftUI
 @main
 struct GainsWidgetsBundle: WidgetBundle {
     var body: some Widget {
-        GainsWidgets()
-        GainsWidgetsControl()
-        WorkoutLiveActivity()      // Workout Live Activity (primary)
-        GainsWidgetsLiveActivity() // Legacy (can remove later)
+        // Only Live Activity for workout tracking on lock screen
+        WorkoutLiveActivity()
     }
 }

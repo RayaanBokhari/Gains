@@ -14,14 +14,33 @@ struct Workout: Identifiable, Codable, Equatable {
     var exercises: [Exercise]
     var notes: String?
     var workoutId: String? // Firestore document ID
+    var duration: TimeInterval? // Duration in seconds
+    var startTime: Date? // When the workout started
+    var endTime: Date? // When the workout ended
     
-    init(id: UUID = UUID(), name: String, date: Date = Date(), exercises: [Exercise] = [], notes: String? = nil, workoutId: String? = nil) {
+    init(id: UUID = UUID(), name: String, date: Date = Date(), exercises: [Exercise] = [], notes: String? = nil, workoutId: String? = nil, duration: TimeInterval? = nil, startTime: Date? = nil, endTime: Date? = nil) {
         self.id = id
         self.name = name
         self.date = date
         self.exercises = exercises
         self.notes = notes
         self.workoutId = workoutId
+        self.duration = duration
+        self.startTime = startTime
+        self.endTime = endTime
+    }
+    
+    // Formatted duration string
+    var formattedDuration: String? {
+        guard let duration = duration else { return nil }
+        let hours = Int(duration) / 3600
+        let minutes = (Int(duration) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else {
+            return "\(minutes) min"
+        }
     }
     
     // Custom decoding to handle legacy data where 'id' might be a non-UUID string
@@ -44,6 +63,9 @@ struct Workout: Identifiable, Codable, Equatable {
         self.exercises = try container.decodeIfPresent([Exercise].self, forKey: .exercises) ?? []
         self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
         self.workoutId = try container.decodeIfPresent(String.self, forKey: .workoutId)
+        self.duration = try container.decodeIfPresent(TimeInterval.self, forKey: .duration)
+        self.startTime = try container.decodeIfPresent(Date.self, forKey: .startTime)
+        self.endTime = try container.decodeIfPresent(Date.self, forKey: .endTime)
     }
 }
 

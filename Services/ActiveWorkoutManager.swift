@@ -249,10 +249,14 @@ class ActiveWorkoutManager: ObservableObject {
         
         logEvent(.sessionEnded)
         
+        let endTime = Date()
+        let workoutStartTime = startTime ?? Date()
+        let workoutDuration = endTime.timeIntervalSince(workoutStartTime)
+        
         // Convert to Workout model for saving
         let workout = Workout(
             name: workoutName,
-            date: startTime ?? Date(),
+            date: workoutStartTime,
             exercises: exercises.map { activeExercise in
                 Exercise(
                     name: activeExercise.name,
@@ -265,7 +269,10 @@ class ActiveWorkoutManager: ObservableObject {
                     },
                     restTime: activeExercise.restDuration
                 )
-            }
+            },
+            duration: workoutDuration,
+            startTime: workoutStartTime,
+            endTime: endTime
         )
         
         resetSession()
